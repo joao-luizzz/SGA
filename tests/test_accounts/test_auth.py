@@ -13,6 +13,16 @@ class TestAuthenticationFlows:
         assert response.status_code == 302
         assert response.url == reverse('accounts:dashboard_aluno')
 
+    def test_login_open_redirect_prevented(self, client, user_aluno, password):
+        login_url = f"{reverse('accounts:login')}?next=https://site-malicioso.com"
+        response = client.post(login_url, {
+            'username': user_aluno.email,
+            'password': password
+        })
+        assert response.status_code == 302
+        assert response.url == reverse('accounts:dashboard_aluno')
+        assert "site-malicioso.com" not in response.url
+
     def test_login_inactive_user(self, client, user_inactive, password):
         login_url = reverse('accounts:login')
         response = client.post(login_url, {
@@ -47,9 +57,13 @@ class TestAuthenticationFlows:
         assert user_must_change_pw.must_change_password is False
         assert user_must_change_pw.check_password(new_pw) is True
 
-    def test_logout_view(self, client, user_aluno, password):
+    def test_logout_view_post_required(self, client, user_aluno, password):
         client.login(username=user_aluno.email, password=password)
         logout_url = reverse('accounts:logout')
-        response = client.get(logout_url)
-        assert response.status_code == 302
-        assert response.url == reverse('accounts:login')
+
+        get_response = client.get(logout_url)
+        assert get_response.status_code == 405
+
+        post_response = client.post(logout_url)
+        assert post_response.status_code == 302
+        assert post_response.url == reverse('accounts:login')

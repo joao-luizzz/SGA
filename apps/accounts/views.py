@@ -3,7 +3,9 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.http import require_POST
 
 from .forms import SGAAuthenticationForm, SGAMandatoryPasswordChangeForm
 from .models import UserRole
@@ -30,8 +32,8 @@ def login_view(request):
                 messages.warning(request, _("Por favor, altere sua senha temporária para continuar."))
                 return redirect('accounts:change_password')
 
-            next_url = request.GET.get('next')
-            if next_url:
+            next_url = request.GET.get('next') or request.POST.get('next')
+            if next_url and url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}):
                 return redirect(next_url)
             return redirect(get_dashboard_url_by_role(user.role))
         else:
@@ -41,6 +43,7 @@ def login_view(request):
 
     return render(request, 'registration/login.html', {'form': form})
 
+@require_POST
 def logout_view(request):
     if request.user.is_authenticated:
         logout(request)
