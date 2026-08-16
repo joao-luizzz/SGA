@@ -15,6 +15,12 @@ O **SGA (Sistema de Gestão Acadêmica)** é um sistema monólito web desenvolvi
 
 ---
 
+## 📚 Documentação
+
+A documentação técnica e funcional do projeto está disponível em [`/docs`](docs/).
+
+---
+
 ## 📁 Estrutura do Projeto
 
 ```text
