@@ -1,17 +1,20 @@
-import copy
+import sys
 import pytest
-from django.template.context import BaseContext
 from accounts.models import CustomUser, UserRole
 
-# Monkeypatch Python 3.14 compatibility for Django template context copying in tests
-def _base_context_copy(self):
-    duplicate = self.__class__.__new__(self.__class__)
-    duplicate.__dict__.update(self.__dict__)
-    if hasattr(self, 'dicts'):
-        duplicate.dicts = self.dicts[:]
-    return duplicate
+# Python 3.14 compatibility patch: Django 5.1 BaseContext.__copy__ calls super().__copy__()
+# which raises AttributeError in Python 3.14 during django.test.client template rendering context storage.
+if sys.version_info >= (3, 14):
+    from django.template.context import BaseContext
 
-BaseContext.__copy__ = _base_context_copy
+    def _python314_base_context_copy(self):
+        duplicate = self.__class__.__new__(self.__class__)
+        duplicate.__dict__.update(self.__dict__)
+        if hasattr(self, 'dicts'):
+            duplicate.dicts = self.dicts[:]
+        return duplicate
+
+    BaseContext.__copy__ = _python314_base_context_copy
 
 
 @pytest.fixture
