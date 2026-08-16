@@ -126,4 +126,4 @@ Esta entrega aborda e encerra as seguintes tarefas:
 
 * **Closes #1**: Inicialização da fundação técnica, estrutura Django e ambiente Docker Compose com PostgreSQL.
 * **Closes #2**: Implementação da aplicação `accounts` com `CustomUser` (e-mail como login), 4 perfis (`ALUNO`, `PROFESSOR`, `SECRETARIA`, `COORDENACAO`), regra de troca obrigatória de senha e comando seguro de seed da Secretaria.
-* **Closes #3 / #6**: Sistema de autenticação por sessão, RBAC com decorators/mixins, templates Bootstrap 5 + HTMX, páginas customizadas de erro 403/404 e dashboards por perfil.
+* **Closes #6**: Sistema de autenticação por sessão, RBAC com decorators/mixins, templates Bootstrap 5 + HTMX, páginas customizadas de erro 403/404 e dashboards por perfil.
