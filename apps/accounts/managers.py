@@ -12,7 +12,7 @@ class CustomUserManager(BaseUserManager):
 
         email = self.normalize_email(email).lower()
         extra_fields.setdefault("is_active", True)
-        
+
         user = self.model(email=email, full_name=full_name, role=role, **extra_fields)
         if password:
             user.set_password(password)

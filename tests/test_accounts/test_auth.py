@@ -35,7 +35,7 @@ class TestAuthenticationFlows:
     def test_password_change_success(self, client, user_must_change_pw, password):
         client.login(username=user_must_change_pw.email, password=password)
         change_url = reverse('accounts:change_password')
-        
+
         new_pw = "NovaSenhaSegura456!"
         response = client.post(change_url, {
             'new_password1': new_pw,

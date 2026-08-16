@@ -13,12 +13,12 @@ class MandatoryPasswordChangeMiddleware:
         if request.user.is_authenticated and getattr(request.user, 'must_change_password', False):
             change_password_url = reverse('accounts:change_password')
             logout_url = reverse('accounts:logout')
-            
+
             exempt_urls = [
                 change_password_url,
                 logout_url,
             ]
-            
+
             path = request.path
             is_exempt = any(path.startswith(url) for url in exempt_urls) or path.startswith('/static/') or path.startswith('/admin/')
 

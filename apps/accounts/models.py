@@ -20,7 +20,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         help_text=_('Indica se o usuário é obrigado a alterar a senha no próximo acesso.')
     )
     created_at = models.DateTimeField(_('data de criação'), auto_now_add=True)
-    
+
     is_staff = models.BooleanField(_('membro da equipe'), default=False)
 
     objects = CustomUserManager()
