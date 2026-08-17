@@ -16,4 +16,9 @@ urlpatterns = [
     path('disciplinas/criar/', views.disciplina_create_view, name='disciplina_create'),
     path('disciplinas/<int:pk>/editar/', views.disciplina_update_view, name='disciplina_update'),
     path('disciplinas/<int:pk>/inativar/', views.disciplina_inactivate_view, name='disciplina_inactivate'),
+
+    # Turmas
+    path('turmas/criar/', views.turma_create_view, name='turma_create'),
+    path('turmas/<int:pk>/editar/', views.turma_update_view, name='turma_update'),
+    path('turmas/<int:pk>/inativar/', views.turma_inactivate_view, name='turma_inactivate'),
 ]
