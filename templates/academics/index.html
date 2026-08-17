@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} — SGA{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Cabeçalho Principal -->
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <div>
+      <h1 class="h2 text-dark mb-1">
+        <i class="bi bi-journal-album text-primary me-2"></i> {% trans "Catálogo Acadêmico" %}
+      </h1>
+      <p class="text-muted mb-0">{% trans "Gerencie a matriz curricular, cursos e disciplinas oferecidas pela instituição." %}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'academics:curso_create' %}" class="btn btn-primary d-flex align-items-center">
+        <i class="bi bi-plus-lg me-1"></i> {% trans "Novo Curso" %}
+      </a>
+      <a href="{% url 'academics:disciplina_create' %}" class="btn btn-outline-primary d-flex align-items-center">
+        <i class="bi bi-plus-lg me-1"></i> {% trans "Nova Disciplina" %}
+      </a>
+    </div>
+  </div>
+
+  <!-- Abas do Catálogo -->
+  <ul class="nav nav-tabs mb-4" id="catalogTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="cursos-tab" data-bs-toggle="tab" data-bs-target="#cursos" type="button" role="tab" aria-controls="cursos" aria-selected="true">
+        <i class="bi bi-mortarboard-fill me-2"></i> {% trans "Cursos de Graduação" %}
+        <span class="badge bg-secondary ms-1">{{ cursos|length }}</span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="disciplinas-tab" data-bs-toggle="tab" data-bs-target="#disciplinas" type="button" role="tab" aria-controls="disciplinas" aria-selected="false">
+        <i class="bi bi-book-half me-2"></i> {% trans "Disciplinas Curriculares" %}
+        <span class="badge bg-secondary ms-1">{{ disciplinas|length }}</span>
+      </button>
+    </li>
+  </ul>
+
+  <!-- Conteúdo das Abas -->
+  <div class="tab-content" id="catalogTabsContent">
+    
+    <!-- Aba de Cursos -->
+    <div class="tab-pane fade show active" id="cursos" role="tabpanel" aria-labelledby="cursos-tab">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" style="width: 10%;">{% trans "Código" %}</th>
+                  <th scope="col" style="width: 45%;">{% trans "Nome do Curso" %}</th>
+                  <th scope="col" style="width: 15%;">{% trans "Status" %}</th>
+                  <th scope="col" style="width: 15%;">{% trans "Data de Criação" %}</th>
+                  <th scope="col" class="text-end" style="width: 15%;">{% trans "Ações" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for curso in cursos %}
+                  <tr {% if not curso.ativo %}class="text-muted bg-light-subtle"{% endif %}>
+                    <td>
+                      <code class="fw-bold px-2 py-1 bg-light border rounded text-primary">{{ curso.codigo }}</code>
+                    </td>
+                    <td>
+                      <div class="fw-semibold text-dark">{{ curso.nome }}</div>
+                      {% if curso.descricao %}
+                        <small class="text-muted d-block text-truncate" style="max-width: 400px;" title="{{ curso.descricao }}">
+                          {{ curso.descricao }}
+                        </small>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if curso.ativo %}
+                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
+                          <i class="bi bi-check-circle-fill me-1"></i> {% trans "Ativo" %}
+                        </span>
+                      {% else %}
+                        <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2">
+                          <i class="bi bi-slash-circle-fill me-1"></i> {% trans "Inativo" %}
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <small class="text-muted">{{ curso.created_at|date:"d/m/Y H:i" }}</small>
+                    </td>
+                    <td class="text-end">
+                      <div class="btn-group" role="group">
+                        <a href="{% url 'academics:curso_update' curso.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Editar' %}">
+                          <i class="bi bi-pencil-fill"></i>
+                        </a>
+                        {% if curso.ativo %}
+                          <form action="{% url 'academics:curso_inactivate' curso.pk %}" method="post" class="d-inline"
+                                hx-post="{% url 'academics:curso_inactivate' curso.pk %}"
+                                hx-confirm="{% trans 'Tem certeza de que deseja inativar este curso? Isso afetará novas turmas, mas preservará o histórico existente.' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="{% trans 'Inativar' %}">
+                              <i class="bi bi-slash-circle"></i>
+                            </button>
+                          </form>
+                        {% else %}
+                          <button class="btn btn-sm btn-outline-secondary" disabled title="{% trans 'Inativo' %}">
+                            <i class="bi bi-slash-circle text-muted"></i>
+                          </button>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="5" class="text-center py-5">
+                      <div class="text-muted">
+                        <i class="bi bi-mortarboard display-3 d-block mb-3 text-secondary"></i>
+                        <h5>{% trans "Nenhum curso cadastrado" %}</h5>
+                        <p>{% trans "Clique em 'Novo Curso' para iniciar o catálogo." %}</p>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aba de Disciplinas -->
+    <div class="tab-pane fade" id="disciplinas" role="tabpanel" aria-labelledby="disciplinas-tab">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th scope="col" style="width: 10%;">{% trans "Código" %}</th>
+                  <th scope="col" style="width: 35%;">{% trans "Disciplina" %}</th>
+                  <th scope="col" style="width: 25%;">{% trans "Curso" %}</th>
+                  <th scope="col" style="width: 10%;">{% trans "C.H." %}</th>
+                  <th scope="col" style="width: 10%;">{% trans "Status" %}</th>
+                  <th scope="col" class="text-end" style="width: 10%;">{% trans "Ações" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for disciplina in disciplinas %}
+                  <tr {% if not disciplina.ativo %}class="text-muted bg-light-subtle"{% endif %}>
+                    <td>
+                      <code class="fw-bold px-2 py-1 bg-light border rounded text-danger">{{ disciplina.codigo }}</code>
+                    </td>
+                    <td>
+                      <div class="fw-semibold text-dark">{{ disciplina.nome }}</div>
+                    </td>
+                    <td>
+                      <div class="text-muted fw-medium">{{ disciplina.curso.nome }}</div>
+                      {% if not disciplina.curso.ativo %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle p-1" style="font-size: 0.7rem;">
+                          {% trans "Curso Inativo" %}
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <span class="badge bg-light text-dark border px-2 py-1"><i class="bi bi-clock me-1 text-primary"></i> {{ disciplina.carga_horaria }}h</span>
+                    </td>
+                    <td>
+                      {% if disciplina.ativo %}
+                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
+                          <i class="bi bi-check-circle-fill me-1"></i> {% trans "Ativa" %}
+                        </span>
+                      {% else %}
+                        <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2">
+                          <i class="bi bi-slash-circle-fill me-1"></i> {% trans "Inativa" %}
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end">
+                      <div class="btn-group" role="group">
+                        <a href="{% url 'academics:disciplina_update' disciplina.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Editar' %}">
+                          <i class="bi bi-pencil-fill"></i>
+                        </a>
+                        {% if disciplina.ativo %}
+                          <form action="{% url 'academics:disciplina_inactivate' disciplina.pk %}" method="post" class="d-inline"
+                                hx-post="{% url 'academics:disciplina_inactivate' disciplina.pk %}"
+                                hx-confirm="{% trans 'Tem certeza de que deseja inativar esta disciplina? Isso afetará novas turmas, mas preservará o histórico existente.' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="{% trans 'Inativar' %}">
+                              <i class="bi bi-slash-circle"></i>
+                            </button>
+                          </form>
+                        {% else %}
+                          <button class="btn btn-sm btn-outline-secondary" disabled title="{% trans 'Inativa' %}">
+                            <i class="bi bi-slash-circle text-muted"></i>
+                          </button>
+                        {% endif %}
+                      </div>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="6" class="text-center py-5">
+                      <div class="text-muted">
+                        <i class="bi bi-book display-3 d-block mb-3 text-secondary"></i>
+                        <h5>{% trans "Nenhuma disciplina cadastrada" %}</h5>
+                        <p>{% trans "Clique em 'Nova Disciplina' para iniciar o catálogo." %}</p>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
