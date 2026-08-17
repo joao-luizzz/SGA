@@ -1,6 +1,7 @@
 import pytest
 from django.urls import reverse
-from academics.models import Curso, Disciplina
+from academics.models import Curso, Disciplina, Turma
+from accounts.models import CustomUser, UserRole
 
 @pytest.mark.django_db
 class TestAcademicsViewsRBAC:
@@ -145,3 +146,139 @@ class TestAcademicsViewsFlow:
         disciplina_db = Disciplina.objects.get(pk=disciplina.pk)
         assert disciplina_db is not None
         assert disciplina_db.ativo is False
+
+
+@pytest.mark.django_db
+class TestTurmaViews:
+    @pytest.fixture
+    def setup_dados(self):
+        curso = Curso.objects.create(nome='Ciência da Computação', codigo='CC')
+        disciplina = Disciplina.objects.create(nome='Sistemas Operacionais', codigo='CC-SO', carga_horaria=80, curso=curso)
+        professor = CustomUser.objects.create_user(
+            email='prof_view@sga.edu.br',
+            full_name='Prof View',
+            password='senha',
+            role=UserRole.PROFESSOR
+        )
+        return {
+            'curso': curso,
+            'disciplina': disciplina,
+            'professor': professor
+        }
+
+    def test_coordenacao_acessa_index_com_turmas(self, client, user_coordenacao, password, setup_dados):
+        client.login(username=user_coordenacao.email, password=password)
+        disciplina = setup_dados['disciplina']
+        Turma.objects.create(
+            disciplina=disciplina,
+            periodo_letivo='2026/1',
+            horarios='SEG 19:00-22:30',
+            vagas_maximas=40
+        )
+        url = reverse('academics:index')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert "Turmas Oferecidas".encode() in response.content
+
+    def test_coordenacao_acessa_turma_create(self, client, user_coordenacao, password):
+        client.login(username=user_coordenacao.email, password=password)
+        url = reverse('academics:turma_create')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert "Abrir Nova Turma".encode() in response.content
+
+    def test_coordenacao_cria_turma_com_sucesso(self, client, user_coordenacao, password, setup_dados):
+        client.login(username=user_coordenacao.email, password=password)
+        disciplina = setup_dados['disciplina']
+        professor = setup_dados['professor']
+        url = reverse('academics:turma_create')
+        form_data = {
+            'disciplina': disciplina.pk,
+            'periodo_letivo': '2026/1',
+            'horarios': 'TER 19:00-22:30',
+            'sala': 'Laboratório 202',
+            'vagas_maximas': 35,
+            'professor': professor.pk,
+            'ativo': True
+        }
+        response = client.post(url, form_data)
+        assert response.status_code == 302
+        assert response.url == reverse('academics:index')
+        assert Turma.objects.filter(periodo_letivo='2026/1', sala='Laboratório 202').exists() is True
+
+    def test_coordenacao_edita_turma_com_sucesso(self, client, user_coordenacao, password, setup_dados):
+        client.login(username=user_coordenacao.email, password=password)
+        disciplina = setup_dados['disciplina']
+        turma = Turma.objects.create(
+            disciplina=disciplina,
+            periodo_letivo='2026/1',
+            horarios='SEG 19:00-22:30',
+            vagas_maximas=40
+        )
+        url = reverse('academics:turma_update', args=[turma.pk])
+        form_data = {
+            'disciplina': disciplina.pk,
+            'periodo_letivo': '2026/2',
+            'horarios': 'SEG 19:00-22:30',
+            'sala': 'Sala Virtual',
+            'vagas_maximas': 45,
+            'professor': '',
+            'ativo': True
+        }
+        response = client.post(url, form_data)
+        assert response.status_code == 302
+        assert response.url == reverse('academics:index')
+        
+        turma_db = Turma.objects.get(pk=turma.pk)
+        assert turma_db.periodo_letivo == '2026/2'
+        assert turma_db.sala == 'Sala Virtual'
+        assert turma_db.vagas_maximas == 45
+
+    def test_coordenacao_inativa_turma_com_sucesso(self, client, user_coordenacao, password, setup_dados):
+        client.login(username=user_coordenacao.email, password=password)
+        disciplina = setup_dados['disciplina']
+        turma = Turma.objects.create(
+            disciplina=disciplina,
+            periodo_letivo='2026/1',
+            horarios='SEG 19:00-22:30',
+            vagas_maximas=40
+        )
+        url = reverse('academics:turma_inactivate', args=[turma.pk])
+        response = client.post(url)
+        assert response.status_code == 302
+        assert response.url == reverse('academics:index')
+        
+        turma_db = Turma.objects.get(pk=turma.pk)
+        assert turma_db.ativo is False
+
+    @pytest.mark.parametrize('role', [UserRole.ALUNO, UserRole.PROFESSOR, UserRole.SECRETARIA])
+    def test_perfis_nao_autorizados_recebem_403_em_views_de_turma(self, client, db, password, setup_dados, role):
+        # Criar usuário com o perfil parametrizado
+        user = CustomUser.objects.create_user(
+            email=f'user_{role.lower()}@sga.edu.br',
+            full_name='Usuário de Teste',
+            password=password,
+            role=role
+        )
+        client.login(username=user.email, password=password)
+        disciplina = setup_dados['disciplina']
+        turma = Turma.objects.create(
+            disciplina=disciplina,
+            periodo_letivo='2026/1',
+            horarios='SEG 19:00-22:30',
+            vagas_maximas=40
+        )
+
+        urls = [
+            reverse('academics:turma_create'),
+            reverse('academics:turma_update', args=[turma.pk]),
+            reverse('academics:turma_inactivate', args=[turma.pk]),
+        ]
+
+        for url in urls:
+            if url == reverse('academics:turma_inactivate', args=[turma.pk]):
+                response = client.post(url)
+            else:
+                response = client.get(url)
+            assert response.status_code == 403
+
