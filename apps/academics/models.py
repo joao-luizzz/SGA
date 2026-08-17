@@ -74,7 +74,41 @@ class Turma(models.Model):
         status = "" if self.ativo else f" ({_('Inativa')})"
         return f"{self.disciplina.nome} ({self.periodo_letivo}) - {professor_str}{status}"
 
-    def pode_receber_matricula(self):
-        """Retorna True se a turma estiver ativa e tiver um professor alocado."""
-        return self.ativo and self.professor is not None
+    def clean(self):
+        super().clean()
+        # Impedir conflito de horário do professor (RN09)
+        if self.ativo and self.professor and self.periodo_letivo and self.horarios:
+            # Normalizar horários para comparação precisa no MVP (ignorar espaços extras e capitalização)
+            horario_normalizado = " ".join(self.horarios.strip().upper().split())
 
+            # Filtra turmas ativas do mesmo professor no mesmo período letivo
+            conflitos = Turma.objects.filter(
+                ativo=True,
+                professor=self.professor,
+                periodo_letivo=self.periodo_letivo
+            )
+
+            # Se for edição, exclui a própria instância
+            if self.pk:
+                conflitos = conflitos.exclude(pk=self.pk)
+
+            for conflito in conflitos:
+                horario_conflito_normalizado = " ".join(conflito.horarios.strip().upper().split())
+                if horario_conflito_normalizado == horario_normalizado:
+                    from django.core.exceptions import ValidationError
+                    raise ValidationError({
+                        'horarios': _("O professor já está alocado em outra turma ativa neste período letivo com horário idêntico (%s).") % conflito.disciplina.nome
+                    })
+
+    def pode_receber_matricula(self):
+        """
+        Retorna True se a turma estiver ativa, com professor alocado,
+        sala e horários configurados, e quantidade de vagas máximas maior que zero (RN40).
+        """
+        return (
+            self.ativo and
+            self.professor is not None and
+            bool(self.horarios and self.horarios.strip()) and
+            bool(self.sala and self.sala.strip()) and
+            self.vagas_maximas is not None and self.vagas_maximas > 0
+        )

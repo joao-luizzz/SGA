@@ -126,25 +126,113 @@ class TestTurmaModels:
             disciplina=disciplina,
             periodo_letivo="2026/1",
             horarios="SEG 19:00-22:30",
+            sala="Sala 101",
             vagas_maximas=40
         )
         assert turma_sem_prof.pode_receber_matricula() is False
 
-        # 2. Com professor e ativa (deve retornar True)
-        turma_com_prof = Turma.objects.create(
+        # 2. Com professor, sala, horário, vagas > 0 e ativa (deve retornar True)
+        turma_com_tudo = Turma.objects.create(
             disciplina=disciplina,
             periodo_letivo="2026/1",
             horarios="SEG 19:00-22:30",
+            sala="Sala 101",
             vagas_maximas=40,
             professor=professor,
             ativo=True
         )
-        assert turma_com_prof.pode_receber_matricula() is True
+        assert turma_com_tudo.pode_receber_matricula() is True
 
         # 3. Com professor, mas inativa (deve retornar False)
-        turma_com_prof.ativo = False
-        turma_com_prof.save()
-        assert turma_com_prof.pode_receber_matricula() is False
+        turma_com_tudo.ativo = False
+        turma_com_tudo.save()
+        assert turma_com_tudo.pode_receber_matricula() is False
+        turma_com_tudo.ativo = True
+        turma_com_tudo.save()
+
+        # 4. Sem sala (deve retornar False)
+        turma_com_tudo.sala = ""
+        turma_com_tudo.save()
+        assert turma_com_tudo.pode_receber_matricula() is False
+        turma_com_tudo.sala = "Sala 101"
+        turma_com_tudo.save()
+
+        # 5. Sem horário (deve retornar False)
+        turma_com_tudo.horarios = ""
+        turma_com_tudo.save()
+        assert turma_com_tudo.pode_receber_matricula() is False
+        turma_com_tudo.horarios = "SEG 19:00-22:30"
+        turma_com_tudo.save()
+
+        # 6. Vagas inválidas (<= 0) (deve retornar False)
+        turma_com_tudo.vagas_maximas = 0
+        turma_com_tudo.save()
+        assert turma_com_tudo.pode_receber_matricula() is False
+
+    def test_conflito_horario_professor(self, setup_dados):
+        from django.core.exceptions import ValidationError
+        disciplina = setup_dados['disciplina']
+        professor = setup_dados['professor']
+
+        # Criar outro professor de teste
+        outro_professor = CustomUser.objects.create_user(
+            email='outro_prof@sga.edu.br',
+            full_name='Outro Professor',
+            password='senha',
+            role=UserRole.PROFESSOR
+        )
+
+        # Turma base ativa para o Professor
+        turma_base = Turma.objects.create(
+            disciplina=disciplina,
+            periodo_letivo="2026/1",
+            horarios="SEG 19:00-22:30",
+            sala="Sala 101",
+            vagas_maximas=40,
+            professor=professor,
+            ativo=True
+        )
+        # Executa clean() da turma_base (deve passar sem problemas)
+        turma_base.clean()
+
+        # 1. PERMITIR turmas com professores diferentes no mesmo horário/período
+        turma_outro_prof = Turma(
+            disciplina=disciplina,
+            periodo_letivo="2026/1",
+            horarios="SEG 19:00-22:30",  # Horário idêntico
+            sala="Sala 102",
+            vagas_maximas=40,
+            professor=outro_professor,
+            ativo=True
+        )
+        turma_outro_prof.clean()  # Não deve levantar erro
+
+        # 2. PERMITIR o mesmo professor em horários não sobrepostos (horários diferentes)
+        turma_outro_horario = Turma(
+            disciplina=disciplina,
+            periodo_letivo="2026/1",
+            horarios="TER 19:00-22:30",  # Horário diferente
+            sala="Sala 101",
+            vagas_maximas=40,
+            professor=professor,
+            ativo=True
+        )
+        turma_outro_horario.clean()  # Não deve levantar erro
+
+        # 3. BLOQUEAR o mesmo professor em horários conflitantes (mesmo período letivo)
+        turma_conflitante = Turma(
+            disciplina=disciplina,
+            periodo_letivo="2026/1",
+            horarios="SEG 19:00-22:30",  # Horário conflitante idêntico
+            sala="Sala 103",
+            vagas_maximas=40,
+            professor=professor,
+            ativo=True
+        )
+        with pytest.raises(ValidationError) as excinfo:
+            turma_conflitante.clean()
+        assert 'horarios' in excinfo.value.message_dict
+        assert "O professor já está alocado em outra turma ativa neste período letivo com horário idêntico" in excinfo.value.message_dict['horarios'][0]
 
     def test_inativacao_turma_nao_deleta_registro(self, setup_dados):
         disciplina = setup_dados['disciplina']
@@ -162,4 +250,3 @@ class TestTurmaModels:
         assert turma_db is not None
         assert turma_db.ativo is False
         assert str(turma_db) == "Programação Orientada a Objetos (2026/1) - Sem professor alocado (Inativa)"
-
