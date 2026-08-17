@@ -39,7 +39,7 @@ class TestAcademicsViewsRBAC:
         url = reverse('academics:index')
         response = client.get(url)
         assert response.status_code == 200
-        assert b"Catalogo Academico" or b"Cat&aacute;logo Acad&ecirc;mico" in response.content
+        assert "Catálogo Acadêmico".encode() in response.content
 
     def test_coordenacao_acessa_curso_create(self, client, user_coordenacao, password):
         client.login(username=user_coordenacao.email, password=password)
