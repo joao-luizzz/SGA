@@ -39,3 +39,42 @@ class Disciplina(models.Model):
     def __str__(self):
         status = "" if self.ativo else f" ({_('Inativa')})"
         return f"{self.nome} - {self.codigo} ({self.carga_horaria}h){status}"
+
+
+class Turma(models.Model):
+    disciplina = models.ForeignKey(
+        Disciplina,
+        on_delete=models.CASCADE,
+        related_name='turmas',
+        verbose_name=_('disciplina')
+    )
+    periodo_letivo = models.CharField(_('período letivo'), max_length=10)
+    horarios = models.CharField(_('horários'), max_length=100)
+    sala = models.CharField(_('sala'), max_length=30, blank=True, null=True)
+    vagas_maximas = models.PositiveIntegerField(_('vagas máximas'))
+    professor = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={'role': 'PROFESSOR'},
+        related_name='turmas_ministradas',
+        verbose_name=_('professor')
+    )
+    ativo = models.BooleanField(_('ativo'), default=True)
+    created_at = models.DateTimeField(_('criado em'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('turma')
+        verbose_name_plural = _('turmas')
+        ordering = ['-periodo_letivo', 'disciplina__nome']
+
+    def __str__(self):
+        professor_str = self.professor.full_name if self.professor else _("Sem professor alocado")
+        status = "" if self.ativo else f" ({_('Inativa')})"
+        return f"{self.disciplina.nome} ({self.periodo_letivo}) - {professor_str}{status}"
+
+    def pode_receber_matricula(self):
+        """Retorna True se a turma estiver ativa e tiver um professor alocado."""
+        return self.ativo and self.professor is not None
+
