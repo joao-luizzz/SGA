@@ -261,8 +261,79 @@ class TestTurmaModels:
         assert 'horarios' in excinfo.value.message_dict
         assert "horário conflitante" in excinfo.value.message_dict['horarios'][0]
 
+    def test_conflito_horario_multiplos_dias_com_barra(self, setup_dados):
+        from django.core.exceptions import ValidationError
+        disciplina = setup_dados['disciplina']
+        professor = setup_dados['professor']
+
+        # Turma base com múltiplos dias usando a barra / como separador (ex: SEG 19:00-20:40 / QUA 20:50-22:30)
+        turma_multi = Turma.objects.create(
+            disciplina=disciplina,
+            periodo_letivo="2026/1",
+            horarios="SEG 19:00-20:40 / QUA 20:50-22:30",
+            sala="Sala 101",
+            vagas_maximas=40,
+            professor=professor,
+            ativo=True
+        )
+        turma_multi.clean()  # Deve passar sem problemas
+
+        # 1. PERMITIR segundo dia sem sobreposições
+        turma_ok = Turma(
+            disciplina=disciplina,
+            periodo_letivo="2026/1",
+            horarios="QUA 19:00-20:40",  # Na quarta-feira, mas sem conflito com as 20:50-22:30
+            sala="Sala 101",
+            vagas_maximas=40,
+            professor=professor,
+            ativo=True
+        )
+        turma_ok.clean()  # Deve passar sem erros
+
+        # 2. BLOQUEAR sobreposição no segundo dia (quarta-feira)
+        turma_conflitante_quarta = Turma(
+            disciplina=disciplina,
+            periodo_letivo="2026/1",
+            horarios="QUA 21:00-22:00",  # Conflito real no segundo dia (quarta-feira) das 21h às 22h
+            sala="Sala 102",
+            vagas_maximas=40,
+            professor=professor,
+            ativo=True
+        )
+        with pytest.raises(ValidationError) as excinfo:
+            turma_conflitante_quarta.clean()
+        assert 'horarios' in excinfo.value.message_dict
+        assert "horário conflitante" in excinfo.value.message_dict['horarios'][0]
+
+    def test_validacao_horario_malformado(self, setup_dados):
+        from django.core.exceptions import ValidationError
+        disciplina = setup_dados['disciplina']
+
+        horarios_invalidos = [
+            "SEG 19:00",               # Falta horário de término
+            "TER 19:00-abc",           # Termino não numérico
+            "QQQ 19:00-20:00",         # Dia da semana inválido
+            "SEG 25:00-26:00",         # Horas fora do limite de 24h
+            "SEG 19:61-20:00",         # Minutos fora do limite de 60
+            "SEG 20:00-19:00",         # Horário de início maior que término
+            "SEG 19:00-20:40 / / QUA", # Separador redundante/vazio
+        ]
+
+        for horario_ruim in horarios_invalidos:
+            turma_ruim = Turma(
+                disciplina=disciplina,
+                periodo_letivo="2026/1",
+                horarios=horario_ruim,
+                sala="Sala 101",
+                vagas_maximas=40,
+                ativo=True
+            )
+            with pytest.raises(ValidationError) as excinfo:
+                turma_ruim.clean()
+            assert 'horarios' in excinfo.value.message_dict
 
     def test_inativacao_turma_nao_deleta_registro(self, setup_dados):
+
         disciplina = setup_dados['disciplina']
         turma = Turma.objects.create(
             disciplina=disciplina,
