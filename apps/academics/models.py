@@ -41,6 +41,43 @@ class Disciplina(models.Model):
         return f"{self.nome} - {self.codigo} ({self.carga_horaria}h){status}"
 
 
+def parse_horarios_lista(horarios_str):
+    """
+    Interpreta uma string de horários que pode conter múltiplos horários separados por vírgula.
+    Cada parte deve estar no formato "DIA HH:MM-HH:MM".
+    Retorna uma lista de tuplas: [(dia_semana, minutos_inicio, minutos_fim), ...]
+    Ex: "SEG 19:00-20:40, QUA 19:00-20:40" -> [("SEG", 1140, 1240), ("QUA", 1140, 1240)]
+    """
+    intervalos = []
+    if not horarios_str:
+        return intervalos
+    partes = [p.strip() for p in horarios_str.replace(';', ',').split(',')]
+    for parte in partes:
+        if not parte:
+            continue
+        try:
+            sub_parts = parte.strip().split()
+            if len(sub_parts) < 2:
+                continue
+            dia = sub_parts[0].upper()
+            intervalo = sub_parts[1]
+            time_parts = intervalo.split('-')
+            if len(time_parts) != 2:
+                continue
+            inicio_str, fim_str = time_parts[0].strip(), time_parts[1].strip()
+
+            ih, im = map(int, inicio_str.split(':'))
+            fh, fm = map(int, fim_str.split(':'))
+
+            minutos_inicio = ih * 60 + im
+            minutos_fim = fh * 60 + fm
+            intervalos.append((dia, minutos_inicio, minutos_fim))
+        except Exception:
+            continue
+    return intervalos
+
+
+
 class Turma(models.Model):
     disciplina = models.ForeignKey(
         Disciplina,
@@ -78,27 +115,30 @@ class Turma(models.Model):
         super().clean()
         # Impedir conflito de horário do professor (RN09)
         if self.ativo and self.professor and self.periodo_letivo and self.horarios:
-            # Normalizar horários para comparação precisa no MVP (ignorar espaços extras e capitalização)
-            horario_normalizado = " ".join(self.horarios.strip().upper().split())
+            parsed_self_list = parse_horarios_lista(self.horarios)
+            if parsed_self_list:
+                conflitos = Turma.objects.filter(
+                    ativo=True,
+                    professor=self.professor,
+                    periodo_letivo=self.periodo_letivo
+                )
+                if self.pk:
+                    conflitos = conflitos.exclude(pk=self.pk)
 
-            # Filtra turmas ativas do mesmo professor no mesmo período letivo
-            conflitos = Turma.objects.filter(
-                ativo=True,
-                professor=self.professor,
-                periodo_letivo=self.periodo_letivo
-            )
+                for conflito in conflitos:
+                    parsed_conflito_list = parse_horarios_lista(conflito.horarios)
+                    for dia_s, ini_s, fim_s in parsed_self_list:
+                        for dia_c, ini_c, fim_c in parsed_conflito_list:
+                            if dia_s == dia_c:
+                                # Sobreposição real de intervalos de horários: max(ini_s, ini_c) < min(fim_s, fim_c)
+                                if max(ini_s, ini_c) < min(fim_s, fim_c):
+                                    from django.core.exceptions import ValidationError
+                                    raise ValidationError({
+                                        'horarios': _("O professor já está alocado em outra turma ativa neste período letivo com horário conflitante (%s: %s).") % (
+                                            conflito.disciplina.nome, conflito.horarios
+                                        )
+                                    })
 
-            # Se for edição, exclui a própria instância
-            if self.pk:
-                conflitos = conflitos.exclude(pk=self.pk)
-
-            for conflito in conflitos:
-                horario_conflito_normalizado = " ".join(conflito.horarios.strip().upper().split())
-                if horario_conflito_normalizado == horario_normalizado:
-                    from django.core.exceptions import ValidationError
-                    raise ValidationError({
-                        'horarios': _("O professor já está alocado em outra turma ativa neste período letivo com horário idêntico (%s).") % conflito.disciplina.nome
-                    })
 
     def pode_receber_matricula(self):
         """
