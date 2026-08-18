@@ -6,17 +6,19 @@ from django.views.decorators.http import require_POST
 
 from accounts.decorators import role_required
 from accounts.models import UserRole
-from .models import Curso, Disciplina
-from .forms import CursoForm, DisciplinaForm
+from .models import Curso, Disciplina, Turma
+from .forms import CursoForm, DisciplinaForm, TurmaForm
 
 @role_required(UserRole.COORDENACAO)
 def index_view(request):
     cursos = Curso.objects.all().order_by('nome')
     disciplinas = Disciplina.objects.all().order_by('nome')
+    turmas = Turma.objects.all()
     context = {
         'title': 'Catálogo Acadêmico',
         'cursos': sorted(cursos, key=lambda c: (not c.ativo, c.nome)),  # Ativos primeiro, depois ordem alfabética
         'disciplinas': sorted(disciplinas, key=lambda d: (not d.ativo, d.nome)),
+        'turmas': sorted(turmas, key=lambda t: (not t.ativo, t.periodo_letivo, t.disciplina.nome)),
     }
     return render(request, 'academics/index.html', context)
 
@@ -137,3 +139,63 @@ def disciplina_inactivate_view(request, pk):
         return response
         
     return redirect('academics:index')
+
+
+@role_required(UserRole.COORDENACAO)
+def turma_create_view(request):
+    if request.method == 'POST':
+        form = TurmaForm(request.POST)
+        if form.is_valid():
+            turma = form.save()
+            messages.success(request, _(f"Turma para '{turma.disciplina.nome}' no período {turma.periodo_letivo} aberta com sucesso!"))
+            return redirect('academics:index')
+        else:
+            messages.error(request, _("Por favor, corrija os erros no formulário abaixo."))
+    else:
+        form = TurmaForm()
+    
+    context = {
+        'title': 'Abrir Nova Turma',
+        'form': form,
+    }
+    return render(request, 'academics/turma_form.html', context)
+
+
+@role_required(UserRole.COORDENACAO)
+def turma_update_view(request, pk):
+    turma = get_object_or_404(Turma, pk=pk)
+    if request.method == 'POST':
+        form = TurmaForm(request.POST, instance=turma)
+        if form.is_valid():
+            turma = form.save()
+            messages.success(request, _(f"Turma '{turma.disciplina.nome}' atualizada com sucesso!"))
+            return redirect('academics:index')
+        else:
+            messages.error(request, _("Por favor, corrija os erros no formulário abaixo."))
+    else:
+        form = TurmaForm(instance=turma)
+    
+    context = {
+        'title': f"Editar Turma: {turma.disciplina.nome} ({turma.periodo_letivo})",
+        'form': form,
+        'turma': turma,
+    }
+    return render(request, 'academics/turma_form.html', context)
+
+
+@role_required(UserRole.COORDENACAO)
+@require_POST
+def turma_inactivate_view(request, pk):
+    turma = get_object_or_404(Turma, pk=pk)
+    turma.ativo = False
+    turma.save()
+    
+    messages.warning(request, _(f"Turma '{turma.disciplina.nome}' ({turma.periodo_letivo}) foi inativada com sucesso."))
+    
+    if request.headers.get('HX-Request'):
+        response = render(request, 'includes/messages.html')
+        response['HX-Redirect'] = reverse('academics:index')
+        return response
+        
+    return redirect('academics:index')
+

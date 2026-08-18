@@ -1,6 +1,7 @@
 import pytest
-from academics.models import Curso, Disciplina
-from academics.forms import CursoForm, DisciplinaForm
+from academics.models import Curso, Disciplina, Turma
+from academics.forms import CursoForm, DisciplinaForm, TurmaForm
+from accounts.models import CustomUser, UserRole
 
 @pytest.mark.django_db
 class TestAcademicsForms:
@@ -78,3 +79,80 @@ class TestAcademicsForms:
         assert form.is_valid() is False
         assert 'carga_horaria' in form.errors
         assert form.errors['carga_horaria'][0] == "A carga horária deve ser maior que zero."
+
+
+@pytest.mark.django_db
+class TestTurmaForms:
+    @pytest.fixture
+    def setup_dados(self):
+        curso = Curso.objects.create(nome='Ciência da Computação', codigo='CC')
+        disciplina = Disciplina.objects.create(nome='Banco de Dados', codigo='CC-BD', carga_horaria=80, curso=curso)
+        professor = CustomUser.objects.create_user(
+            email='professor_teste@sga.edu.br',
+            full_name='Professor Teste',
+            password='senha',
+            role=UserRole.PROFESSOR
+        )
+        return {
+            'curso': curso,
+            'disciplina': disciplina,
+            'professor': professor
+        }
+
+    def test_turma_form_valido_sem_professor(self, setup_dados):
+        disciplina = setup_dados['disciplina']
+        form_data = {
+            'disciplina': disciplina.pk,
+            'periodo_letivo': '2026/1',
+            'horarios': 'SEG 19:00-22:30',
+            'sala': 'Sala 101',
+            'vagas_maximas': 40,
+            'professor': '',  # Professor opcional na criação
+            'ativo': True
+        }
+        form = TurmaForm(data=form_data)
+        assert form.is_valid() is True
+
+    def test_turma_form_valido_com_professor(self, setup_dados):
+        disciplina = setup_dados['disciplina']
+        professor = setup_dados['professor']
+        form_data = {
+            'disciplina': disciplina.pk,
+            'periodo_letivo': '2026/1',
+            'horarios': 'SEG 19:00-22:30',
+            'sala': 'Sala 101',
+            'vagas_maximas': 40,
+            'professor': professor.pk,
+            'ativo': True
+        }
+        form = TurmaForm(data=form_data)
+        assert form.is_valid() is True
+
+    def test_turma_form_periodo_letivo_invalido(self, setup_dados):
+        disciplina = setup_dados['disciplina']
+        form_data = {
+            'disciplina': disciplina.pk,
+            'periodo_letivo': '2026-1',  # Formato inválido (deve ser AAAA/N)
+            'horarios': 'SEG 19:00-22:30',
+            'vagas_maximas': 40,
+            'ativo': True
+        }
+        form = TurmaForm(data=form_data)
+        assert form.is_valid() is False
+        assert 'periodo_letivo' in form.errors
+        assert form.errors['periodo_letivo'][0] == "O período letivo deve seguir o formato AAAA/N (ex: 2026/1)."
+
+    def test_turma_form_vagas_maximas_invalidas(self, setup_dados):
+        disciplina = setup_dados['disciplina']
+        form_data = {
+            'disciplina': disciplina.pk,
+            'periodo_letivo': '2026/1',
+            'horarios': 'SEG 19:00-22:30',
+            'vagas_maximas': 0,  # Vagas inválidas (deve ser > 0)
+            'ativo': True
+        }
+        form = TurmaForm(data=form_data)
+        assert form.is_valid() is False
+        assert 'vagas_maximas' in form.errors
+        assert form.errors['vagas_maximas'][0] == "A quantidade de vagas máximas deve ser maior que zero."
+
