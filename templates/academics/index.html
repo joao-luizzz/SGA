@@ -4,46 +4,46 @@
 {% block title %}{{ title }} — SGA{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid p-0">
   <!-- Cabeçalho Principal -->
-  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
     <div>
-      <h1 class="h2 text-dark mb-1">
-        <i class="bi bi-journal-album text-primary me-2"></i> {% trans "Catálogo Acadêmico" %}
-      </h1>
-      <p class="text-muted mb-0">{% trans "Gerencie a matriz curricular, cursos, disciplinas e abertura de turmas da instituição." %}</p>
+      <h3 class="page-title mb-1">
+        <i class="bi bi-journal-album text-primary me-1.5"></i> {% trans "Catálogo Acadêmico" %}
+      </h3>
+      <p class="page-subtitle mb-0">{% trans "Gerencie a matriz curricular, cursos, disciplinas e abertura de turmas da instituição." %}</p>
     </div>
-    <div class="d-flex gap-2">
-      <a href="{% url 'academics:curso_create' %}" class="btn btn-outline-primary d-flex align-items-center">
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'academics:curso_create' %}" class="btn btn-outline-primary btn-sm">
         <i class="bi bi-plus-lg me-1"></i> {% trans "Novo Curso" %}
       </a>
-      <a href="{% url 'academics:disciplina_create' %}" class="btn btn-outline-primary d-flex align-items-center">
+      <a href="{% url 'academics:disciplina_create' %}" class="btn btn-outline-primary btn-sm">
         <i class="bi bi-plus-lg me-1"></i> {% trans "Nova Disciplina" %}
       </a>
-      <a href="{% url 'academics:turma_create' %}" class="btn btn-primary d-flex align-items-center">
+      <a href="{% url 'academics:turma_create' %}" class="btn btn-primary btn-sm shadow-sm">
         <i class="bi bi-plus-lg me-1"></i> {% trans "Abrir Turma" %}
       </a>
     </div>
   </div>
 
   <!-- Abas do Catálogo -->
-  <ul class="nav nav-tabs mb-4" id="catalogTabs" role="tablist">
+  <ul class="nav nav-pills gap-2 mb-4 bg-light-subtle p-1.5 rounded-3 border" id="catalogTabs" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="cursos-tab" data-bs-toggle="tab" data-bs-target="#cursos" type="button" role="tab" aria-controls="cursos" aria-selected="true">
-        <i class="bi bi-mortarboard-fill me-2"></i> {% trans "Cursos de Graduação" %}
-        <span class="badge bg-secondary ms-1">{{ cursos|length }}</span>
+      <button class="nav-link active btn-sm d-flex align-items-center" id="cursos-tab" data-bs-toggle="tab" data-bs-target="#cursos" type="button" role="tab" aria-controls="cursos" aria-selected="true">
+        <i class="bi bi-mortarboard-fill me-1.5 text-primary"></i> {% trans "Cursos de Graduação" %}
+        <span class="badge bg-secondary-subtle text-secondary-emphasis border ms-2">{{ cursos|length }}</span>
       </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="disciplinas-tab" data-bs-toggle="tab" data-bs-target="#disciplinas" type="button" role="tab" aria-controls="disciplinas" aria-selected="false">
-        <i class="bi bi-book-half me-2"></i> {% trans "Disciplinas Curriculares" %}
-        <span class="badge bg-secondary ms-1">{{ disciplinas|length }}</span>
+      <button class="nav-link btn-sm d-flex align-items-center" id="disciplinas-tab" data-bs-toggle="tab" data-bs-target="#disciplinas" type="button" role="tab" aria-controls="disciplinas" aria-selected="false">
+        <i class="bi bi-book-half me-1.5 text-success"></i> {% trans "Disciplinas Curriculares" %}
+        <span class="badge bg-secondary-subtle text-secondary-emphasis border ms-2">{{ disciplinas|length }}</span>
       </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="turmas-tab" data-bs-toggle="tab" data-bs-target="#turmas" type="button" role="tab" aria-controls="turmas" aria-selected="false">
-        <i class="bi bi-calendar3 me-2"></i> {% trans "Turmas Oferecidas" %}
-        <span class="badge bg-secondary ms-1">{{ turmas|length }}</span>
+      <button class="nav-link btn-sm d-flex align-items-center" id="turmas-tab" data-bs-toggle="tab" data-bs-target="#turmas" type="button" role="tab" aria-controls="turmas" aria-selected="false">
+        <i class="bi bi-calendar3 me-1.5 text-warning"></i> {% trans "Turmas Oferecidas" %}
+        <span class="badge bg-secondary-subtle text-secondary-emphasis border ms-2">{{ turmas|length }}</span>
       </button>
     </li>
   </ul>
@@ -53,24 +53,24 @@
     
     <!-- Aba de Cursos -->
     <div class="tab-pane fade show active" id="cursos" role="tabpanel" aria-labelledby="cursos-tab">
-      <div class="card shadow-sm border-0">
+      <div class="card border shadow-xs overflow-hidden">
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover table-striped align-middle mb-0">
-              <thead class="table-light">
+            <table class="table table-sga align-middle mb-0">
+              <thead>
                 <tr>
-                  <th scope="col" style="width: 10%;">{% trans "Código" %}</th>
+                  <th scope="col" class="ps-4" style="width: 12%;">{% trans "Código" %}</th>
                   <th scope="col" style="width: 45%;">{% trans "Nome do Curso" %}</th>
                   <th scope="col" style="width: 15%;">{% trans "Status" %}</th>
-                  <th scope="col" style="width: 15%;">{% trans "Data de Criação" %}</th>
-                  <th scope="col" class="text-end" style="width: 15%;">{% trans "Ações" %}</th>
+                  <th scope="col" style="width: 15%;">{% trans "Data Criação" %}</th>
+                  <th scope="col" class="text-end pe-4" style="width: 13%;">{% trans "Ações" %}</th>
                 </tr>
               </thead>
               <tbody>
                 {% for curso in cursos %}
                   <tr {% if not curso.ativo %}class="text-muted bg-light-subtle"{% endif %}>
-                    <td>
-                      <code class="fw-bold px-2 py-1 bg-light border rounded text-primary">{{ curso.codigo }}</code>
+                    <td class="ps-4">
+                      <code class="fw-bold px-2 py-0.5 bg-light border rounded text-primary" style="font-size: 0.8rem;">{{ curso.codigo }}</code>
                     </td>
                     <td>
                       <div class="fw-semibold text-dark">{{ curso.nome }}</div>
@@ -82,22 +82,22 @@
                     </td>
                     <td>
                       {% if curso.ativo %}
-                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
-                          <i class="bi bi-check-circle-fill me-1"></i> {% trans "Ativo" %}
+                        <span class="badge badge-sga-success">
+                          <i class="bi bi-check-circle me-1"></i> {% trans "Ativo" %}
                         </span>
                       {% else %}
-                        <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2">
-                          <i class="bi bi-slash-circle-fill me-1"></i> {% trans "Inativo" %}
+                        <span class="badge badge-sga-secondary">
+                          <i class="bi bi-slash-circle me-1"></i> {% trans "Inativo" %}
                         </span>
                       {% endif %}
                     </td>
                     <td>
                       <small class="text-muted">{{ curso.created_at|date:"d/m/Y H:i" }}</small>
                     </td>
-                    <td class="text-end">
+                    <td class="text-end pe-4">
                       <div class="btn-group" role="group">
                         <a href="{% url 'academics:curso_update' curso.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Editar' %}">
-                          <i class="bi bi-pencil-fill"></i>
+                          <i class="bi bi-pencil"></i>
                         </a>
                         {% if curso.ativo %}
                           <form action="{% url 'academics:curso_inactivate' curso.pk %}" method="post" class="d-inline"
@@ -120,9 +120,9 @@
                   <tr>
                     <td colspan="5" class="text-center py-5">
                       <div class="text-muted">
-                        <i class="bi bi-mortarboard display-3 d-block mb-3 text-secondary"></i>
-                        <h5>{% trans "Nenhum curso cadastrado" %}</h5>
-                        <p>{% trans "Clique em 'Novo Curso' para iniciar o catálogo." %}</p>
+                        <i class="bi bi-mortarboard display-5 d-block mb-3 text-secondary"></i>
+                        <h6 class="fw-bold">{% trans "Nenhum curso cadastrado" %}</h6>
+                        <p class="small">{% trans "Clique em 'Novo Curso' para iniciar o catálogo." %}</p>
                       </div>
                     </td>
                   </tr>
@@ -136,55 +136,55 @@
 
     <!-- Aba de Disciplinas -->
     <div class="tab-pane fade" id="disciplinas" role="tabpanel" aria-labelledby="disciplinas-tab">
-      <div class="card shadow-sm border-0">
+      <div class="card border shadow-xs overflow-hidden">
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover table-striped align-middle mb-0">
-              <thead class="table-light">
+            <table class="table table-sga align-middle mb-0">
+              <thead>
                 <tr>
-                  <th scope="col" style="width: 10%;">{% trans "Código" %}</th>
+                  <th scope="col" class="ps-4" style="width: 12%;">{% trans "Código" %}</th>
                   <th scope="col" style="width: 35%;">{% trans "Disciplina" %}</th>
                   <th scope="col" style="width: 25%;">{% trans "Curso" %}</th>
                   <th scope="col" style="width: 10%;">{% trans "C.H." %}</th>
                   <th scope="col" style="width: 10%;">{% trans "Status" %}</th>
-                  <th scope="col" class="text-end" style="width: 10%;">{% trans "Ações" %}</th>
+                  <th scope="col" class="text-end pe-4" style="width: 8%;">{% trans "Ações" %}</th>
                 </tr>
               </thead>
               <tbody>
                 {% for disciplina in disciplinas %}
                   <tr {% if not disciplina.ativo %}class="text-muted bg-light-subtle"{% endif %}>
-                    <td>
-                      <code class="fw-bold px-2 py-1 bg-light border rounded text-danger">{{ disciplina.codigo }}</code>
+                    <td class="ps-4">
+                      <code class="fw-bold px-2 py-0.5 bg-light border rounded text-danger" style="font-size: 0.8rem;">{{ disciplina.codigo }}</code>
                     </td>
                     <td>
                       <div class="fw-semibold text-dark">{{ disciplina.nome }}</div>
                     </td>
                     <td>
-                      <div class="text-muted fw-medium">{{ disciplina.curso.nome }}</div>
+                      <div class="text-muted fw-medium small">{{ disciplina.curso.nome }}</div>
                       {% if not disciplina.curso.ativo %}
-                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle p-1" style="font-size: 0.7rem;">
+                        <span class="badge badge-sga-warning p-1" style="font-size: 0.68rem;">
                           {% trans "Curso Inativo" %}
                         </span>
                       {% endif %}
                     </td>
                     <td>
-                      <span class="badge bg-light text-dark border px-2 py-1"><i class="bi bi-clock me-1 text-primary"></i> {{ disciplina.carga_horaria }}h</span>
+                      <span class="badge badge-sga-secondary"><i class="bi bi-clock me-1 text-primary"></i> {{ disciplina.carga_horaria }}h</span>
                     </td>
                     <td>
                       {% if disciplina.ativo %}
-                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
-                          <i class="bi bi-check-circle-fill me-1"></i> {% trans "Ativa" %}
+                        <span class="badge badge-sga-success">
+                          <i class="bi bi-check-circle me-1"></i> {% trans "Ativa" %}
                         </span>
                       {% else %}
-                        <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2">
-                          <i class="bi bi-slash-circle-fill me-1"></i> {% trans "Inativa" %}
+                        <span class="badge badge-sga-secondary">
+                          <i class="bi bi-slash-circle me-1"></i> {% trans "Inativa" %}
                         </span>
                       {% endif %}
                     </td>
-                    <td class="text-end">
+                    <td class="text-end pe-4">
                       <div class="btn-group" role="group">
                         <a href="{% url 'academics:disciplina_update' disciplina.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Editar' %}">
-                          <i class="bi bi-pencil-fill"></i>
+                          <i class="bi bi-pencil"></i>
                         </a>
                         {% if disciplina.ativo %}
                           <form action="{% url 'academics:disciplina_inactivate' disciplina.pk %}" method="post" class="d-inline"
@@ -207,9 +207,9 @@
                   <tr>
                     <td colspan="6" class="text-center py-5">
                       <div class="text-muted">
-                        <i class="bi bi-book display-3 d-block mb-3 text-secondary"></i>
-                        <h5>{% trans "Nenhuma disciplina cadastrada" %}</h5>
-                        <p>{% trans "Clique em 'Nova Disciplina' para iniciar o catálogo." %}</p>
+                        <i class="bi bi-book display-5 d-block mb-3 text-secondary"></i>
+                        <h6 class="fw-bold">{% trans "Nenhuma disciplina cadastrada" %}</h6>
+                        <p class="small">{% trans "Clique em 'Nova Disciplina' para iniciar o catálogo." %}</p>
                       </div>
                     </td>
                   </tr>
@@ -223,31 +223,31 @@
 
     <!-- Aba de Turmas -->
     <div class="tab-pane fade" id="turmas" role="tabpanel" aria-labelledby="turmas-tab">
-      <div class="card shadow-sm border-0">
+      <div class="card border shadow-xs overflow-hidden">
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover table-striped align-middle mb-0">
-              <thead class="table-light">
+            <table class="table table-sga align-middle mb-0">
+              <thead>
                 <tr>
-                  <th scope="col" style="width: 25%;">{% trans "Disciplina / Curso" %}</th>
+                  <th scope="col" class="ps-4" style="width: 25%;">{% trans "Disciplina / Curso" %}</th>
                   <th scope="col" style="width: 12%;">{% trans "Período" %}</th>
-                  <th scope="col" style="width: 20%;">{% trans "Horários" %}</th>
+                  <th scope="col" style="width: 18%;">{% trans "Horários" %}</th>
                   <th scope="col" style="width: 10%;">{% trans "Sala" %}</th>
                   <th scope="col" style="width: 8%;">{% trans "Vagas" %}</th>
                   <th scope="col" style="width: 15%;">{% trans "Professor" %}</th>
                   <th scope="col" style="width: 10%;">{% trans "Status" %}</th>
-                  <th scope="col" class="text-end" style="width: 10%;">{% trans "Ações" %}</th>
+                  <th scope="col" class="text-end pe-4" style="width: 8%;">{% trans "Ações" %}</th>
                 </tr>
               </thead>
               <tbody>
                 {% for turma in turmas %}
                   <tr {% if not turma.ativo %}class="text-muted bg-light-subtle"{% endif %}>
-                    <td>
+                    <td class="ps-4">
                       <div class="fw-semibold text-dark">{{ turma.disciplina.nome }}</div>
                       <small class="text-muted">{{ turma.disciplina.curso.nome }}</small>
                     </td>
                     <td>
-                      <span class="badge bg-light text-dark border px-2 py-1">
+                      <span class="badge badge-sga-secondary">
                         <i class="bi bi-calendar-event text-primary me-1"></i> {{ turma.periodo_letivo }}
                       </span>
                     </td>
@@ -262,34 +262,34 @@
                       {% endif %}
                     </td>
                     <td>
-                      <span class="badge bg-light text-dark border px-2 py-1">
+                      <span class="badge badge-sga-secondary">
                         <i class="bi bi-people me-1 text-info"></i> {{ turma.vagas_maximas }}
                       </span>
                     </td>
                     <td>
                       {% if turma.professor %}
-                        <div class="fw-semibold text-dark"><i class="bi bi-person-badge text-primary me-1"></i> {{ turma.professor.full_name }}</div>
+                        <div class="fw-semibold text-dark small"><i class="bi bi-person-badge text-primary me-1"></i> {{ turma.professor.full_name }}</div>
                       {% else %}
-                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">
+                        <span class="badge badge-sga-warning">
                           <i class="bi bi-exclamation-triangle-fill me-1"></i> {% trans "Sem professor" %}
                         </span>
                       {% endif %}
                     </td>
                     <td>
                       {% if turma.ativo %}
-                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
-                          <i class="bi bi-check-circle-fill me-1"></i> {% trans "Ativa" %}
+                        <span class="badge badge-sga-success">
+                          <i class="bi bi-check-circle me-1"></i> {% trans "Ativa" %}
                         </span>
                       {% else %}
-                        <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2">
-                          <i class="bi bi-slash-circle-fill me-1"></i> {% trans "Inativa" %}
+                        <span class="badge badge-sga-secondary">
+                          <i class="bi bi-slash-circle me-1"></i> {% trans "Inativa" %}
                         </span>
                       {% endif %}
                     </td>
-                    <td class="text-end">
+                    <td class="text-end pe-4">
                       <div class="btn-group" role="group">
                         <a href="{% url 'academics:turma_update' turma.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Editar' %}">
-                          <i class="bi bi-pencil-fill"></i>
+                          <i class="bi bi-pencil"></i>
                         </a>
                         {% if turma.ativo %}
                           <form action="{% url 'academics:turma_inactivate' turma.pk %}" method="post" class="d-inline"
@@ -312,9 +312,9 @@
                   <tr>
                     <td colspan="8" class="text-center py-5">
                       <div class="text-muted">
-                        <i class="bi bi-calendar3 display-3 d-block mb-3 text-secondary"></i>
-                        <h5>{% trans "Nenhuma turma cadastrada" %}</h5>
-                        <p>{% trans "Clique em 'Abrir Turma' para iniciar a oferta de disciplinas." %}</p>
+                        <i class="bi bi-calendar3 display-5 d-block mb-3 text-secondary"></i>
+                        <h6 class="fw-bold">{% trans "Nenhuma turma cadastrada" %}</h6>
+                        <p class="small">{% trans "Clique em 'Abrir Turma' para iniciar a oferta de disciplinas." %}</p>
                       </div>
                     </td>
                   </tr>
