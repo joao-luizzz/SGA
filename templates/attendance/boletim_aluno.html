@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} — SGA{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <div>
+      <h1 class="h2 text-dark mb-1">
+        <i class="bi bi-calendar-check text-warning me-2"></i> {% trans "Minha Frequência" %}
+      </h1>
+      <p class="text-muted mb-0">
+        {% trans "Acompanhe sua presença em cada disciplina matriculada." %}
+        {% trans "A frequência mínima obrigatória é de 75%." %}
+      </p>
+    </div>
+  </div>
+
+  {% if boletim %}
+  <div class="row g-4">
+    {% for item in boletim %}
+    <div class="col-md-6 col-xl-4">
+      <div class="card border-0 shadow-sm h-100
+        {% if item.total_aulas == 0 %}border-secondary
+        {% elif item.percentual >= 75 %}border-success
+        {% else %}border-danger{% endif %}"
+        style="border-left: 4px solid transparent !important;
+          {% if item.total_aulas > 0 %}
+          border-left-color: {% if item.percentual >= 75 %}#198754{% else %}#dc3545{% endif %} !important;
+          {% endif %}">
+
+        <div class="card-header border-0 bg-light d-flex justify-content-between align-items-start">
+          <div>
+            <h6 class="mb-0 fw-semibold">{{ item.turma.disciplina.nome }}</h6>
+            <small class="text-muted">{{ item.turma.periodo_letivo }}</small>
+          </div>
+          {% if item.total_aulas == 0 %}
+          <span class="badge bg-secondary">{% trans "Sem dados" %}</span>
+          {% elif item.percentual >= 75 %}
+          <span class="badge bg-success">
+            <i class="bi bi-check-circle me-1"></i> {% trans "Regular" %}
+          </span>
+          {% else %}
+          <span class="badge bg-danger">
+            <i class="bi bi-x-circle me-1"></i> {% trans "Reprovado por Falta" %}
+          </span>
+          {% endif %}
+        </div>
+
+        <div class="card-body">
+          <!-- Barra de progresso da frequência -->
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <small class="text-muted">{% trans "Frequência" %}</small>
+              <strong class="{% if item.percentual >= 75 %}text-success{% elif item.total_aulas == 0 %}text-secondary{% else %}text-danger{% endif %}">
+                {% if item.total_aulas == 0 %}—{% else %}{{ item.percentual }}%{% endif %}
+              </strong>
+            </div>
+            <div class="progress" style="height: 10px;">
+              {% if item.total_aulas > 0 %}
+              <div class="progress-bar {% if item.percentual >= 75 %}bg-success{% else %}bg-danger{% endif %}"
+                role="progressbar"
+                style="width: {{ item.percentual }}%"
+                aria-valuenow="{{ item.percentual }}"
+                aria-valuemin="0"
+                aria-valuemax="100">
+              </div>
+              <!-- Linha de mínimo (75%) -->
+              <div class="progress-bar bg-transparent border-start border-2 border-warning position-absolute"
+                style="left: 75%; height: 10px;">
+              </div>
+              {% else %}
+              <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%"></div>
+              {% endif %}
+            </div>
+            <div class="d-flex justify-content-end mt-1">
+              <small class="text-muted" style="position: relative; margin-right: 25%;">
+                <span class="text-warning fw-semibold">|</span> {% trans "mín. 75%" %}
+              </small>
+            </div>
+          </div>
+
+          <!-- Resumo numérico -->
+          <div class="row text-center g-2">
+            <div class="col-4">
+              <div class="bg-success bg-opacity-10 rounded p-2">
+                <div class="fs-5 fw-bold text-success">{{ item.presencas }}</div>
+                <div class="text-muted" style="font-size: 0.7rem;">{% trans "Presenças" %}</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="bg-danger bg-opacity-10 rounded p-2">
+                <div class="fs-5 fw-bold text-danger">{{ item.faltas }}</div>
+                <div class="text-muted" style="font-size: 0.7rem;">{% trans "Faltas" %}</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="bg-secondary bg-opacity-10 rounded p-2">
+                <div class="fs-5 fw-bold text-secondary">{{ item.total_aulas }}</div>
+                <div class="text-muted" style="font-size: 0.7rem;">{% trans "Aulas" %}</div>
+              </div>
+            </div>
+          </div>
+
+          {% if item.total_aulas > 0 and item.percentual < 75 %}
+          <div class="alert alert-danger mt-3 mb-0 py-2 px-3 small">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {% trans "Atenção: sua frequência está abaixo de 75%. Você está reprovado por falta nesta disciplina." %}
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="card-footer bg-transparent border-0 text-muted small">
+          <i class="bi bi-person-fill me-1"></i>
+          {% trans "Prof.:" %} {{ item.turma.professor.full_name|default:"—" }}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Legenda -->
+  <div class="mt-4 p-3 bg-white rounded shadow-sm border">
+    <h6 class="fw-semibold text-muted mb-2">
+      <i class="bi bi-info-circle me-2"></i> {% trans "Critérios de Frequência (RN23, RN36)" %}
+    </h6>
+    <div class="d-flex flex-wrap gap-3">
+      <span class="badge bg-success fs-6 fw-normal px-3 py-2">
+        <i class="bi bi-check-circle me-1"></i> {% trans "≥ 75% → Frequência Regular" %}
+      </span>
+      <span class="badge bg-danger fs-6 fw-normal px-3 py-2">
+        <i class="bi bi-x-circle me-1"></i> {% trans "< 75% → Reprovado por Falta" %}
+      </span>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="alert alert-info d-flex align-items-center gap-3" role="alert">
+    <i class="bi bi-info-circle-fill fs-4"></i>
+    <div>
+      {% trans "Você não possui matrículas ativas no momento." %}
+      {% trans "Procure a Secretaria para realizar sua matrícula." %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

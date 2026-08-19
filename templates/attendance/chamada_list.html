@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} — SGA{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <!-- Cabeçalho -->
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <div>
+      <h1 class="h2 text-dark mb-1">
+        <i class="bi bi-person-check-fill text-warning me-2"></i> {% trans "Registro de Frequência" %}
+      </h1>
+      <p class="text-muted mb-0">{% trans "Selecione uma turma abaixo para registrar a chamada dos alunos." %}</p>
+    </div>
+    <a href="{% url 'attendance:chamada_lancar' %}" class="btn btn-warning d-flex align-items-center gap-2">
+      <i class="bi bi-clipboard-plus"></i> {% trans "Registrar Chamada" %}
+    </a>
+  </div>
+
+  <!-- Listagem de turmas -->
+  {% if turmas %}
+  <div class="row g-3">
+    {% for turma in turmas %}
+    <div class="col-md-6 col-xl-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-warning bg-opacity-10 border-0 d-flex align-items-center gap-2">
+          <i class="bi bi-calendar3 text-warning fs-5"></i>
+          <span class="fw-semibold text-dark">{{ turma.disciplina.nome }}</span>
+        </div>
+        <div class="card-body">
+          <p class="mb-1 text-muted small">
+            <i class="bi bi-clock me-1"></i> <strong>{% trans "Período:" %}</strong> {{ turma.periodo_letivo }}
+          </p>
+          <p class="mb-1 text-muted small">
+            <i class="bi bi-door-open me-1"></i> <strong>{% trans "Sala:" %}</strong> {{ turma.sala|default:"—" }}
+          </p>
+          <p class="mb-1 text-muted small">
+            <i class="bi bi-people-fill me-1"></i> <strong>{% trans "Vagas máx.:" %}</strong> {{ turma.vagas_maximas }}
+          </p>
+          <p class="mb-0 text-muted small">
+            <i class="bi bi-alarm me-1"></i> <strong>{% trans "Horários:" %}</strong> {{ turma.horarios }}
+          </p>
+        </div>
+        <div class="card-footer bg-transparent border-0 d-flex gap-2">
+          <a href="{% url 'attendance:chamada_lancar' %}?turma={{ turma.pk }}"
+             class="btn btn-sm btn-outline-warning flex-fill">
+            <i class="bi bi-clipboard-plus me-1"></i> {% trans "Lançar Chamada" %}
+          </a>
+          <a href="{% url 'attendance:turma_frequencia' turma.pk %}"
+             class="btn btn-sm btn-outline-secondary flex-fill">
+            <i class="bi bi-bar-chart-line me-1"></i> {% trans "Ver Relatório" %}
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="alert alert-info d-flex align-items-center gap-3" role="alert">
+    <i class="bi bi-info-circle-fill fs-4"></i>
+    <div>
+      {% trans "Você não possui turmas ativas alocadas no momento." %}
+      {% trans "Entre em contato com a Coordenação." %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

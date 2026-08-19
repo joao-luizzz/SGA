@@ -40,3 +40,63 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         super().clean()
         if self.email:
             self.email = self.email.lower()
+
+
+class AcaoAuditoria(models.TextChoices):
+    CRIAR = 'CRIAR', _('Criar')
+    EDITAR = 'EDITAR', _('Editar')
+    EXCLUIR = 'EXCLUIR', _('Excluir')
+
+
+class AuditoriaLog(models.Model):
+    """Registro imutável de auditoria para alterações em Nota e Falta (RN30, RN31)."""
+
+    usuario = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.PROTECT,
+        related_name='logs_auditoria',
+        verbose_name=_('usuário responsável'),
+        null=True,
+        blank=True,
+    )
+    tabela_afetada = models.CharField(
+        _('tabela afetada'),
+        max_length=50,
+        help_text=_('Nome da entidade alterada, ex.: Nota ou Falta.'),
+    )
+    registro_id = models.BigIntegerField(_('ID do registro'))
+    acao = models.CharField(
+        _('ação'),
+        max_length=10,
+        choices=AcaoAuditoria.choices,
+    )
+    valor_antigo = models.TextField(_('valor anterior'), null=True, blank=True)
+    valor_novo = models.TextField(_('novo valor'), null=True, blank=True)
+    realizado_em = models.DateTimeField(_('realizado em'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('log de auditoria')
+        verbose_name_plural = _('logs de auditoria')
+        ordering = ['-realizado_em']
+        # Imutável: ninguém pode editar ou deletar via admin (RN31)
+        default_permissions = ('add', 'view')
+
+    def __str__(self):
+        return (
+            f"[{self.realizado_em:%d/%m/%Y %H:%M}] "
+            f"{self.acao} em {self.tabela_afetada} #{self.registro_id}"
+        )
+
+    def save(self, *args, **kwargs):
+        """Impede atualização de registros existentes (imutabilidade - RN31)."""
+        if self.pk:
+            raise ValueError(
+                "AuditoriaLog é imutável. Registros de auditoria não podem ser editados."
+            )
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """Impede exclusão de registros de auditoria (RN31)."""
+        raise ValueError(
+            "AuditoriaLog é imutável. Registros de auditoria não podem ser excluídos."
+        )
