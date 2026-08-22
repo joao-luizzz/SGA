@@ -31,6 +31,10 @@ def turma(db, professor):
 
 @pytest.mark.django_db
 def test_matricular_aluno_administrativo_sucesso(secretaria, aluno, turma):
+    """
+    Testa se uma secretaria consegue matricular um aluno com sucesso
+    quando todas as regras de negócio são respeitadas.
+    """
     matricula = matricular_aluno_administrativo(secretaria, aluno, turma)
     
     assert matricula.status == StatusMatricula.ATIVA
