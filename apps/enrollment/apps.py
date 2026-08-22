@@ -1,6 +1,7 @@
 from django.apps import AppConfig
+from django.utils.translation import gettext_lazy as _
 
 class EnrollmentConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'enrollment'
-    verbose_name = 'Matrículas'
+    name = 'apps.enrollment'
+    verbose_name = _('Matrículas e Gestão de Vagas')
