@@ -24,6 +24,24 @@ class SGAAuthenticationForm(AuthenticationForm):
         'inactive': _("Esta conta de usuário está inativa. Procure a Secretaria."),
     }
 
+    def clean(self):
+        username = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+
+        if username and password:
+            from .models import CustomUser
+            try:
+                user = CustomUser.objects.get(email=username)
+                if not user.is_active and user.check_password(password):
+                    raise forms.ValidationError(
+                        self.error_messages['inactive'],
+                        code='inactive',
+                    )
+            except CustomUser.DoesNotExist:
+                pass
+
+        return super().clean()
+
 class SGAMandatoryPasswordChangeForm(SetPasswordForm):
     new_password1 = forms.CharField(
         label=_("Nova Senha"),
