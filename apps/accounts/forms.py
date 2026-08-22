@@ -34,3 +34,23 @@ class SGAMandatoryPasswordChangeForm(SetPasswordForm):
         label=_("Confirme a Nova Senha"),
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Repita a nova senha'})
     )
+
+class BaseUsuarioCreationForm(forms.ModelForm):
+    """Formulário base para criação de usuários pela Secretaria."""
+    class Meta:
+        from .models import CustomUser
+        model = CustomUser
+        fields = ['full_name', 'email']
+        widgets = {
+            'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome completo'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@instituicao.edu.br'}),
+        }
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            email = email.lower().strip()
+            from .models import CustomUser
+            if CustomUser.objects.filter(email=email).exists():
+                raise forms.ValidationError(_("Já existe um usuário cadastrado com este e-mail."))
+        return email
