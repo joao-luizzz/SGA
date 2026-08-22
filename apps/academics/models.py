@@ -202,14 +202,18 @@ class Turma(models.Model):
 
     @property
     def vagas_ocupadas(self):
-        # Para evitar erros de importação circular ou acoplamento direto, usamos a related_name
-        # se existir, senão podemos buscar via apps
+        """
+        Calcula a quantidade de vagas ocupadas contando as matrículas com status ATIVA.
+        """
         if hasattr(self, 'matriculas'):
             return self.matriculas.filter(status='ATIVA').count()
         return 0
 
     @property
     def vagas_disponiveis(self):
+        """
+        Calcula as vagas disponíveis subtraindo as vagas ocupadas das vagas máximas.
+        """
         if self.vagas_maximas is None:
             return 0
         disponiveis = self.vagas_maximas - self.vagas_ocupadas
