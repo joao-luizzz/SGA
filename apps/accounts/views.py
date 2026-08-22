@@ -107,3 +107,51 @@ def custom_permission_denied_view(request, exception=None):
 
 def custom_page_not_found_view(request, exception=None):
     return render(request, '404.html', status=404)
+
+from django.shortcuts import get_object_or_404
+from .selectors import list_manageable_users
+from .services import toggle_user_active_status
+from .forms import AlunoCreationForm, ProfessorCreationForm
+
+@role_required(UserRole.SECRETARIA)
+def usuario_list_view(request):
+    usuarios = list_manageable_users()
+    context = {
+        'usuarios': usuarios,
+        'title': 'Gerenciar Usuários (Alunos e Professores)',
+    }
+    return render(request, 'accounts/usuario_list.html', context)
+
+@role_required(UserRole.SECRETARIA)
+def usuario_create_view(request):
+    tipo = request.GET.get('tipo', 'aluno')
+    if tipo == 'professor':
+        form_class = ProfessorCreationForm
+        title = "Cadastrar Professor"
+    else:
+        form_class = AlunoCreationForm
+        title = "Cadastrar Aluno"
+
+    if request.method == 'POST':
+        form = form_class(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _(f"{title.split(' ')[1]} cadastrado(a) com sucesso! A senha padrão deve ser alterada no primeiro acesso."))
+            return redirect('accounts:usuario_list')
+    else:
+        form = form_class()
+
+    return render(request, 'accounts/usuario_form.html', {'form': form, 'title': title, 'tipo': tipo})
+
+@require_POST
+@role_required(UserRole.SECRETARIA)
+def usuario_toggle_active_view(request, user_id):
+    from .models import CustomUser
+    user = get_object_or_404(CustomUser, id=user_id)
+    if user.role in [UserRole.ALUNO, UserRole.PROFESSOR]:
+        toggle_user_active_status(user)
+        status = "ativado(a)" if user.is_active else "inativado(a)"
+        messages.success(request, _(f"Usuário {user.full_name} foi {status} com sucesso!"))
+    else:
+        messages.error(request, _("Ação não permitida para este tipo de usuário."))
+    return redirect('accounts:usuario_list')
