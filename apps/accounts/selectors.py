@@ -17,3 +17,7 @@ def get_dashboard_url_by_role(role: str) -> str:
         UserRole.COORDENACAO: reverse('accounts:dashboard_coordenacao'),
     }
     return role_dashboard_map.get(role, reverse('accounts:login'))
+
+def list_manageable_users():
+    """Retorna a lista de alunos e professores ordenados por nome."""
+    return CustomUser.objects.filter(role__in=[UserRole.ALUNO, UserRole.PROFESSOR]).order_by('full_name')
