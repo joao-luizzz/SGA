@@ -1,7 +1,7 @@
 import pytest
 from django.urls import reverse
-from apps.accounts.models import CustomUser, UserRole
-from apps.accounts.services import toggle_user_active_status
+from accounts.models import CustomUser, UserRole
+from accounts.services import toggle_user_active_status
 
 @pytest.mark.django_db
 class TestUserManagement:
