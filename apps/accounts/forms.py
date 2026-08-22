@@ -54,3 +54,25 @@ class BaseUsuarioCreationForm(forms.ModelForm):
             if CustomUser.objects.filter(email=email).exists():
                 raise forms.ValidationError(_("Já existe um usuário cadastrado com este e-mail."))
         return email
+
+class AlunoCreationForm(BaseUsuarioCreationForm):
+    """Formulário para criar um novo Aluno."""
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        from .models import UserRole
+        user.role = UserRole.ALUNO
+        user.must_change_password = True
+        if commit:
+            user.save()
+        return user
+
+class ProfessorCreationForm(BaseUsuarioCreationForm):
+    """Formulário para criar um novo Professor."""
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        from .models import UserRole
+        user.role = UserRole.PROFESSOR
+        user.must_change_password = True
+        if commit:
+            user.save()
+        return user
