@@ -1,9 +1,9 @@
 import pytest
 from django.core.exceptions import ValidationError
-from apps.enrollment.models import Matricula, StatusMatricula
-from apps.enrollment.services import matricular_aluno_administrativo
-from apps.accounts.models import CustomUser, UserRole
-from apps.academics.models import Turma, Curso, Disciplina
+from enrollment.models import Matricula, StatusMatricula
+from enrollment.services import matricular_aluno_administrativo
+from accounts.models import CustomUser, UserRole
+from academics.models import Turma, Curso, Disciplina
 
 @pytest.fixture
 def secretaria(db):
