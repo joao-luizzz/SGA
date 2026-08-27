@@ -36,7 +36,6 @@ class TestChamadaIndexView:
         url = reverse('attendance:chamada_index')
         response = client.get(url)
         assert response.status_code == 403
-
     def test_secretaria_bloqueada_na_listagem(self, client, user_secretaria, password):
         client.login(username=user_secretaria.email, password=password)
         url = reverse('attendance:chamada_index')
@@ -191,4 +190,3 @@ class TestAttendanceIndexView:
         url = reverse('attendance:index')
         response = client.get(url)
         assert response.status_code == 403
-

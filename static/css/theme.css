@@ -6,41 +6,41 @@
 
 :root {
   --sga-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  
+
   /* Palette & Surfaces */
   --sga-bg-canvas: #f8fafc;
   --sga-bg-surface: #ffffff;
   --sga-bg-subtle: #f1f5f9;
   --sga-bg-hover: #f8fafc;
-  
+
   /* Borders & Dividers */
   --sga-border-color: #e2e8f0;
   --sga-border-light: #f1f5f9;
   --sga-border-strong: #cbd5e1;
-  
+
   /* Text */
   --sga-text-main: #0f172a;
   --sga-text-muted: #64748b;
   --sga-text-subtle: #94a3b8;
-  
+
   /* Brand / Accents */
   --sga-primary: #2563eb;
   --sga-primary-hover: #1d4ed8;
   --sga-primary-light: #eff6ff;
   --sga-primary-text: #1d4ed8;
-  
+
   --sga-success: #059669;
   --sga-success-light: #ecfdf5;
   --sga-success-text: #047857;
-  
+
   --sga-warning: #d97706;
   --sga-warning-light: #fffbeb;
   --sga-warning-text: #b45309;
-  
+
   --sga-danger: #dc2626;
   --sga-danger-light: #fef2f2;
   --sga-danger-text: #b91c1c;
-  
+
   --sga-info: #0284c7;
   --sga-info-light: #f0f9ff;
   --sga-info-text: #0369a1;
