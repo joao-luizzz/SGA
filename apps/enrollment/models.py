@@ -40,7 +40,8 @@ class Matricula(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['aluno', 'turma'],
-                name='unique_aluno_turma',
+                condition=models.Q(status=StatusMatricula.ATIVA),
+                name='unique_matricula_ativa_aluno_turma',
             )
         ]
 

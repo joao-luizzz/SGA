@@ -1,90 +1,132 @@
+from unittest.mock import patch
+
 import pytest
 from django.core.exceptions import ValidationError
+
+from academics.models import Curso, Disciplina, Turma
+from accounts.models import CustomUser, UserRole
 from enrollment.models import Matricula, StatusMatricula
 from enrollment.services import matricular_aluno_administrativo
-from accounts.models import CustomUser, UserRole
-from academics.models import Turma, Curso, Disciplina
+
 
 @pytest.fixture
-def secretaria(db):
-    return CustomUser.objects.create(email='sec@test.com', full_name='Secretaria Teste', role=UserRole.SECRETARIA)
-
-@pytest.fixture
-def aluno(db):
-    return CustomUser.objects.create(email='aluno@test.com', full_name='Aluno Teste', role=UserRole.ALUNO)
-
-@pytest.fixture
-def professor(db):
-    return CustomUser.objects.create(email='prof@test.com', full_name='Professor Teste', role=UserRole.PROFESSOR)
-
-@pytest.fixture
-def turma(db, professor):
-    curso = Curso.objects.create(nome='Curso', codigo='C1')
-    disciplina = Disciplina.objects.create(nome='Disciplina', codigo='D1', carga_horaria=40, curso=curso)
+def turma_valida(db, user_professor):
+    curso = Curso.objects.create(nome='Curso', codigo='MAT-ADM')
+    disciplina = Disciplina.objects.create(
+        nome='Disciplina',
+        codigo='MAT-ADM',
+        carga_horaria=40,
+        curso=curso,
+    )
     return Turma.objects.create(
         disciplina=disciplina,
-        periodo_letivo='2026.1',
+        periodo_letivo='2026/1',
         horarios='SEG 08:00-10:00',
+        sala='Sala 1',
         vagas_maximas=2,
-        professor=professor
+        professor=user_professor,
+        ativo=True,
     )
 
+
 @pytest.mark.django_db
-def test_matricular_aluno_administrativo_sucesso(secretaria, aluno, turma):
-    """
-    Testa se uma secretaria consegue matricular um aluno com sucesso
-    quando todas as regras de negócio são respeitadas.
-    """
-    matricula = matricular_aluno_administrativo(secretaria, aluno, turma)
-    
+def test_matricula_administrativa_valida_bloqueia_turma(
+    user_secretaria, user_aluno, turma_valida
+):
+    with patch.object(
+        Turma.objects,
+        'select_for_update',
+        wraps=Turma.objects.select_for_update,
+    ) as select_for_update:
+        matricula = matricular_aluno_administrativo(
+            user_secretaria, user_aluno, turma_valida
+        )
+
+    select_for_update.assert_called_once_with()
     assert matricula.status == StatusMatricula.ATIVA
-    assert matricula.aluno == aluno
-    assert matricula.turma == turma
-    assert turma.vagas_ocupadas == 1
+    assert matricula.aluno == user_aluno
+    assert matricula.turma == turma_valida
+
 
 @pytest.mark.django_db
-def test_matricular_apenas_secretaria(aluno, professor, turma):
-    # Professor tenta matricular
-    with pytest.raises(ValidationError, match="perfil de Secretaria"):
-        matricular_aluno_administrativo(professor, aluno, turma)
+def test_apenas_secretaria_pode_matricular(user_professor, user_aluno, turma_valida):
+    with pytest.raises(ValidationError, match='perfil de Secretaria'):
+        matricular_aluno_administrativo(user_professor, user_aluno, turma_valida)
 
-    # Aluno tenta matricular ele mesmo
-    with pytest.raises(ValidationError, match="perfil de Secretaria"):
-        matricular_aluno_administrativo(aluno, aluno, turma)
 
 @pytest.mark.django_db
-def test_matricular_somente_aluno(secretaria, professor, turma):
-    with pytest.raises(ValidationError, match="perfil de ALUNO"):
-        matricular_aluno_administrativo(secretaria, professor, turma)
+def test_aluno_precisa_estar_ativo(user_secretaria, user_aluno, turma_valida):
+    user_aluno.is_active = False
+    user_aluno.save(update_fields=['is_active'])
+
+    with pytest.raises(ValidationError, match='estar ativo'):
+        matricular_aluno_administrativo(user_secretaria, user_aluno, turma_valida)
+
 
 @pytest.mark.django_db
-def test_matricular_limite_vagas_service(secretaria, aluno, turma):
-    aluno2 = CustomUser.objects.create(email='aluno2@test.com', full_name='Aluno 2', role=UserRole.ALUNO)
-    aluno3 = CustomUser.objects.create(email='aluno3@test.com', full_name='Aluno 3', role=UserRole.ALUNO)
+@pytest.mark.parametrize(
+    ('campo', 'valor'),
+    [
+        ('professor', None),
+        ('horarios', ''),
+        ('sala', ''),
+        ('vagas_maximas', 0),
+    ],
+)
+def test_turma_incompleta_nao_aceita_matricula(
+    user_secretaria, user_aluno, turma_valida, campo, valor
+):
+    setattr(turma_valida, campo, valor)
+    turma_valida.save(update_fields=[campo])
 
-    # Ocupa as 2 vagas
-    matricular_aluno_administrativo(secretaria, aluno, turma)
-    matricular_aluno_administrativo(secretaria, aluno2, turma)
+    with pytest.raises(ValidationError, match='professor, horário, sala e vagas'):
+        matricular_aluno_administrativo(user_secretaria, user_aluno, turma_valida)
 
-    assert turma.vagas_disponiveis == 0
-
-    # Tenta matricular o 3o aluno
-    with pytest.raises(ValidationError, match="não possui vagas disponíveis"):
-        matricular_aluno_administrativo(secretaria, aluno3, turma)
 
 @pytest.mark.django_db
-def test_matricular_reativacao(secretaria, aluno, turma):
-    # Matricula e depois cancela
-    matricula = matricular_aluno_administrativo(secretaria, aluno, turma)
-    matricula.status = StatusMatricula.CANCELADA
-    matricula.save()
+def test_nao_permite_exceder_vagas(user_secretaria, user_aluno, turma_valida):
+    turma_valida.vagas_maximas = 1
+    turma_valida.save(update_fields=['vagas_maximas'])
+    outro_aluno = CustomUser.objects.create_user(
+        email='outro.aluno@sga.edu.br',
+        full_name='Outro Aluno',
+        role=UserRole.ALUNO,
+        password='SenhaSegura123!',
+    )
+    Matricula.objects.create(aluno=outro_aluno, turma=turma_valida)
 
-    assert turma.vagas_ocupadas == 0
+    with pytest.raises(ValidationError, match='não possui vagas'):
+        matricular_aluno_administrativo(user_secretaria, user_aluno, turma_valida)
 
-    # Tenta matricular novamente
-    matricula_reativada = matricular_aluno_administrativo(secretaria, aluno, turma)
-    
-    # Verifica se reativou a mesma matrícula
-    assert matricula_reativada.pk == matricula.pk
-    assert matricula_reativada.status == StatusMatricula.ATIVA
-    assert turma.vagas_ocupadas == 1
+
+@pytest.mark.django_db
+def test_nao_permite_duplicidade_ativa(user_secretaria, user_aluno, turma_valida):
+    Matricula.objects.create(aluno=user_aluno, turma=turma_valida)
+
+    with pytest.raises(ValidationError, match='matrícula ativa'):
+        matricular_aluno_administrativo(user_secretaria, user_aluno, turma_valida)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'status_anterior',
+    [StatusMatricula.CANCELADA, StatusMatricula.TRANCADA],
+)
+def test_rematricula_preserva_historico_cancelado_ou_trancado(
+    user_secretaria, user_aluno, turma_valida, status_anterior
+):
+    matricula_anterior = Matricula.objects.create(
+        aluno=user_aluno,
+        turma=turma_valida,
+        status=status_anterior,
+    )
+
+    nova_matricula = matricular_aluno_administrativo(
+        user_secretaria, user_aluno, turma_valida
+    )
+
+    matricula_anterior.refresh_from_db()
+    assert nova_matricula.pk != matricula_anterior.pk
+    assert nova_matricula.status == StatusMatricula.ATIVA
+    assert matricula_anterior.status == status_anterior
+    assert Matricula.objects.filter(aluno=user_aluno, turma=turma_valida).count() == 2
