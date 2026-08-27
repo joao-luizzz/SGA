@@ -1,57 +1,67 @@
 {% if user.is_authenticated %}
-<div class="sidebar bg-light border-end p-3 h-100 min-vh-100">
-  <div class="mb-3 px-2">
-    <small class="text-uppercase fw-bold text-muted">Navegação Principal</small>
+<aside class="sidebar-custom p-3 h-100">
+  <div class="sidebar-category">
+    Navegação
   </div>
 
-  <div class="list-group list-group-flush">
-    <a href="{% url 'accounts:dashboard' %}" class="list-group-item list-group-item-action bg-transparent border-0 rounded mb-1">
-      <i class="bi bi-grid-1x2-fill me-2 text-primary"></i> Visão Geral
+  <nav class="d-flex flex-column gap-1">
+    <a href="{% url 'accounts:dashboard' %}" class="sidebar-link">
+      <i class="bi bi-grid-1x2 text-primary"></i>
+      <span>Visão Geral</span>
     </a>
 
     {% if user.role == 'ALUNO' %}
-      <a href="{% url 'enrollment:index' %}" class="list-group-item list-group-item-action bg-transparent border-0 rounded mb-1">
-        <i class="bi bi-card-checklist me-2 text-info"></i> Minhas Matrículas
+      <a href="{% url 'enrollment:index' %}" class="sidebar-link">
+        <i class="bi bi-card-checklist text-info"></i>
+        <span>Minhas Matrículas</span>
       </a>
-      <a href="{% url 'assessments:index' %}" class="list-group-item list-group-item-action bg-transparent border-0 rounded mb-1">
-        <i class="bi bi-mortarboard-fill me-2 text-success"></i> Minhas Notas
+      <a href="{% url 'assessments:index' %}" class="sidebar-link">
+        <i class="bi bi-mortarboard text-success"></i>
+        <span>Minhas Notas</span>
       </a>
-      <a href="{% url 'attendance:index' %}" class="list-group-item list-group-item-action bg-transparent border-0 rounded mb-1">
-        <i class="bi bi-calendar-check me-2 text-warning"></i> Frequência
+      <a href="{% url 'attendance:boletim_frequencia' %}" class="sidebar-link">
+        <i class="bi bi-calendar-check text-warning"></i>
+        <span>Frequência</span>
       </a>
     {% endif %}
 
     {% if user.role == 'PROFESSOR' %}
-      <a href="{% url 'assessments:index' %}" class="list-group-item list-group-item-action bg-transparent border-0 rounded mb-1">
-        <i class="bi bi-journal-text me-2 text-success"></i> Turmas & Avaliações
+      <a href="{% url 'assessments:index' %}" class="sidebar-link">
+        <i class="bi bi-journal-text text-success"></i>
+        <span>Turmas & Avaliações</span>
       </a>
-      <a href="{% url 'attendance:index' %}" class="list-group-item list-group-item-action bg-transparent border-0 rounded mb-1">
-        <i class="bi bi-person-check-fill me-2 text-warning"></i> Registro de Frequência
+      <a href="{% url 'attendance:chamada_index' %}" class="sidebar-link">
+        <i class="bi bi-person-check text-warning"></i>
+        <span>Registro de Frequência</span>
       </a>
     {% endif %}
 
     {% if user.role == 'SECRETARIA' %}
-      <a href="{% url 'enrollment:index' %}" class="list-group-item list-group-item-action bg-transparent border-0 rounded mb-1">
-        <i class="bi bi-person-lines-fill me-2 text-primary"></i> Gestão de Matrículas
+      <a href="{% url 'enrollment:index' %}" class="sidebar-link">
+        <i class="bi bi-person-lines-fill text-primary"></i>
+        <span>Gestão de Matrículas</span>
       </a>
     {% endif %}
 
     {% if user.role == 'COORDENACAO' %}
-      <a href="{% url 'academics:index' %}" class="list-group-item list-group-item-action bg-transparent border-0 rounded mb-1">
-        <i class="bi bi-diagram-3-fill me-2 text-danger"></i> Cursos & Disciplinas
+      <a href="{% url 'academics:index' %}" class="sidebar-link">
+        <i class="bi bi-diagram-3 text-danger"></i>
+        <span>Cursos & Disciplinas</span>
       </a>
-      <a href="{% url 'academics:index' %}" class="list-group-item list-group-item-action bg-transparent border-0 rounded mb-1">
-        <i class="bi bi-person-badge-fill me-2 text-info"></i> Alocação Docente
+      <a href="{% url 'academics:index' %}" class="sidebar-link">
+        <i class="bi bi-person-badge text-info"></i>
+        <span>Alocação Docente</span>
       </a>
     {% endif %}
 
-    <div class="mt-4 mb-2 px-2">
-      <small class="text-uppercase fw-bold text-muted">Minha Conta</small>
+    <div class="sidebar-category mt-4">
+      Minha Conta
     </div>
 
-    <a href="{% url 'accounts:change_password' %}" class="list-group-item list-group-item-action bg-transparent border-0 rounded mb-1">
-      <i class="bi bi-key-fill me-2 text-secondary"></i> Alterar Senha
+    <a href="{% url 'accounts:change_password' %}" class="sidebar-link">
+      <i class="bi bi-key text-secondary"></i>
+      <span>Alterar Senha</span>
     </a>
-  </div>
-</div>
+  </nav>
+</aside>
 {% endif %}

@@ -5,51 +5,58 @@
 {% block content %}
 <div class="row justify-content-center align-items-center py-5">
   <div class="col-12 col-sm-10 col-md-6 col-lg-4">
-    <div class="card shadow-lg border-0 rounded-4">
+    <div class="card shadow-md border rounded-3">
       <div class="card-body p-4 p-sm-5">
         <div class="text-center mb-4">
-          <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
-            <i class="bi bi-person-lock fs-2"></i>
+          <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-3 shadow-xs mb-3" style="width: 52px; height: 52px;">
+            <i class="bi bi-person-lock fs-3"></i>
           </div>
-          <h3 class="fw-bold text-dark mb-1">Acesso ao SGA</h3>
-          <p class="text-muted small">Insira suas credenciais institucionais para entrar</p>
+          <h4 class="fw-bold text-dark mb-1">Acesso ao SGA</h4>
+          <p class="text-muted small mb-0">Insira suas credenciais institucionais para entrar</p>
         </div>
 
         <form method="post" action="{% url 'accounts:login' %}" novalidate>
           {% csrf_token %}
 
           {% if form.non_field_errors %}
-            <div class="alert alert-danger py-2 small shadow-sm mb-3">
-              {% for error in form.non_field_errors %}
-                <div><i class="bi bi-exclamation-circle-fill me-1"></i> {{ error }}</div>
-              {% endfor %}
+            <div class="alert alert-danger py-2 small shadow-xs mb-3 d-flex align-items-center">
+              <i class="bi bi-exclamation-circle-fill me-2 fs-6"></i>
+              <div>
+                {% for error in form.non_field_errors %}
+                  <div>{{ error }}</div>
+                {% endfor %}
+              </div>
             </div>
           {% endif %}
 
           <div class="mb-3">
-            <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold">E-mail</label>
+            <label for="{{ form.username.id_for_label }}" class="form-label">E-mail institucional</label>
             {{ form.username }}
             {% if form.username.errors %}
-              <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+              <div class="text-danger small mt-1.5 d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle me-1"></i> {{ form.username.errors.0 }}
+              </div>
             {% endif %}
           </div>
 
           <div class="mb-4">
-            <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold">Senha</label>
+            <label for="{{ form.password.id_for_label }}" class="form-label">Senha</label>
             {{ form.password }}
             {% if form.password.errors %}
-              <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+              <div class="text-danger small mt-1.5 d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle me-1"></i> {{ form.password.errors.0 }}
+              </div>
             {% endif %}
           </div>
 
-          <div class="d-grid">
-            <button type="submit" class="btn btn-primary btn-lg shadow-sm">
-              <i class="bi bi-box-arrow-in-right me-2"></i> Entrar
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-primary py-2.5 shadow-sm">
+              <i class="bi bi-box-arrow-in-right me-1.5"></i> Entrar no Sistema
             </button>
           </div>
         </form>
       </div>
-      <div class="card-footer bg-light text-center py-3 rounded-bottom-4 border-0">
+      <div class="card-footer bg-light-subtle text-center py-3 border-top rounded-bottom-3">
         <small class="text-muted">Não possui acesso? Procure a <strong>Secretaria Acadêmica</strong>.</small>
       </div>
     </div>

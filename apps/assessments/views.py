@@ -4,4 +4,5 @@ from accounts.models import UserRole
 
 @role_required(UserRole.PROFESSOR, UserRole.ALUNO)
 def index_view(request):
-    return render(request, 'dashboards/professor.html', {'title': 'Avaliações e Notas (Placeholder)'})
+    title = 'Minhas Notas' if request.user.role == UserRole.ALUNO else 'Avaliações e Notas'
+    return render(request, 'assessments/em_breve.html', {'title': title})

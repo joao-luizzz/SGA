@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} — SGA{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-3 border-bottom">
+    <div class="d-flex align-items-center gap-3">
+      <a href="{% url 'attendance:chamada_index' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <div>
+        <h3 class="page-title mb-0">
+          <i class="bi bi-clipboard-plus text-warning me-1.5"></i> {% trans "Registrar Chamada" %}
+        </h3>
+        <p class="page-subtitle mb-0">{% trans "Selecione a turma e a data, depois marque a presença de cada aluno." %}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+
+      {% if not chamada_form %}
+      <!-- Passo 1: Seleção de turma e data -->
+      <div class="card border shadow-xs rounded-3 mb-4">
+        <div class="card-header bg-transparent border-bottom p-3.5">
+          <h6 class="mb-0 fw-bold text-dark d-flex align-items-center">
+            <i class="bi bi-calendar2-check text-warning me-2 fs-5"></i>
+            {% trans "Passo 1 — Selecionar Turma e Data" %}
+          </h6>
+        </div>
+        <div class="card-body p-4">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="step" value="1">
+            <div class="row g-3">
+              <div class="col-md-7">
+                <label for="id_turma" class="form-label">{{ form_selecao.turma.label }}</label>
+                {{ form_selecao.turma }}
+                {% if form_selecao.turma.errors %}
+                  <div class="text-danger small mt-1.5">{{ form_selecao.turma.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-5">
+                <label for="id_data_aula" class="form-label">{{ form_selecao.data_aula.label }}</label>
+                {{ form_selecao.data_aula }}
+                {% if form_selecao.data_aula.errors %}
+                  <div class="text-danger small mt-1.5">{{ form_selecao.data_aula.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+              <button type="submit" class="btn btn-warning px-4 shadow-sm">
+                <i class="bi bi-arrow-right me-1"></i> {% trans "Continuar" %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {% else %}
+      <!-- Passo 2: Lista de alunos para marcar chamada -->
+      <div class="card border shadow-xs rounded-3 overflow-hidden">
+        <div class="card-header bg-transparent border-bottom d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 py-3 px-3.5">
+          <h6 class="mb-0 fw-bold text-dark d-flex align-items-center">
+            <i class="bi bi-people-fill text-warning me-2 fs-5"></i>
+            {% trans "Passo 2 — Lançar Presença" %}
+          </h6>
+          <div class="badge badge-sga-secondary text-dark px-3 py-1.5 font-monospace" style="font-size: 0.78rem;">
+            <i class="bi bi-calendar3 me-1 text-warning"></i>
+            <strong>{{ turma_selecionada.disciplina.nome }}</strong> &mdash; {{ data_selecionada|date:"d/m/Y" }}
+          </div>
+        </div>
+
+        {% if chamada_existente %}
+        <div class="alert alert-warning mb-0 rounded-0 border-0 border-bottom d-flex align-items-center py-2.5 px-3.5 shadow-none">
+          <i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i>
+          <small>{% trans "Já existe chamada para esta data. Ao salvar, os registros serão atualizados." %}</small>
+        </div>
+        {% endif %}
+
+        <div class="card-body p-0">
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="step" value="2">
+            <input type="hidden" name="turma_id" value="{{ turma_selecionada.pk }}">
+            <input type="hidden" name="data_aula" value="{{ data_selecionada|date:'Y-m-d' }}">
+
+            {% if alunos_matriculados %}
+            <div class="table-responsive">
+              <table class="table table-sga align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th class="ps-4">{% trans "Aluno" %}</th>
+                    <th class="text-center pe-4" style="width: 160px;">
+                      <span>{% trans "Presença" %}</span>
+                      <div class="text-muted text-lowercase" style="font-size: 0.68rem; font-weight: 500;">({% trans "marque presentes" %})</div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for field in chamada_form %}
+                  <tr>
+                    <td class="ps-4 py-3">
+                      <div class="d-flex align-items-center gap-2.5">
+                        <div class="d-flex align-items-center justify-content-center bg-secondary-subtle text-secondary rounded-circle" style="width: 32px; height: 32px; font-size: 0.8rem; font-weight: 600;">
+                          {{ field.label|slice:":1" }}
+                        </div>
+                        <label for="{{ field.id_for_label }}" class="fw-semibold text-dark mb-0" style="cursor:pointer;">
+                          {{ field.label }}
+                        </label>
+                      </div>
+                    </td>
+                    <td class="text-center pe-4">
+                      <div class="form-check d-flex justify-content-center m-0">
+                        <input
+                          class="form-check-input fs-5"
+                          type="checkbox"
+                          name="{{ field.html_name }}"
+                          id="{{ field.id_for_label }}"
+                          {% if field.value %}checked{% endif %}
+                        >
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="p-3.5 bg-light-subtle border-top d-flex justify-content-between align-items-center">
+              <a href="{% url 'attendance:chamada_index' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-x-circle me-1"></i> {% trans "Cancelar" %}
+              </a>
+              <button type="submit" class="btn btn-warning btn-sm px-4 shadow-sm fw-semibold">
+                <i class="bi bi-check-circle-fill me-1"></i> {% trans "Salvar Chamada" %}
+              </button>
+            </div>
+
+            {% else %}
+            <div class="alert alert-info m-4 shadow-xs">
+              <i class="bi bi-info-circle me-2"></i>
+              {% trans "Não há alunos com matrícula ativa nesta turma." %}
+            </div>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
