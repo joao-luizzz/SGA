@@ -199,3 +199,22 @@ class Turma(models.Model):
             bool(self.sala and self.sala.strip()) and
             self.vagas_maximas is not None and self.vagas_maximas > 0
         )
+
+    @property
+    def vagas_ocupadas(self):
+        """
+        Calcula a quantidade de vagas ocupadas contando as matrículas com status ATIVA.
+        """
+        if hasattr(self, 'matriculas'):
+            return self.matriculas.filter(status='ATIVA').count()
+        return 0
+
+    @property
+    def vagas_disponiveis(self):
+        """
+        Calcula as vagas disponíveis subtraindo as vagas ocupadas das vagas máximas.
+        """
+        if self.vagas_maximas is None:
+            return 0
+        disponiveis = self.vagas_maximas - self.vagas_ocupadas
+        return disponiveis if disponiveis > 0 else 0

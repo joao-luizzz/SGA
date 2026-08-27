@@ -61,3 +61,30 @@ class TestEnrollmentViews:
         response = client.get(url)
         assert response.status_code == 302
         assert '/accounts/' in response['Location']
+
+    @pytest.mark.parametrize('usuario_fixture', ['user_aluno', 'user_professor'])
+    def test_apenas_secretaria_acessa_matricula_administrativa(
+        self, client, request, usuario_fixture
+    ):
+        client.force_login(request.getfixturevalue(usuario_fixture))
+
+        response = client.get(reverse('enrollment:matricula_create'))
+
+        assert response.status_code == 403
+
+    def test_secretaria_matricula_aluno_com_sucesso(
+        self, client, user_secretaria, user_aluno, turma
+    ):
+        client.force_login(user_secretaria)
+
+        response = client.post(
+            reverse('enrollment:matricula_create'),
+            data={'aluno': user_aluno.pk, 'turma': turma.pk},
+        )
+
+        assert response.status_code == 302
+        assert Matricula.objects.filter(
+            aluno=user_aluno,
+            turma=turma,
+            status=StatusMatricula.ATIVA,
+        ).exists()
