@@ -1,5 +1,7 @@
 from typing import Optional
+from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils.translation import gettext_lazy as _
 from accounts.models import AcaoAuditoria
 from accounts.services import registrar_auditoria
 from .models import Falta
@@ -28,11 +30,40 @@ def registrar_chamada(professor, turma, data_aula: str, presencas: dict) -> list
         Lista de objetos Falta criados ou atualizados.
     """
     from enrollment.models import Matricula, StatusMatricula
-    from enrollment.selectors import get_matriculas_ativas_da_turma
+
+    if turma.professor_id != getattr(professor, 'pk', None):
+        raise ValidationError(
+            _("Somente o professor responsável pela turma pode registrar a chamada.")
+        )
+
+    try:
+        presencas_normalizadas = {}
+        for aluno_id, presente in presencas.items():
+            aluno_id_normalizado = int(aluno_id)
+            if aluno_id_normalizado in presencas_normalizadas:
+                raise ValueError
+            presencas_normalizadas[aluno_id_normalizado] = presente
+    except (TypeError, ValueError, AttributeError):
+        raise ValidationError(_("A lista de alunos informada é inválida."))
+
+    aluno_ids = set(presencas_normalizadas)
+    alunos_com_matricula_ativa = set(
+        Matricula.objects.filter(
+            turma=turma,
+            aluno_id__in=aluno_ids,
+            status=StatusMatricula.ATIVA,
+        ).values_list('aluno_id', flat=True)
+    )
+    alunos_invalidos = aluno_ids - alunos_com_matricula_ativa
+    if alunos_invalidos:
+        raise ValidationError(
+            _("Todos os alunos devem possuir matrícula ativa nesta turma. IDs inválidos: %(ids)s")
+            % {'ids': ', '.join(str(pk) for pk in sorted(alunos_invalidos))}
+        )
 
     resultados = []
 
-    for aluno_id, presente in presencas.items():
+    for aluno_id, presente in presencas_normalizadas.items():
         valor_antigo = None
         acao = AcaoAuditoria.CRIAR
 

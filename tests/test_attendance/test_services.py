@@ -4,14 +4,100 @@ Cobre: registrar_chamada, integração com AuditoriaLog, imutabilidade do log.
 """
 import pytest
 from datetime import date
+from django.core.exceptions import ValidationError
 
-from accounts.models import AuditoriaLog, AcaoAuditoria
+from accounts.models import AuditoriaLog, AcaoAuditoria, CustomUser, UserRole
+from academics.models import Turma
 from attendance.models import Falta
 from attendance.services import registrar_chamada
+from enrollment.models import Matricula, StatusMatricula
 
 
 @pytest.mark.django_db
 class TestRegistrarChamadaService:
+
+    def test_rejeita_professor_de_outra_turma(
+        self, turma, user_aluno, matricula_aluno
+    ):
+        outro_professor = CustomUser.objects.create_user(
+            email='outro.professor@sga.edu.br',
+            full_name='Outro Professor',
+            role=UserRole.PROFESSOR,
+            password='SenhaSegura123!',
+        )
+
+        with pytest.raises(ValidationError, match='professor responsável'):
+            registrar_chamada(
+                professor=outro_professor,
+                turma=turma,
+                data_aula=date(2026, 8, 18),
+                presencas={user_aluno.pk: True},
+            )
+
+        assert Falta.objects.count() == 0
+        assert AuditoriaLog.objects.count() == 0
+
+    @pytest.mark.parametrize(
+        'status',
+        [None, StatusMatricula.CANCELADA, StatusMatricula.TRANCADA],
+    )
+    def test_rejeita_aluno_sem_matricula_ativa_na_turma(
+        self, turma, user_professor, status
+    ):
+        aluno = CustomUser.objects.create_user(
+            email=f'aluno.{status or "sem-matricula"}@sga.edu.br',
+            full_name='Aluno sem matrícula ativa',
+            role=UserRole.ALUNO,
+            password='SenhaSegura123!',
+        )
+        if status:
+            Matricula.objects.create(aluno=aluno, turma=turma, status=status)
+
+        with pytest.raises(ValidationError, match='matrícula ativa'):
+            registrar_chamada(
+                professor=user_professor,
+                turma=turma,
+                data_aula=date(2026, 8, 18),
+                presencas={aluno.pk: False},
+            )
+
+        assert Falta.objects.count() == 0
+        assert AuditoriaLog.objects.count() == 0
+
+    def test_rejeita_aluno_matriculado_apenas_em_outra_turma(
+        self, turma, disciplina, user_professor
+    ):
+        aluno = CustomUser.objects.create_user(
+            email='aluno.outra.turma@sga.edu.br',
+            full_name='Aluno de outra turma',
+            role=UserRole.ALUNO,
+            password='SenhaSegura123!',
+        )
+        outra_turma = Turma.objects.create(
+            disciplina=disciplina,
+            periodo_letivo='2026/2',
+            horarios='TER 08:00-10:00',
+            sala='Lab 02',
+            vagas_maximas=30,
+            professor=user_professor,
+            ativo=True,
+        )
+        Matricula.objects.create(
+            aluno=aluno,
+            turma=outra_turma,
+            status=StatusMatricula.ATIVA,
+        )
+
+        with pytest.raises(ValidationError, match='matrícula ativa'):
+            registrar_chamada(
+                professor=user_professor,
+                turma=turma,
+                data_aula=date(2026, 8, 18),
+                presencas={aluno.pk: True},
+            )
+
+        assert Falta.objects.count() == 0
+        assert AuditoriaLog.objects.count() == 0
 
     def test_cria_faltas_e_log_auditoria(self, turma, user_professor, user_aluno, matricula_aluno):
         """registrar_chamada cria Falta e AuditoriaLog para cada aluno (RN21, RN30)."""
