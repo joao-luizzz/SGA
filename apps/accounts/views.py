@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
+from django.http import HttpResponseBadRequest
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext_lazy as _
@@ -125,12 +126,14 @@ def usuario_list_view(request):
 @role_required(UserRole.SECRETARIA)
 def usuario_create_view(request):
     tipo = request.GET.get('tipo', 'aluno')
-    if tipo == 'professor':
-        form_class = ProfessorCreationForm
-        title = "Cadastrar Professor"
-    else:
-        form_class = AlunoCreationForm
-        title = "Cadastrar Aluno"
+    form_by_tipo = {
+        'aluno': (AlunoCreationForm, "Cadastrar Aluno"),
+        'professor': (ProfessorCreationForm, "Cadastrar Professor"),
+    }
+    if tipo not in form_by_tipo:
+        return HttpResponseBadRequest(_("Tipo de usuário inválido."))
+
+    form_class, title = form_by_tipo[tipo]
 
     if request.method == 'POST':
         form = form_class(request.POST)
@@ -148,7 +151,9 @@ def usuario_create_view(request):
 def usuario_toggle_active_view(request, user_id):
     from .models import CustomUser
     user = get_object_or_404(CustomUser, id=user_id)
-    if user.role in [UserRole.ALUNO, UserRole.PROFESSOR]:
+    if user.pk == request.user.pk:
+        messages.error(request, _("Você não pode alterar o status da própria conta."))
+    elif user.role in [UserRole.ALUNO, UserRole.PROFESSOR]:
         toggle_user_active_status(user)
         status = "ativado(a)" if user.is_active else "inativado(a)"
         messages.success(request, _(f"Usuário {user.full_name} foi {status} com sucesso!"))

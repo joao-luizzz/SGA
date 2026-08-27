@@ -1,5 +1,6 @@
 import pytest
 from django.urls import reverse
+from django.contrib.auth import authenticate
 from accounts.models import CustomUser, UserRole
 from accounts.services import toggle_user_active_status
 
@@ -26,6 +27,47 @@ class TestUserManagement:
         assert response.status_code == 200
         assert 'form' in response.context
         assert 'email' in response.context['form'].errors
+
+    def test_secretaria_creates_user_with_authenticatable_temporary_password(
+        self, client, user_secretaria
+    ):
+        client.force_login(user_secretaria)
+        temporary_password = 'SenhaTemporaria@2026'
+
+        response = client.post(
+            reverse('accounts:usuario_create') + '?tipo=aluno',
+            data={
+                'full_name': 'Novo Aluno',
+                'email': 'novo.aluno@example.com',
+                'password1': temporary_password,
+                'password2': temporary_password,
+            },
+        )
+
+        assert response.status_code == 302
+        user = CustomUser.objects.get(email='novo.aluno@example.com')
+        assert user.role == UserRole.ALUNO
+        assert user.must_change_password is True
+        assert user.password != temporary_password
+        assert authenticate(username=user.email, password=temporary_password) == user
+
+    def test_invalid_user_type_is_rejected(self, client, user_secretaria):
+        client.force_login(user_secretaria)
+
+        response = client.get(reverse('accounts:usuario_create') + '?tipo=secretaria')
+
+        assert response.status_code == 400
+
+    def test_secretaria_cannot_toggle_own_account(self, client, user_secretaria):
+        client.force_login(user_secretaria)
+
+        response = client.post(
+            reverse('accounts:usuario_toggle_active', args=[user_secretaria.pk])
+        )
+
+        assert response.status_code == 302
+        user_secretaria.refresh_from_db()
+        assert user_secretaria.is_active is True
 
     def test_toggle_user_active_status(self, user_aluno):
         assert user_aluno.is_active is True
