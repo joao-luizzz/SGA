@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
+from django.http import HttpResponseBadRequest
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext_lazy as _
@@ -107,3 +108,55 @@ def custom_permission_denied_view(request, exception=None):
 
 def custom_page_not_found_view(request, exception=None):
     return render(request, '404.html', status=404)
+
+from django.shortcuts import get_object_or_404
+from .selectors import list_manageable_users
+from .services import toggle_user_active_status
+from .forms import AlunoCreationForm, ProfessorCreationForm
+
+@role_required(UserRole.SECRETARIA)
+def usuario_list_view(request):
+    usuarios = list_manageable_users()
+    context = {
+        'usuarios': usuarios,
+        'title': 'Gerenciar Usuários (Alunos e Professores)',
+    }
+    return render(request, 'accounts/usuario_list.html', context)
+
+@role_required(UserRole.SECRETARIA)
+def usuario_create_view(request):
+    tipo = request.GET.get('tipo', 'aluno')
+    form_by_tipo = {
+        'aluno': (AlunoCreationForm, "Cadastrar Aluno"),
+        'professor': (ProfessorCreationForm, "Cadastrar Professor"),
+    }
+    if tipo not in form_by_tipo:
+        return HttpResponseBadRequest(_("Tipo de usuário inválido."))
+
+    form_class, title = form_by_tipo[tipo]
+
+    if request.method == 'POST':
+        form = form_class(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _(f"{title.split(' ')[1]} cadastrado(a) com sucesso! A senha padrão deve ser alterada no primeiro acesso."))
+            return redirect('accounts:usuario_list')
+    else:
+        form = form_class()
+
+    return render(request, 'accounts/usuario_form.html', {'form': form, 'title': title, 'tipo': tipo})
+
+@require_POST
+@role_required(UserRole.SECRETARIA)
+def usuario_toggle_active_view(request, user_id):
+    from .models import CustomUser
+    user = get_object_or_404(CustomUser, id=user_id)
+    if user.pk == request.user.pk:
+        messages.error(request, _("Você não pode alterar o status da própria conta."))
+    elif user.role in [UserRole.ALUNO, UserRole.PROFESSOR]:
+        toggle_user_active_status(user)
+        status = "ativado(a)" if user.is_active else "inativado(a)"
+        messages.success(request, _(f"Usuário {user.full_name} foi {status} com sucesso!"))
+    else:
+        messages.error(request, _("Ação não permitida para este tipo de usuário."))
+    return redirect('accounts:usuario_list')

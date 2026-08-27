@@ -12,4 +12,9 @@ urlpatterns = [
     path('dashboard/professor/', views.professor_dashboard_view, name='dashboard_professor'),
     path('dashboard/secretaria/', views.secretaria_dashboard_view, name='dashboard_secretaria'),
     path('dashboard/coordenacao/', views.coordenacao_dashboard_view, name='dashboard_coordenacao'),
+    
+    # Gerenciamento de Usuários (Secretaria)
+    path('usuarios/', views.usuario_list_view, name='usuario_list'),
+    path('usuarios/novo/', views.usuario_create_view, name='usuario_create'),
+    path('usuarios/<int:user_id>/toggle-active/', views.usuario_toggle_active_view, name='usuario_toggle_active'),
 ]

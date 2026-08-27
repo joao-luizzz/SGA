@@ -1,0 +1,68 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ title }}</h2>
+        <div>
+            <a href="{% url 'accounts:usuario_create' %}?tipo=aluno" class="btn btn-primary me-2">
+                <i class="bi bi-plus-circle"></i> Novo Aluno
+            </a>
+            <a href="{% url 'accounts:usuario_create' %}?tipo=professor" class="btn btn-secondary">
+                <i class="bi bi-plus-circle"></i> Novo Professor
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <table class="table table-hover align-middle table-sga">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Perfil</th>
+                        <th>Status</th>
+                        <th class="text-end">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td>{{ usuario.full_name }}</td>
+                        <td>{{ usuario.email }}</td>
+                        <td><span class="badge bg-info text-dark">{{ usuario.get_role_display }}</span></td>
+                        <td>
+                            {% if usuario.is_active %}
+                            <span class="badge bg-success">Ativo</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <form method="POST" action="{% url 'accounts:usuario_toggle_active' usuario.id %}" class="d-inline">
+                                {% csrf_token %}
+                                {% if usuario.is_active %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Inativar">
+                                    Inativar
+                                </button>
+                                {% else %}
+                                <button type="submit" class="btn btn-sm btn-outline-success" title="Ativar">
+                                    Ativar
+                                </button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">Nenhum usuário cadastrado.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
