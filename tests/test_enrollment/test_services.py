@@ -6,7 +6,10 @@ from django.core.exceptions import ValidationError
 from academics.models import Curso, Disciplina, Turma
 from accounts.models import CustomUser, UserRole
 from enrollment.models import Matricula, StatusMatricula
-from enrollment.services import matricular_aluno_administrativo
+from enrollment.services import (
+    alterar_status_matricula_administrativa,
+    matricular_aluno_administrativo,
+)
 
 
 @pytest.fixture
@@ -130,3 +133,29 @@ def test_rematricula_preserva_historico_cancelado_ou_trancado(
     assert nova_matricula.status == StatusMatricula.ATIVA
     assert matricula_anterior.status == status_anterior
     assert Matricula.objects.filter(aluno=user_aluno, turma=turma_valida).count() == 2
+
+
+@pytest.mark.django_db
+def test_alterar_status_bloqueia_matricula_e_preserva_status_encerrado(
+    user_secretaria, user_aluno, turma_valida
+):
+    matricula = Matricula.objects.create(aluno=user_aluno, turma=turma_valida)
+
+    with patch.object(
+        Matricula.objects,
+        'select_for_update',
+        wraps=Matricula.objects.select_for_update,
+    ) as select_for_update:
+        alterar_status_matricula_administrativa(
+            user_secretaria, matricula.pk, StatusMatricula.TRANCADA
+        )
+
+    select_for_update.assert_called_once_with()
+    matricula.refresh_from_db()
+    assert matricula.status == StatusMatricula.TRANCADA
+    with pytest.raises(ValidationError, match='matrículas ativas'):
+        alterar_status_matricula_administrativa(
+            user_secretaria, matricula.pk, StatusMatricula.CANCELADA
+        )
+    matricula.refresh_from_db()
+    assert matricula.status == StatusMatricula.TRANCADA

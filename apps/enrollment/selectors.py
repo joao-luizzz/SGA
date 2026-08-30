@@ -17,6 +17,15 @@ def get_matriculas_do_aluno(aluno):
     )
 
 
+def get_matriculas_administrativas():
+    """Retorna as matrículas para a gestão administrativa da Secretaria."""
+    return (
+        Matricula.objects
+        .select_related('aluno', 'turma', 'turma__disciplina')
+        .order_by('-matriculado_em')
+    )
+
+
 def contar_vagas_ocupadas(turma):
     """Conta o número de matrículas ativas em uma turma (RN11)."""
     return Matricula.objects.filter(turma=turma, status=StatusMatricula.ATIVA).count()

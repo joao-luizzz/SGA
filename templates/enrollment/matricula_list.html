@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Gestão de Matrículas — SGA{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div>
+      <h3 class="page-title mb-1">Gestão de Matrículas</h3>
+      <p class="page-subtitle mb-0">Consulte o histórico e atualize vínculos acadêmicos ativos.</p>
+    </div>
+    <a href="{% url 'enrollment:matricula_create' %}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i> Nova matrícula
+    </a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">Aluno</th>
+            <th>Turma</th>
+            <th>Período</th>
+            <th>Status</th>
+            <th class="text-end pe-3">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for matricula in matriculas %}
+          <tr>
+            <td class="ps-3">{{ matricula.aluno.full_name }}</td>
+            <td>{{ matricula.turma.disciplina.nome }}</td>
+            <td>{{ matricula.turma.periodo_letivo }}</td>
+            <td><span class="badge text-bg-secondary">{{ matricula.get_status_display }}</span></td>
+            <td class="text-end pe-3">
+              {% if matricula.esta_ativa %}
+              <div class="btn-group btn-group-sm" role="group" aria-label="Alterar status da matrícula">
+                <form method="post" action="{% url 'enrollment:matricula_status' matricula.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" name="status" value="TRANCADA" class="btn btn-outline-warning">Trancar</button>
+                </form>
+                <form method="post" action="{% url 'enrollment:matricula_status' matricula.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" name="status" value="CANCELADA" class="btn btn-outline-danger">Cancelar</button>
+                </form>
+                <form method="post" action="{% url 'enrollment:matricula_status' matricula.pk %}">
+                  {% csrf_token %}
+                  <button type="submit" name="status" value="CONCLUIDA" class="btn btn-outline-success">Concluir</button>
+                </form>
+              </div>
+              {% else %}
+              <span class="text-muted small">Histórico preservado</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4">Nenhuma matrícula encontrada.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -2,8 +2,10 @@
 Testes de serviços de attendance e auditoria (Issues #12 e #13).
 Cobre: registrar_chamada, integração com AuditoriaLog, imutabilidade do log.
 """
-import pytest
 from datetime import date
+from unittest.mock import patch
+
+import pytest
 from django.core.exceptions import ValidationError
 
 from accounts.models import AuditoriaLog, AcaoAuditoria, CustomUser, UserRole
@@ -15,6 +17,41 @@ from enrollment.models import Matricula, StatusMatricula
 
 @pytest.mark.django_db
 class TestRegistrarChamadaService:
+
+    def test_bloqueia_turma_ao_registrar_chamada(
+        self, turma, user_professor, user_aluno, matricula_aluno
+    ):
+        with patch.object(
+            Turma.objects,
+            'select_for_update',
+            wraps=Turma.objects.select_for_update,
+        ) as select_for_update:
+            registrar_chamada(
+                professor=user_professor,
+                turma=turma,
+                data_aula=date(2026, 8, 18),
+                presencas={user_aluno.pk: True},
+            )
+
+        select_for_update.assert_called_once_with()
+
+    def test_bloqueia_matriculas_ativas_ao_registrar_chamada(
+        self, turma, user_professor, user_aluno, matricula_aluno
+    ):
+        with patch.object(
+            Matricula.objects,
+            'select_for_update',
+            wraps=Matricula.objects.select_for_update,
+        ) as select_for_update:
+            registrar_chamada(
+                professor=user_professor,
+                turma=turma,
+                data_aula=date(2026, 8, 18),
+                presencas={user_aluno.pk: True},
+            )
+
+        select_for_update.assert_called_once_with()
+
 
     def test_rejeita_professor_de_outra_turma(
         self, turma, user_aluno, matricula_aluno
@@ -94,6 +131,64 @@ class TestRegistrarChamadaService:
                 turma=turma,
                 data_aula=date(2026, 8, 18),
                 presencas={aluno.pk: True},
+            )
+
+        assert Falta.objects.count() == 0
+        assert AuditoriaLog.objects.count() == 0
+
+    def test_rejeita_chamada_com_subconjunto_de_alunos_ativos(
+        self, turma, user_professor, user_aluno, matricula_aluno
+    ):
+        outro_aluno = CustomUser.objects.create_user(
+            email='segundo.aluno@sga.edu.br',
+            full_name='Segundo Aluno',
+            role=UserRole.ALUNO,
+            password='SenhaSegura123!',
+        )
+        Matricula.objects.create(
+            aluno=outro_aluno, turma=turma, status=StatusMatricula.ATIVA
+        )
+
+        with pytest.raises(ValidationError, match='exatamente todos os alunos'):
+            registrar_chamada(
+                professor=user_professor,
+                turma=turma,
+                data_aula=date(2026, 8, 18),
+                presencas={user_aluno.pk: True},
+            )
+
+        assert Falta.objects.count() == 0
+        assert AuditoriaLog.objects.count() == 0
+
+    def test_rejeita_autor_sem_papel_de_professor_mesmo_como_responsavel(
+        self, turma, user_secretaria, user_aluno, matricula_aluno
+    ):
+        turma.professor = user_secretaria
+        turma.save(update_fields=['professor'])
+
+        with pytest.raises(ValidationError, match='por um Professor'):
+            registrar_chamada(
+                professor=user_secretaria,
+                turma=turma,
+                data_aula=date(2026, 8, 18),
+                presencas={user_aluno.pk: True},
+            )
+
+        assert Falta.objects.count() == 0
+        assert AuditoriaLog.objects.count() == 0
+
+    def test_rejeita_chamada_em_turma_inativa(
+        self, turma, user_professor, user_aluno, matricula_aluno
+    ):
+        turma.ativo = False
+        turma.save(update_fields=['ativo'])
+
+        with pytest.raises(ValidationError, match='turma ativa'):
+            registrar_chamada(
+                professor=user_professor,
+                turma=turma,
+                data_aula=date(2026, 8, 18),
+                presencas={user_aluno.pk: True},
             )
 
         assert Falta.objects.count() == 0

@@ -27,7 +27,7 @@ def turma_navegacao(db, user_professor):
 
 
 @pytest.mark.django_db
-def test_secretaria_acessa_gestao_de_usuarios_e_cards_corretos(client, user_secretaria):
+def test_secretaria_acessa_gestao_de_usuarios_e_cards_e_sidebar_corretos(client, user_secretaria):
     client.force_login(user_secretaria)
 
     response = client.get(reverse('accounts:usuario_list'))
@@ -44,6 +44,21 @@ def test_secretaria_acessa_gestao_de_usuarios_e_cards_corretos(client, user_secr
         f'href="{reverse("enrollment:matricula_create")}" '
         'class="btn btn-outline-secondary btn-sm w-100"'
     ).encode() in dashboard.content
+    assert b'Situa\xc3\xa7\xc3\xa3o da Matr\xc3\xadcula' in dashboard.content
+    assert (
+        f'href="{reverse("enrollment:index")}" '
+        'class="btn btn-outline-info btn-sm w-100"'
+    ).encode() in dashboard.content
+    assert (
+        f'href="{reverse("accounts:usuario_list")}" class="sidebar-link"'
+    ).encode() in dashboard.content
+    assert (
+        f'href="{reverse("enrollment:index")}" class="sidebar-link"'
+    ).encode() in dashboard.content
+
+    situacao_matricula = client.get(reverse('enrollment:index'))
+    assert situacao_matricula.status_code == 200
+    assert b'Gest\xc3\xa3o de Matr\xc3\xadculas' in situacao_matricula.content
 
 
 @pytest.mark.django_db
