@@ -37,6 +37,10 @@
     {% endif %}
 
     {% if user.role == 'SECRETARIA' %}
+      <a href="{% url 'accounts:usuario_list' %}" class="sidebar-link">
+        <i class="bi bi-people-fill text-primary"></i>
+        <span>Gestão de Usuários</span>
+      </a>
       <a href="{% url 'enrollment:index' %}" class="sidebar-link">
         <i class="bi bi-person-lines-fill text-primary"></i>
         <span>Gestão de Matrículas</span>
