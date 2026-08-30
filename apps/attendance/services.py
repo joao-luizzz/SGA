@@ -2,8 +2,9 @@ from typing import Optional
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
-from accounts.models import AcaoAuditoria
+from accounts.models import AcaoAuditoria, UserRole
 from accounts.services import registrar_auditoria
+from academics.models import Turma
 from .models import Falta
 
 
@@ -31,7 +32,14 @@ def registrar_chamada(professor, turma, data_aula: str, presencas: dict) -> list
     """
     from enrollment.models import Matricula, StatusMatricula
 
-    if turma.professor_id != getattr(professor, 'pk', None):
+    if getattr(professor, 'role', None) != UserRole.PROFESSOR:
+        raise ValidationError(_("A chamada deve ser registrada por um Professor."))
+
+    turma_bloqueada = Turma.objects.select_for_update().get(pk=turma.pk)
+    if not turma_bloqueada.ativo:
+        raise ValidationError(_("A chamada só pode ser registrada para turma ativa."))
+
+    if turma_bloqueada.professor_id != getattr(professor, 'pk', None):
         raise ValidationError(
             _("Somente o professor responsável pela turma pode registrar a chamada.")
         )
@@ -49,16 +57,13 @@ def registrar_chamada(professor, turma, data_aula: str, presencas: dict) -> list
     aluno_ids = set(presencas_normalizadas)
     alunos_com_matricula_ativa = set(
         Matricula.objects.filter(
-            turma=turma,
-            aluno_id__in=aluno_ids,
+            turma=turma_bloqueada,
             status=StatusMatricula.ATIVA,
         ).values_list('aluno_id', flat=True)
     )
-    alunos_invalidos = aluno_ids - alunos_com_matricula_ativa
-    if alunos_invalidos:
+    if aluno_ids != alunos_com_matricula_ativa:
         raise ValidationError(
-            _("Todos os alunos devem possuir matrícula ativa nesta turma. IDs inválidos: %(ids)s")
-            % {'ids': ', '.join(str(pk) for pk in sorted(alunos_invalidos))}
+            _("A chamada deve informar exatamente todos os alunos com matrícula ativa nesta turma.")
         )
 
     resultados = []
@@ -69,7 +74,7 @@ def registrar_chamada(professor, turma, data_aula: str, presencas: dict) -> list
 
         # Tenta recuperar registro existente para auditoria
         falta_existente = Falta.objects.filter(
-            turma=turma,
+            turma=turma_bloqueada,
             aluno_id=aluno_id,
             data_aula=data_aula,
         ).first()
@@ -89,7 +94,7 @@ def registrar_chamada(professor, turma, data_aula: str, presencas: dict) -> list
             falta = falta_existente
         else:
             falta = Falta.objects.create(
-                turma=turma,
+                turma=turma_bloqueada,
                 aluno_id=aluno_id,
                 data_aula=data_aula,
                 presente=presente,

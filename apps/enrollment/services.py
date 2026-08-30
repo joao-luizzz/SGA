@@ -9,6 +9,35 @@ from .models import Matricula, StatusMatricula
 
 
 @transaction.atomic
+def alterar_status_matricula_administrativa(
+    usuario_secretaria: CustomUser,
+    matricula_id: int,
+    novo_status: str,
+) -> Matricula:
+    """Altera definitivamente o status de uma matrícula ativa pela Secretaria."""
+    if usuario_secretaria.role != UserRole.SECRETARIA:
+        raise ValidationError(
+            _("Apenas usuários com perfil de Secretaria podem alterar matrículas.")
+        )
+
+    statuses_permitidos = {
+        StatusMatricula.TRANCADA,
+        StatusMatricula.CANCELADA,
+        StatusMatricula.CONCLUIDA,
+    }
+    if novo_status not in statuses_permitidos:
+        raise ValidationError(_("O status informado não é permitido para esta operação."))
+
+    matricula = Matricula.objects.select_for_update().get(pk=matricula_id)
+    if matricula.status != StatusMatricula.ATIVA:
+        raise ValidationError(_("Apenas matrículas ativas podem ter o status alterado."))
+
+    matricula.status = novo_status
+    matricula.save(update_fields=['status'])
+    return matricula
+
+
+@transaction.atomic
 def matricular_aluno_administrativo(
     usuario_secretaria: CustomUser,
     aluno: CustomUser,
