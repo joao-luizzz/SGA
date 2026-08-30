@@ -7,16 +7,16 @@
 | **Disciplina** | Laboratório de Engenharia de Software |
 | **Professor Responsável** | Rodrigo Salgado |
 | **Integrantes do Grupo** | Andrey Kerges Nascimento, Alexandre Hesse, Max Iago Villafan, João Luiz, Vitor Augusto |
-| **Versão** | `0.3` (Domínio Confirmado: Ensino Superior) |
+| **Versão** | `1.0` (MVP da Fase 1) |
 | **Data** | Agosto / 2026 |
 
 ---
 
 ## 🎯 Decisão de Domínio
 
-O grupo definiu que o sistema atenderá uma **instituição de ensino superior**, inspirado no **SIGA** utilizado pelas Fatecs (substituindo a ideia inicial de escola particular de Ensino Fundamental/Médio). Essa decisão redefiniu a estrutura central do sistema:
+O grupo definiu que o **SGA** atenderá uma instituição de ensino superior. Essa decisão definiu a estrutura central do sistema:
 
-* **Matrícula por Disciplina:** O aluno se matricula em um **Curso** (ex.: *Análise e Desenvolvimento de Sistemas*) e cursa **disciplinas específicas por semestre**, em vez de pertencer a uma turma fixa com grade curricular idêntica para todos.
+* **Matrícula Administrativa:** A Secretaria vincula o aluno a turmas de disciplinas específicas por período letivo.
 * **Conceito de Turma:** Passa a significar a **oferta de uma disciplina em um período letivo** (ex.: *Programação Orientada a Objetos — 2026/1 — Turma A*), com professor, horário, sala e limite de vagas próprios.
 * **Perfis de Usuário:** Não há perfil de Responsável/Pais, uma vez que o público-alvo é adulto.
 
@@ -34,14 +34,13 @@ O projeto consiste no desenvolvimento da **Secretaria Inteligente para Institui�
 ## 2. Objetivos do Projeto
 
 ### 2.1 Objetivo Geral
-Desenvolver uma aplicação web responsiva que permita a gestão integrada de cursos, disciplinas, turmas, professores e alunos, com controle de notas, frequência, matrícula por disciplina e comunicação institucional, respeitando o perfil de acesso de cada usuário.
+Desenvolver uma aplicação web responsiva que permita a gestão de cursos, disciplinas, turmas, professores, alunos, matrículas, notas e frequência, respeitando o perfil de acesso de cada usuário.
 
 ### 2.2 Objetivos Específicos
-* Permitir que o aluno se matricule em disciplinas/turmas ofertadas e acompanhe seu desempenho acadêmico (notas, faltas e situação por disciplina).
-* Permitir que o professor registre faltas e notas das turmas em que leciona, além de disponibilizar materiais didáticos.
-* Permitir que a Secretaria administre o cadastro de alunos e professores, matrículas, transferências e documentação cadastral.
-* Permitir que a Coordenação de Curso administre a grade curricular, abra turmas com controle de vagas, aloque professores e monte o calendário acadêmico.
-* Centralizar comunicados institucionais (mural/avisos) visíveis conforme o perfil do usuário.
+* Permitir que o aluno consulte as próprias matrículas, notas, faltas e situação por disciplina.
+* Permitir que o professor registre faltas e notas somente nas turmas em que leciona.
+* Permitir que a Secretaria administre alunos, professores e matrículas.
+* Permitir que a Coordenação administre cursos e disciplinas, abra turmas e aloque professores.
 * Garantir segurança e isolamento de dados por perfil (RBAC), com atenção às normas da LGPD.
 
 ---
@@ -73,15 +72,14 @@ graph LR
 
 #### 🏢 Módulo Secretaria
 * Login e autenticação.
-* CRUD administrativo de Alunos (cadastro, dados pessoais, curso vinculado).
+* Cadastro e inativação de Alunos.
 * CRUD administrativo de Professores.
-* Matrícula e cancelamento de matrícula de alunos em turmas.
-* Gestão da situação institucional do aluno (`Ativo`, `Trancado`, `Transferido`, `Formado`, `Cancelado`).
+* Matrícula administrativa de alunos em turmas, com preservação de tentativas inativas.
 
 #### 🎓 Módulo Coordenação de Curso
 * Login e autenticação.
 * CRUD de Cursos.
-* CRUD de Disciplinas e composição da grade curricular.
+* CRUD de Disciplinas vinculadas diretamente ao Curso.
 * Abertura de Turmas (período letivo, sala, horário e limite máximo de vagas).
 * Alocação de professores às turmas ofertadas.
 
@@ -89,7 +87,7 @@ graph LR
 * Autenticação e autorização RBAC por perfil.
 * Troca obrigatória de senha no primeiro acesso (`must_change_password`).
 * Controle automático de vagas (bloqueio quando `vagas_ocupadas >= vagas_maximas`).
-* Cálculo automático de médias, faltas e situação acadêmica (`Aprovado`, `Em Exame`, `Reprovado por Nota`, `Reprovado por Falta`).
+* Cálculo derivado de médias, frequência e situação acadêmica.
 * Auditoria básica de alterações em notas e faltas (registro de responsável e data/hora).
 
 ---

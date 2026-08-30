@@ -14,10 +14,10 @@
 
 | Perfil | Criação no Sistema | Escopo de Acesso & Atribuições |
 | :--- | :--- | :--- |
-| **Secretaria** | Seed inicial do sistema ou cadastro por outro usuário da Secretaria | **Administrativo:** Cadastro de Alunos e Professores; Matrícula/Cancelamento em turmas; Controle da situação cadastral; Registro de transferências; Upload de documentos. |
-| **Coordenação** | Seed inicial do sistema ou cadastro por usuário de Coordenação | **Pedagógico:** Gestão de Cursos, Disciplinas e Grade Curricular; Abertura de Turmas (vagas, horário, sala); Alocação de Professores; Calendário e Comunicados. |
-| **Professor** | Cadastrado pela Secretaria | **Docente:** Acesso exclusivo às turmas em que está alocado; Lançamento de notas e presenças/faltas; Postagem de materiais. |
-| **Aluno** | Cadastrado pela Secretaria | **Discente:** Acesso exclusivo aos próprios dados (boletim de notas, faltas, frequência, materiais, comunicados). |
+| **Secretaria** | Seed inicial do sistema | **Administrativo:** cadastro/inativação de Alunos e Professores e matrícula em turmas. |
+| **Coordenação** | Seed inicial do sistema | **Pedagógico:** gestão de Cursos e Disciplinas, abertura de Turmas e alocação de Professores. |
+| **Professor** | Cadastrado pela Secretaria | **Docente:** acesso exclusivo às turmas alocadas; lançamento de notas e presenças/faltas. |
+| **Aluno** | Cadastrado pela Secretaria | **Discente:** acesso exclusivo às próprias matrículas, notas, médias, situação e frequência. |
 
 ---
 
@@ -26,16 +26,16 @@
 ### 🔐 Perfis e Permissões (RBAC)
 * **RN01 `[MVP]`**: Um usuário possui exatamente um perfil entre: `SECRETARIA`, `COORDENACAO`, `PROFESSOR` ou `ALUNO`.
 * **RN02 `[MVP]`**: Um Professor só pode lançar ou editar notas e faltas nas turmas às quais está formalmente alocado pela Coordenação.
-* **RN03 `[MVP]`**: Um Aluno só pode visualizar notas, faltas e materiais das turmas nas quais está efetivamente matriculado.
-* **RN04a `[MVP]`**: A Secretaria não realiza abertura de turmas, alocação de professores, definição de grade curricular ou publicação de comunicados — ações exclusivas da Coordenação.
-* **RN04b `[MVP]`**: A Coordenação não realiza cadastro de novos usuários (alunos/professores), matrículas de alunos, transferências ou upload de documentos — ações exclusivas da Secretaria.
+* **RN03 `[MVP]`**: Um Aluno só pode visualizar notas e faltas das próprias matrículas ativas.
+* **RN04a `[MVP]`**: A Secretaria não realiza abertura de turmas ou alocação de professores — ações exclusivas da Coordenação.
+* **RN04b `[MVP]`**: A Coordenação não realiza cadastro de alunos/professores nem matrículas — ações exclusivas da Secretaria.
 * **RN04c `[ROADMAP - FASE 2]`**: Todo usuário poderá solicitar recuperação de senha ("esqueci minha senha") via link enviado por e-mail com expiração temporária (ex.: 30 minutos).
 
 ---
 
 ### 🏛️ Estrutura Acadêmica
-* **RN05 `[MVP]`**: Todo Curso possui nome, descrição e uma grade curricular própria (conjunto de disciplinas).
-* **RN06 `[MVP]`**: Todo Aluno é vinculado a um Curso no momento do cadastro inicial, mas se matricula individualmente em Turmas (disciplinas) a cada período letivo — não existe turma fixa compartilhada.
+* **RN05 `[MVP]`**: Toda Disciplina possui ligação direta e obrigatória com um Curso.
+* **RN06 `[MVP]`**: O Aluno acessa uma Disciplina por meio de sua matrícula em uma Turma; não existe turma fixa compartilhada.
 * **RN07 `[MVP]`**: Uma Turma é a oferta de uma Disciplina em um período letivo específico, com limite máximo de vagas, horário e sala definidos pela Coordenação.
 * **RN08 `[MVP]`**: Cada Turma é ministrada por um Professor responsável alocado pela Coordenação.
 * **RN09 `[MVP]`**: O horário de uma turma define dia da semana e horário de início/fim. Não pode haver conflito de horário para o mesmo Professor no mesmo dia e horário.
@@ -55,8 +55,8 @@
 ---
 
 ### 🎓 Situação de Matrícula do Aluno
-* **RN14 `[MVP]`**: Cada Aluno possui uma situação institucional: `Ativo`, `Trancado`, `Transferido`, `Formado` ou `Cancelado`. As alterações são efetuadas pela Secretaria.
-* **RN15 `[MVP]`**: Alunos com situação `Trancado` ou `Cancelado` não podem ser matriculados em novas turmas.
+* **RN14 `[MVP]`**: Contas de Aluno e Professor podem ser inativadas pela Secretaria sem apagar o histórico.
+* **RN15 `[MVP]`**: Usuário Aluno inativo não pode receber nova matrícula.
 * **RN16 `[ROADMAP - FASE 2]`**: Registro de transferências de entrada (exigindo instituição de origem e data) e de saída (exigindo instituição de destino e data).
 * **RN39 `[ROADMAP - FASE 2]`**: Caso a transferência seja implementada, será simplificada, registrando apenas dados de instituição e data.
 * **RN47 `[MVP]`**: O aluno reprovado poderá cursar novamente a disciplina em outro período letivo. A tentativa anterior permanece registrada com o resultado de reprovação.
@@ -66,13 +66,13 @@
 ### 📊 Avaliação e Cálculo de Médias
 * **RN17 `[MVP]`**: O cálculo da média parcial do aluno na disciplina é realizado pela fórmula:
   $$\text{Média Parcial} = \frac{P1 + P2 + \text{Trabalho}}{3}$$
-* **RN18 `[MVP]`**: A média da disciplina deve ser recalculada automaticamente sempre que uma nota for lançada, editada ou removida.
+* **RN18 `[MVP]`**: Média e situação são calculadas sob demanda; não são persistidas.
 * **RN19 `[MVP]`**: Critérios de aprovação e situação por disciplina:
   * **Média Parcial $\ge 6,0$**: `Aprovado Direto`.
   * **$4,0 \le \text{Média Parcial} < 6,0$**: Elegível para `Exame Final` de recuperação.
   * **Média Parcial $< 4,0$**: `Reprovado por Nota`.
 * **RN20 `[MVP]`**: Apenas o Professor responsável pela turma pode lançar ou editar notas.
-* **RN32 `[MVP]`**: A média parcial utiliza notas na escala de $0,0$ a $10,0$.
+* **RN32 `[MVP]`**: Cada matrícula possui no máximo uma nota de cada tipo (`P1`, `P2`, `TRABALHO`, `EXAME`), sempre entre $0,00$ e $10,00$.
 * **RN33 `[MVP]`**: A média mínima para aprovação direta é $6,0$.
 * **RN34 `[MVP]`**: Alunos com média parcial entre $4,0$ e $5,9$ e frequência $\ge 75\%$ realizam o Exame Final.
 * **RN35 `[MVP]`**: A média final pós-exame é calculada por:
