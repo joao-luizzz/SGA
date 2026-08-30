@@ -180,6 +180,13 @@ class TestAuditoriaLogImutabilidade:
         with pytest.raises(ValueError, match='imutável'):
             log.delete()
 
+    def test_queryset_nao_pode_editar_nem_excluir(self, user_professor):
+        log = self._criar_log(user_professor)
+        with pytest.raises(ValueError, match='imutável'):
+            AuditoriaLog.objects.filter(pk=log.pk).update(valor_novo='Alterado')
+        with pytest.raises(ValueError, match='imutável'):
+            AuditoriaLog.objects.filter(pk=log.pk).delete()
+
     def test_log_str_representation(self, user_professor):
         log = self._criar_log(user_professor)
         assert 'Falta' in str(log)

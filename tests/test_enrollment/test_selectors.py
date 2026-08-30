@@ -84,3 +84,13 @@ class TestEnrollmentSelectors:
         assert aluno_ja_matriculado(user_aluno, turma) is False
         Matricula.objects.create(aluno=user_aluno, turma=turma, status=StatusMatricula.ATIVA)
         assert aluno_ja_matriculado(user_aluno, turma) is True
+
+    @pytest.mark.parametrize(
+        'status',
+        [StatusMatricula.CANCELADA, StatusMatricula.TRANCADA],
+    )
+    def test_matricula_inativa_nao_bloqueia_nova_tentativa(
+        self, turma, user_aluno, status
+    ):
+        Matricula.objects.create(aluno=user_aluno, turma=turma, status=status)
+        assert aluno_ja_matriculado(user_aluno, turma) is False
