@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} — SGA{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="mb-4 pb-3 border-bottom">
+    <h3 class="page-title mb-1"><i class="bi bi-journal-text text-success me-2"></i>{% trans "Avaliações e Notas" %}</h3>
+    <p class="page-subtitle mb-0">{% trans "Selecione uma de suas turmas para lançar ou editar notas." %}</p>
+  </div>
+
+  <div class="row g-3">
+    {% for turma in turmas %}
+      <div class="col-md-6 col-xl-4">
+        <div class="card card-interactive h-100 border-top border-success border-3">
+          <div class="card-body p-4 d-flex flex-column">
+            <h5 class="card-title fw-bold">{{ turma.disciplina.nome }}</h5>
+            <p class="text-muted small mb-1">{{ turma.disciplina.codigo }} · {{ turma.periodo_letivo }}</p>
+            <p class="text-muted small flex-grow-1"><i class="bi bi-clock me-1"></i>{{ turma.horarios }}</p>
+            <a class="btn btn-success btn-sm" href="{% url 'assessments:turma_notas' turma.pk %}">
+              <i class="bi bi-pencil-square me-1"></i>{% trans "Lançar notas" %}
+            </a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12">
+        <div class="alert alert-info">{% trans "Você não possui turmas ativas alocadas." %}</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

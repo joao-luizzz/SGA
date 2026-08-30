@@ -14,12 +14,12 @@
 
 | Requisito | Funcionalidade | Caso de Uso (CU) Relacionado | Regras de Negócio (RN) | Entidades Envolvidas |
 | :---: | :--- | :--- | :--- | :--- |
-| **RF01** | Autenticação por e-mail | `CU01 — Autenticar Usuário` | RN01 | `Usuario` |
-| **RF02** | Logout seguro | `CU02 — Encerrar Sessão` | RN01 | `Usuario` |
-| **RF03** | Troca obrigatória de senha | `CU03 — Alterar Senha no Primeiro Acesso` | RN01 | `Usuario` |
-| **RF04** | RBAC (Controle por Perfil) | `Transversal — Autorização de Acesso` | RN01, RN02, RN03, RN04a, RN04b | `Usuario` |
-| **RF06** | Visualização de notas | `CU04 — Aluno Consulta Boletim` | RN03, RN17, RN18, RN19 | `Aluno`, `Turma`, `Nota` |
-| **RF07** | Visualização de faltas | `CU05 — Aluno Consulta Frequência` | RN03, RN21, RN22, RN23, RN48 | `Aluno`, `Turma`, `Falta` |
+| **RF01** | Autenticação por e-mail | `CU01 — Autenticar Usuário` | RN01 | `CustomUser` |
+| **RF02** | Logout seguro | `CU02 — Encerrar Sessão` | RN01 | `CustomUser` |
+| **RF03** | Troca obrigatória de senha | `CU03 — Alterar Senha no Primeiro Acesso` | RN01 | `CustomUser` |
+| **RF04** | RBAC (Controle por Perfil) | `Transversal — Autorização de Acesso` | RN01, RN02, RN03, RN04a, RN04b | `CustomUser` |
+| **RF06** | Visualização de notas | `CU04 — Aluno Consulta Boletim` | RN03, RN17, RN18, RN19 | `CustomUser`, `Matricula`, `Nota` |
+| **RF07** | Visualização de faltas | `CU05 — Aluno Consulta Frequência` | RN03, RN21, RN22, RN23, RN48 | `CustomUser`, `Turma`, `Falta` |
 | **RF10** | Lançamento de faltas | `CU06 — Professor Registra Chamada` | RN02, RN21, RN22 | `Professor`, `Turma`, `Falta` |
 | **RF11** | Lançamento de notas | `CU07 — Professor Lança Notas` | RN02, RN17, RN18, RN20, RN32 | `Professor`, `Turma`, `Nota` |
 | **RF13** | Listagem da turma | `CU08 — Professor Consulta Alunos da Turma` | RN02 | `Professor`, `Turma`, `Matricula` |
@@ -28,10 +28,10 @@
 | **RF16** | Matrícula por Secretaria | `CU11 — Secretaria Matricula Aluno em Turma` | RN04b, RN10, RN11, RN12, RN13a, RN42 | `Aluno`, `Turma`, `Matricula` |
 | **RF17** | Situação de matrícula | `CU12 — Secretaria Altera Situação do Aluno` | RN04b, RN14, RN15 | `Aluno` |
 | **RF20** | CRUD de Cursos | `CU13 — Coordenação Gerencia Cursos` | RN04a, RN05 | `Curso` |
-| **RF21** | CRUD de Disciplinas | `CU14 — Coordenação Gerencia Grade Curricular` | RN04a, RN05 | `Disciplina`, `GradeCurricular` |
+| **RF21** | CRUD de Disciplinas | `CU14 — Coordenação Gerencia Disciplinas` | RN04a, RN05 | `Curso`, `Disciplina` |
 | **RF22** | Abertura de turmas | `CU15 — Coordenação Abre Turma` | RN04a, RN07, RN09, RN40 | `Turma`, `Horario` |
 | **RF23** | Alocação docente | `CU16 — Coordenação Aloca Professor` | RN04a, RN08, RN09, RN40 | `Turma`, `Professor` |
-| **RF27** | Cálculo automático de média | `Transversal — Regra de Cálculo de Médias` | RN17, RN18, RN19, RN32–RN35 | `Nota`, `Avaliacao` |
+| **RF27** | Cálculo automático de média | `Transversal — Regra de Cálculo de Médias` | RN17, RN18, RN19, RN32–RN35 | `Matricula`, `Nota` |
 | **RF28** | Cálculo de frequência | `Transversal — Regra de Cálculo de Frequência` | RN21, RN22, RN23, RN36, RN48 | `Falta`, `Matricula` |
 | **RF29** | Controle de vagas | `Transversal — Validação de Capacidade` | RN10, RN11 | `Turma`, `Matricula` |
 | **RF30** | Auditoria de alterações | `Transversal — Auditoria de Notas e Faltas` | RN30, RN31 | `AuditoriaLog` |

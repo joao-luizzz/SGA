@@ -1,6 +1,6 @@
 # SGA — Sistema de Gestão Acadêmica
 
-O **SGA (Sistema de Gestão Acadêmica)** é um sistema monólito web desenvolvido em Django para instituições de ensino superior. O projeto centraliza rotinas administrativas da secretaria e pedagógicas da coordenação, permitindo que os alunos gerenciem matrículas, horários e notas.
+O **SGA (Sistema de Gestão Acadêmica)** é um monólito Django para instituições de ensino superior. O projeto centraliza rotinas administrativas e pedagógicas; alunos consultam as próprias matrículas, notas, médias e frequência.
 
 ---
 
@@ -17,7 +17,7 @@ O **SGA (Sistema de Gestão Acadêmica)** é um sistema monólito web desenvolvi
 
 ## 📚 Documentação
 
-A documentação técnica e funcional do projeto está disponível em [`/docs`](docs/).
+A documentação técnica e funcional está em [`/docs`](docs/). Para a entrega, consulte o [roteiro de demonstração e checklist](docs/SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
 
 ---
 
@@ -28,10 +28,10 @@ A documentação técnica e funcional do projeto está disponível em [`/docs`](
 ├── config/             # Configurações do Django (settings, urls, wsgi, asgi)
 ├── apps/
 │   ├── accounts/       # Autenticação, CustomUser (Email), Perfis e RBAC
-│   ├── academics/      # Módulo acadêmico (Cursos, Disciplinas, Turmas - Placeholder)
-│   ├── enrollment/     # Módulo de matrículas (Placeholder)
-│   ├── assessments/    # Módulo de notas e avaliações (Placeholder)
-│   └── attendance/     # Módulo de frequência e presença (Placeholder)
+│   ├── academics/      # Cursos, Disciplinas, Turmas e alocação docente
+│   ├── enrollment/     # Matrícula administrativa e controle de vagas
+│   ├── assessments/    # Notas, médias, situação e boletim
+│   └── attendance/     # Chamada, frequência e auditoria
 ├── templates/          # Templates base, componentes, erros 403/404 e dashboards por perfil
 ├── static/             # Arquivos estáticos (CSS, JS, imagens)
 ├── tests/              # Suíte de testes automatizados com Pytest
@@ -50,10 +50,10 @@ A documentação técnica e funcional do projeto está disponível em [`/docs`](
 
 O sistema possui 4 perfis de usuário obrigatórios:
 
-1. **`ALUNO`**: Acesso exclusivo aos dados próprios, boletim e faltas.
+1. **`ALUNO`**: Consulta exclusiva das próprias matrículas, notas, médias, situação e frequência.
 2. **`PROFESSOR`**: Acesso às turmas em que está alocado, diário de classe e lançamento de notas/frequência.
 3. **`SECRETARIA`**: Acesso a cadastros administrativos, status do aluno e matrículas.
-4. **`COORDENACAO`**: Acesso à matriz curricular, cursos, disciplinas, turmas e alocação docente.
+4. **`COORDENACAO`**: Acesso a cursos, disciplinas, turmas e alocação docente.
 
 ---
 
@@ -83,6 +83,14 @@ docker compose ps
 ```
 
 A aplicação estará acessível em: `http://localhost:8000`
+
+### Dados de demonstração
+
+```bash
+docker compose exec web python manage.py seed_demo
+```
+
+O comando é idempotente e cria os quatro perfis, uma turma completa e cenários de aprovação direta, exame e reprovação por falta. As credenciais estão no [roteiro de demonstração](docs/SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
 
 ---
 
@@ -117,19 +125,20 @@ docker compose exec web pytest
 pytest -v
 ```
 
-### Cobertura de Testes Incluída:
-* ✅ Criação e validação do modelo `CustomUser` (login por e-mail e hash nativo Django);
-* ✅ Autenticação de credenciais válidas e bloqueio de usuários inativos;
-* ✅ Redirecionamento obrigatório para troca de senha no primeiro acesso;
-* ✅ Bloqueio de acesso entre perfis (RBAC com resposta HTTP 403);
-* ✅ Fluxo de logout e encerramento de sessão.
+### Cobertura de testes incluída
+
+- `CustomUser`, autenticação, primeira senha e RBAC.
+- CRUD acadêmico e separação entre Secretaria e Coordenação.
+- Matrícula administrativa, vagas, duplicidade ativa e nova tentativa após cancelamento/trancamento.
+- Chamada, frequência, notas, médias, Exame Final e situações acadêmicas.
+- Isolamento de turmas do Professor e boletim do Aluno.
+- Transações em lote e auditoria imutável de notas e faltas.
+- Seed idempotente e fluxo ponta a ponta do MVP.
 
 ---
 
-## 📌 Escopo e Rastreabilidade das Issues
+## Escopo da Fase 1
 
-Esta entrega aborda e encerra as seguintes tarefas:
+O MVP usa `CustomUser`, Django Templates, Bootstrap 5, HTMX, PostgreSQL/Docker Compose e Pytest. `Disciplina` liga-se diretamente a `Curso`; horários ficam em `Turma.horarios`; `Nota` liga-se à `Matricula` e usa os tipos `P1`, `P2`, `TRABALHO` e `EXAME`. Média, frequência, vagas e situação são calculadas.
 
-* **Closes #1**: Inicialização da fundação técnica, estrutura Django e ambiente Docker Compose com PostgreSQL.
-* **Closes #2**: Implementação da aplicação `accounts` com `CustomUser` (e-mail como login), 4 perfis (`ALUNO`, `PROFESSOR`, `SECRETARIA`, `COORDENACAO`), regra de troca obrigatória de senha e comando seguro de seed da Secretaria.
-* **Closes #6**: Sistema de autenticação por sessão, RBAC com decorators/mixins, templates Bootstrap 5 + HTMX, páginas customizadas de erro 403/404 e dashboards por perfil.
+Auto-matrícula, materiais, calendário, comunicados, recuperação de senha, transferências, documentos, financeiro, aplicativo mobile, integrações externas e pré-requisitos permanecem no roadmap.

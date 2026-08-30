@@ -30,13 +30,13 @@
 | **RF12** | Upload de materiais | Permitir que o professor anexe materiais (arquivo ou link) a uma turma. | Professor | `Alta` | **Roadmap** |
 | **RF13** | Listagem da turma | Exibir ao professor a lista de alunos matriculados na turma em que leciona. | Professor | `Média` | **MVP** |
 | **RF14** | CRUD de Professores | Cadastrar, editar e inativar usuários com perfil Professor. | Secretaria | `Alta` | **MVP** |
-| **RF15** | CRUD de Alunos | Cadastrar, editar e inativar usuários com perfil Aluno, vinculando-os a um Curso. | Secretaria | `Alta` | **MVP** |
-| **RF16** | Matrícula por Secretaria | Matricular ou cancelar a matrícula de um aluno em uma turma em nome da instituição. | Secretaria | `Alta` | **MVP** |
-| **RF17** | Situação de matrícula | Alterar a situação institucional do aluno (`Ativo`, `Trancado`, `Transferido`, `Formado`, `Cancelado`). | Secretaria | `Alta` | **MVP** |
+| **RF15** | CRUD de Alunos | Cadastrar, editar e inativar usuários com perfil Aluno. | Secretaria | `Alta` | **MVP** |
+| **RF16** | Matrícula por Secretaria | Matricular um aluno em uma turma válida em nome da instituição. | Secretaria | `Alta` | **MVP** |
+| **RF17** | Preservação de histórico | Inativar a conta sem apagar matrículas, notas e faltas anteriores. | Secretaria | `Alta` | **MVP** |
 | **RF18** | Registro de transferência | Registrar transferência de entrada (de outra IES) ou de saída (para outra IES), com data. | Secretaria | `Média` | **Roadmap** |
 | **RF19** | Documentos cadastrais | Anexar documentos do aluno (RG, CPF, histórico, comprovante de residência) ao cadastro. | Secretaria | `Média` | **Roadmap** |
 | **RF20** | CRUD de Cursos | Criar, editar e inativar cursos da instituição. | Coordenação | `Alta` | **MVP** |
-| **RF21** | CRUD de Disciplinas | Criar, editar e inativar disciplinas, vinculando-as à grade curricular do curso. | Coordenação | `Alta` | **MVP** |
+| **RF21** | CRUD de Disciplinas | Criar, editar e inativar disciplinas, cada uma ligada diretamente a um curso. | Coordenação | `Alta` | **MVP** |
 | **RF22** | Abertura de turmas | Ofertar disciplina por período letivo, definindo professor, horário, sala e limite de vagas. | Coordenação | `Alta` | **MVP** |
 | **RF23** | Alocação docente | Atribuir um professor responsável a uma turma aberta. | Coordenação | `Alta` | **MVP** |
 | **RF24** | Calendário acadêmico | Criar e editar eventos do calendário (provas, feriados, período de matrícula). | Coordenação | `Média` | **Roadmap** |
@@ -47,8 +47,8 @@
 | **RF29** | Controle de vagas | Bloquear automaticamente matrículas quando o limite máximo de vagas da turma for atingido. | Sistema | `Alta` | **MVP** |
 | **RF30** | Auditoria de alterações | Registrar log imutável de alterações em notas e faltas (quem alterou, valor antigo, novo e data). | Sistema | `Média` | **MVP** |
 | **RF31** | Validação de formulários | Bloquear submissão de dados inválidos ou campos obrigatórios ausentes. | Sistema | `Média` | **MVP** |
-| **RF32** | Lançamento de Exame | Permitir o lançamento de nota de exame final para alunos elegíveis ($4,0 \le \text{média} < 6,0$). | Professor | `Alta` | **MVP** |
-| **RF33** | Resultado acadêmico | Apresentar as situações: `Cursando`, `Em Exame`, `Aprovado`, `Reprovado por Nota`, `Reprovado por Falta`. | Sistema | `Alta` | **MVP** |
+| **RF32** | Lançamento de Exame | Permitir exame apenas com $4,00 \le \text{MP} < 6,00$ e frequência $\ge 75\%$. | Professor | `Alta` | **MVP** |
+| **RF33** | Resultado acadêmico | Apresentar `Em andamento`, `Aprovado Direto`, `Elegível para Exame Final`, `Aprovado após Exame`, `Reprovado por Nota` ou `Reprovado por Falta`. | Sistema | `Alta` | **MVP** |
 | **RF34** | Retentativa de disciplina | Permitir que o aluno reprovado curse a disciplina em outro período, preservando a tentativa anterior. | Sistema | `Média` | **MVP** |
 | **RF35** | Matrícula Administrativa | Matrícula efetuada exclusivamente pela Secretaria no MVP. | Secretaria | `Alta` | **MVP** |
 
@@ -65,7 +65,7 @@
 | **RNF05** | Retenção de Auditoria | Logs de auditoria de notas e faltas mantidos de forma imutável. |
 | **RNF06** | Arquitetura | Monólito limpo em Django com separação clara de responsabilidades (`services.py`, `selectors.py`). |
 | **RNF07** | LGPD | Conformidade com a Lei Geral de Proteção de Dados no armazenamento de dados pessoais e cadastrais. |
-| **RNF08** | Validação de Arquivos | Validação de upload por tipo MIME e limite de tamanho de arquivo (máx. 20MB). |
+| **RNF08** | Escopo | Recursos de upload permanecem fora da Fase 1. |
 | **RNF09** | Compatibilidade | Compatibilidade garantida com os navegadores modernos (Chrome, Firefox, Edge, Safari). |
 | **RNF10** | Infraestrutura | Ambiente containerizado via Docker e Docker Compose com banco PostgreSQL 16. |
 | **RNF11** | Proteção OWASP | Proteção nativa contra SQL Injection, Cross-Site Scripting (XSS) e Open Redirect. |

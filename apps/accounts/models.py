@@ -48,6 +48,18 @@ class AcaoAuditoria(models.TextChoices):
     EXCLUIR = 'EXCLUIR', _('Excluir')
 
 
+class AuditoriaLogQuerySet(models.QuerySet):
+    def update(self, **kwargs):
+        raise ValueError(
+            "AuditoriaLog é imutável. Registros de auditoria não podem ser editados."
+        )
+
+    def delete(self):
+        raise ValueError(
+            "AuditoriaLog é imutável. Registros de auditoria não podem ser excluídos."
+        )
+
+
 class AuditoriaLog(models.Model):
     """Registro imutável de auditoria para alterações em Nota e Falta (RN30, RN31)."""
 
@@ -73,6 +85,8 @@ class AuditoriaLog(models.Model):
     valor_antigo = models.TextField(_('valor anterior'), null=True, blank=True)
     valor_novo = models.TextField(_('novo valor'), null=True, blank=True)
     realizado_em = models.DateTimeField(_('realizado em'), auto_now_add=True)
+
+    objects = AuditoriaLogQuerySet.as_manager()
 
     class Meta:
         verbose_name = _('log de auditoria')

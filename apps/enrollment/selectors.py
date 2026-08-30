@@ -31,4 +31,8 @@ def turma_pode_receber_matricula(turma):
 
 def aluno_ja_matriculado(aluno, turma):
     """Verifica se o aluno já possui matrícula ativa nesta turma (RN10 — sem duplicidade)."""
-    return Matricula.objects.filter(aluno=aluno, turma=turma).exists()
+    return Matricula.objects.filter(
+        aluno=aluno,
+        turma=turma,
+        status=StatusMatricula.ATIVA,
+    ).exists()

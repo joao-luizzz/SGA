@@ -75,6 +75,12 @@ def registrar_chamada(professor, turma, data_aula: str, presencas: dict) -> list
         ).first()
 
         if falta_existente:
+            if (
+                falta_existente.presente == presente
+                and falta_existente.registrado_por_id == professor.pk
+            ):
+                resultados.append(falta_existente)
+                continue
             valor_antigo = _representacao_falta(falta_existente)
             acao = AcaoAuditoria.EDITAR
             falta_existente.presente = presente
