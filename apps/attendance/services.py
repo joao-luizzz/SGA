@@ -55,12 +55,17 @@ def registrar_chamada(professor, turma, data_aula: str, presencas: dict) -> list
         raise ValidationError(_("A lista de alunos informada é inválida."))
 
     aluno_ids = set(presencas_normalizadas)
-    alunos_com_matricula_ativa = set(
-        Matricula.objects.filter(
+    matriculas_ativas = list(
+        Matricula.objects.select_for_update()
+        .filter(
             turma=turma_bloqueada,
             status=StatusMatricula.ATIVA,
-        ).values_list('aluno_id', flat=True)
+        )
+        .only('aluno_id')
     )
+    alunos_com_matricula_ativa = {
+        matricula.aluno_id for matricula in matriculas_ativas
+    }
     if aluno_ids != alunos_com_matricula_ativa:
         raise ValidationError(
             _("A chamada deve informar exatamente todos os alunos com matrícula ativa nesta turma.")

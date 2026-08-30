@@ -35,6 +35,23 @@ class TestRegistrarChamadaService:
 
         select_for_update.assert_called_once_with()
 
+    def test_bloqueia_matriculas_ativas_ao_registrar_chamada(
+        self, turma, user_professor, user_aluno, matricula_aluno
+    ):
+        with patch.object(
+            Matricula.objects,
+            'select_for_update',
+            wraps=Matricula.objects.select_for_update,
+        ) as select_for_update:
+            registrar_chamada(
+                professor=user_professor,
+                turma=turma,
+                data_aula=date(2026, 8, 18),
+                presencas={user_aluno.pk: True},
+            )
+
+        select_for_update.assert_called_once_with()
+
 
     def test_rejeita_professor_de_outra_turma(
         self, turma, user_aluno, matricula_aluno
