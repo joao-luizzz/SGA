@@ -41,6 +41,9 @@
                             {% endif %}
                         </td>
                         <td class="text-end">
+                            <a href="{% url 'accounts:usuario_edit' usuario.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                Editar
+                            </a>
                             <form method="POST" action="{% url 'accounts:usuario_toggle_active' usuario.id %}" class="d-inline">
                                 {% csrf_token %}
                                 {% if usuario.is_active %}

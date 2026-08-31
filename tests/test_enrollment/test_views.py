@@ -164,7 +164,7 @@ class TestEnrollmentViews:
     @pytest.mark.parametrize(
         'status_final', [StatusMatricula.TRANCADA, StatusMatricula.CANCELADA]
     )
-    def test_secretaria_pode_criar_nova_matricula_apos_encerrar_anterior(
+    def test_secretaria_nao_pode_criar_nova_matricula_na_mesma_turma_apos_encerrar_anterior(
         self, client, user_secretaria, user_aluno, turma, status_final
     ):
         matricula_anterior = Matricula.objects.create(aluno=user_aluno, turma=turma)
@@ -179,13 +179,13 @@ class TestEnrollmentViews:
             data={'aluno': user_aluno.pk, 'turma': turma.pk},
         )
 
-        assert response.status_code == 302
+        assert response.status_code == 200
         matricula_anterior.refresh_from_db()
-        nova_matricula = Matricula.objects.get(
-            aluno=user_aluno, turma=turma, status=StatusMatricula.ATIVA
-        )
-        assert nova_matricula.pk != matricula_anterior.pk
         assert matricula_anterior.status == status_final
+        assert not Matricula.objects.filter(
+            aluno=user_aluno, turma=turma, status=StatusMatricula.ATIVA
+        ).exists()
+        assert b'outra turma/per\xc3\xadodo' in response.content
 
     def test_rota_de_status_exige_post(self, client, user_secretaria, user_aluno, turma):
         matricula = Matricula.objects.create(aluno=user_aluno, turma=turma)

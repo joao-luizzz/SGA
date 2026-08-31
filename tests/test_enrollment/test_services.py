@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 
 from academics.models import Curso, Disciplina, Turma
 from accounts.models import CustomUser, UserRole
+from attendance.models import Falta
+from attendance.selectors import get_frequencia_do_aluno_na_turma
 from enrollment.models import Matricula, StatusMatricula
 from enrollment.services import (
     alterar_status_matricula_administrativa,
@@ -113,26 +115,61 @@ def test_nao_permite_duplicidade_ativa(user_secretaria, user_aluno, turma_valida
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     'status_anterior',
-    [StatusMatricula.CANCELADA, StatusMatricula.TRANCADA],
+    [StatusMatricula.CANCELADA, StatusMatricula.TRANCADA, StatusMatricula.CONCLUIDA],
 )
-def test_rematricula_preserva_historico_cancelado_ou_trancado(
+def test_rematricula_na_mesma_turma_e_rejeitada_mesmo_com_historico_encerrado(
     user_secretaria, user_aluno, turma_valida, status_anterior
 ):
-    matricula_anterior = Matricula.objects.create(
+    Matricula.objects.create(
         aluno=user_aluno,
         turma=turma_valida,
         status=status_anterior,
     )
 
-    nova_matricula = matricular_aluno_administrativo(
-        user_secretaria, user_aluno, turma_valida
+    with pytest.raises(ValidationError, match='outra turma/período'):
+        matricular_aluno_administrativo(user_secretaria, user_aluno, turma_valida)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'status_anterior', [StatusMatricula.CANCELADA, StatusMatricula.TRANCADA]
+)
+def test_rematricula_em_outra_turma_preserva_historico_e_frequencia(
+    user_secretaria, user_aluno, user_professor, turma_valida, status_anterior
+):
+    matricula_anterior = Matricula.objects.create(
+        aluno=user_aluno,
+        turma=turma_valida,
+        status=StatusMatricula.ATIVA,
+    )
+    Falta.objects.create(
+        turma=turma_valida,
+        aluno=user_aluno,
+        data_aula='2026-08-18',
+        presente=False,
+        registrado_por=user_professor,
+    )
+    matricula_anterior.status = status_anterior
+    matricula_anterior.save(update_fields=['status'])
+    turma_nova = Turma.objects.create(
+        disciplina=turma_valida.disciplina,
+        periodo_letivo='2026/2',
+        horarios='TER 08:00-10:00',
+        sala='Sala 2',
+        vagas_maximas=2,
+        professor=user_professor,
+        ativo=True,
     )
 
-    matricula_anterior.refresh_from_db()
-    assert nova_matricula.pk != matricula_anterior.pk
+    nova_matricula = matricular_aluno_administrativo(
+        user_secretaria, user_aluno, turma_nova
+    )
+
     assert nova_matricula.status == StatusMatricula.ATIVA
     assert matricula_anterior.status == status_anterior
-    assert Matricula.objects.filter(aluno=user_aluno, turma=turma_valida).count() == 2
+    assert Falta.objects.filter(aluno=user_aluno, turma=turma_valida).count() == 1
+    assert Falta.objects.filter(aluno=user_aluno, turma=turma_nova).count() == 0
+    assert get_frequencia_do_aluno_na_turma(user_aluno, turma_nova)['total_aulas'] == 0
 
 
 @pytest.mark.django_db

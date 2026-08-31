@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, redirect
 from django.http import HttpResponseBadRequest
 from django.urls import reverse
@@ -8,8 +9,14 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 
-from .forms import SGAAuthenticationForm, SGAMandatoryPasswordChangeForm
-from .models import UserRole
+from .forms import (
+    AlunoCreationForm,
+    ProfessorCreationForm,
+    SGAAuthenticationForm,
+    SGAMandatoryPasswordChangeForm,
+    UsuarioEditForm,
+)
+from .models import CustomUser, UserRole
 from .decorators import role_required
 from .selectors import get_dashboard_url_by_role
 from .services import change_user_password
@@ -112,7 +119,6 @@ def custom_page_not_found_view(request, exception=None):
 from django.shortcuts import get_object_or_404
 from .selectors import list_manageable_users
 from .services import toggle_user_active_status
-from .forms import AlunoCreationForm, ProfessorCreationForm
 
 @role_required(UserRole.SECRETARIA)
 def usuario_list_view(request):
@@ -146,10 +152,33 @@ def usuario_create_view(request):
 
     return render(request, 'accounts/usuario_form.html', {'form': form, 'title': title, 'tipo': tipo})
 
+
+@role_required(UserRole.SECRETARIA)
+def usuario_edit_view(request, user_id):
+    usuario = get_object_or_404(CustomUser, id=user_id)
+    if usuario.pk == request.user.pk or usuario.role not in [
+        UserRole.ALUNO,
+        UserRole.PROFESSOR,
+    ]:
+        raise PermissionDenied(_("Ação não permitida para este tipo de usuário."))
+
+    if request.method == 'POST':
+        form = UsuarioEditForm(request.POST, instance=usuario)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Usuário atualizado com sucesso."))
+            return redirect('accounts:usuario_list')
+    else:
+        form = UsuarioEditForm(instance=usuario)
+
+    return render(request, 'accounts/usuario_form.html', {
+        'form': form,
+        'title': 'Editar Usuário',
+    })
+
 @require_POST
 @role_required(UserRole.SECRETARIA)
 def usuario_toggle_active_view(request, user_id):
-    from .models import CustomUser
     user = get_object_or_404(CustomUser, id=user_id)
     if user.pk == request.user.pk:
         messages.error(request, _("Você não pode alterar o status da própria conta."))

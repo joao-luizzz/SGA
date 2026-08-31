@@ -12,13 +12,63 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    name: Testes Django
+  test-sqlite:
+    name: Testes Django (SQLite)
     runs-on: ubuntu-latest
     env:
       USE_SQLITE: "True"
       DEBUG: "False"
       SECRET_KEY: "django-insecure-ci-only-sga-github-actions-secret-key"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements/local.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements/local.txt
+
+      - name: Run Django system checks
+        run: python manage.py check
+
+      - name: Check for missing migrations
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Run tests
+        run: pytest
+
+  test-postgresql:
+    name: Testes Django (PostgreSQL)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: sga_ci
+          POSTGRES_USER: sga_ci_user
+          POSTGRES_PASSWORD: sga_ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sga_ci_user -d sga_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      USE_SQLITE: "False"
+      DEBUG: "False"
+      SECRET_KEY: "django-insecure-ci-only-sga-github-actions-secret-key"
+      DB_NAME: sga_ci
+      DB_USER: sga_ci_user
+      DB_PASSWORD: sga_ci_password
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
 
     steps:
       - name: Check out repository
