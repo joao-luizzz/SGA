@@ -1,132 +1,53 @@
 # SGA — Sistema de Gestão Acadêmica
 
-## 📋 Documento de Escopo do Projeto
+## Escopo da Fase 1
 
-| Metadado | Detalhe |
-| :--- | :--- |
-| **Disciplina** | Laboratório de Engenharia de Software |
-| **Professor Responsável** | Rodrigo Salgado |
-| **Integrantes do Grupo** | Andrey Kerges Nascimento, Alexandre Hesse, Max Iago Villafan, João Luiz, Vitor Augusto |
-| **Versão** | `1.0` (MVP da Fase 1) |
-| **Data** | Agosto / 2026 |
+| Metadado | Valor |
+| --- | --- |
+| Versão | **1.0 — MVP Fase 1 concluído** |
+| Data | **31 de agosto de 2026** |
+| Produto | SGA — Sistema de Gestão Acadêmica |
 
----
+O SGA é um monólito web para ensino superior. A Fase 1 entrega o ciclo acadêmico essencial: configurar a oferta, administrar contas e matrículas, registrar frequência e notas e permitir a consulta individual pelo aluno.
 
-## 🎯 Decisão de Domínio
+## Fase 1 concluída
 
-O grupo definiu que o **SGA** atenderá uma instituição de ensino superior. Essa decisão definiu a estrutura central do sistema:
+### Perfis e responsabilidades
 
-* **Matrícula Administrativa:** A Secretaria vincula o aluno a turmas de disciplinas específicas por período letivo.
-* **Conceito de Turma:** Passa a significar a **oferta de uma disciplina em um período letivo** (ex.: *Programação Orientada a Objetos — 2026/1 — Turma A*), com professor, horário, sala e limite de vagas próprios.
-* **Perfis de Usuário:** Não há perfil de Responsável/Pais, uma vez que o público-alvo é adulto.
+| Perfil | Responsabilidade entregue |
+| --- | --- |
+| `ALUNO` | Consulta exclusivamente as próprias matrículas, boletim, médias, situação e frequência. |
+| `PROFESSOR` | Consulta suas turmas ativas, registra chamada completa e lança notas nelas. |
+| `SECRETARIA` | Cria, edita, lista, ativa/inativa Alunos e Professores; administra matrículas e seus status. |
+| `COORDENACAO` | Gerencia cursos, disciplinas e turmas, inclusive alocação de professor. |
 
----
+### Capacidades do MVP
 
-## 1. Visão Geral do Escopo
-
-O projeto consiste no desenvolvimento da **Secretaria Inteligente para Instituições de Ensino Superior (SGA)**, uma aplicação web monólito que centraliza a gestão administrativa e pedagógica da instituição.
-
-> [!NOTE]
-> O sistema atende quatro perfis de usuário — **Aluno**, **Professor**, **Secretaria** e **Coordenação de Curso** —, utilizando **RBAC (Role-Based Access Control)** para garantir isolamento e segurança dos dados.
-
----
-
-## 2. Objetivos do Projeto
-
-### 2.1 Objetivo Geral
-Desenvolver uma aplicação web responsiva que permita a gestão de cursos, disciplinas, turmas, professores, alunos, matrículas, notas e frequência, respeitando o perfil de acesso de cada usuário.
-
-### 2.2 Objetivos Específicos
-* Permitir que o aluno consulte as próprias matrículas, notas, faltas e situação por disciplina.
-* Permitir que o professor registre faltas e notas somente nas turmas em que leciona.
-* Permitir que a Secretaria administre alunos, professores e matrículas.
-* Permitir que a Coordenação administre cursos e disciplinas, abra turmas e aloque professores.
-* Garantir segurança e isolamento de dados por perfil (RBAC), com atenção às normas da LGPD.
-
----
-
-## 3. Delimitação por Fases
+- Autenticação por sessão, RBAC e troca obrigatória de senha inicial.
+- Cursos, disciplinas, turmas, professor responsável, sala, horários e vagas.
+- Matrícula administrativa, controle de capacidade, alteração para `TRANCADA`, `CANCELADA` ou `CONCLUIDA` e retentativa somente em outra turma/período.
+- Chamada por turma e data, frequência calculada, P1, P2, Trabalho, Exame e situação acadêmica calculada.
+- Auditoria imutável de criação e edição de `Nota` e `Falta`.
+- Testes automatizados e CI em SQLite e PostgreSQL 16.
 
 ```mermaid
-graph LR
-    A["Fase 1 (MVP Compromissado)"] --> B["Fase 2 (Roadmap Opcional)"]
-    B --> C["Fase 3 (Evoluções Futuras)"]
+flowchart LR
+    C[Coordenação configura curso, disciplina e turma] --> S[Secretaria administra pessoas e matrícula]
+    S --> P[Professor registra chamada e notas]
+    P --> A[Aluno consulta boletim e frequência]
 ```
 
-### 3.1 Dentro do Escopo — Fase 1 (MVP Acadêmico Essential)
+## Limites explícitos
 
-> [!IMPORTANT]
-> A **Fase 1** é o **único escopo obrigatoriamente comprometido** para a entrega do projeto.
+Os seguintes itens **não** fazem parte do MVP da Fase 1: auto-matrícula, recuperação de senha, materiais, calendário, comunicados, documentos, transferências, financeiro, aplicativo mobile, integrações externas e pré-requisitos entre disciplinas.
 
-#### 👤 Módulo Aluno
-* Login e autenticação por e-mail e senha.
-* Consulta de notas, faltas e situação por disciplina.
-* Visualização da lista de turmas em que está matriculado.
+## Roadmap
 
-#### 👨‍🏫 Módulo Professor
-* Login e autenticação.
-* Visualização das turmas em que está formalmente alocado.
-* Lançamento e edição de notas (P1, P2, Trabalho, Exame Final).
-* Registro de chamadas (presenças e faltas por aula/data).
-* Consulta da lista de alunos matriculados em suas turmas.
+Esses itens podem ser priorizados em fases futuras, mas não são requisito, entidade, fluxo pronto ou critério de aceite da Fase 1. A evolução deve preservar as entidades e regras já entregues, em especial o histórico de tentativas por turma.
 
-#### 🏢 Módulo Secretaria
-* Login e autenticação.
-* Cadastro e inativação de Alunos.
-* CRUD administrativo de Professores.
-* Matrícula administrativa de alunos em turmas, com preservação de tentativas inativas.
+## Documentos relacionados
 
-#### 🎓 Módulo Coordenação de Curso
-* Login e autenticação.
-* CRUD de Cursos.
-* CRUD de Disciplinas vinculadas diretamente ao Curso.
-* Abertura de Turmas (período letivo, sala, horário e limite máximo de vagas).
-* Alocação de professores às turmas ofertadas.
-
-#### ⚙️ Recursos Transversais & Regras
-* Autenticação e autorização RBAC por perfil.
-* Troca obrigatória de senha no primeiro acesso (`must_change_password`).
-* Controle automático de vagas (bloqueio quando `vagas_ocupadas >= vagas_maximas`).
-* Cálculo derivado de médias, frequência e situação acadêmica.
-* Auditoria básica de alterações em notas e faltas (registro de responsável e data/hora).
-
----
-
-### 3.2 Roadmap Opcional — Fase 2
-
-> [!TIP]
-> Funcionalidades da **Fase 2** compõem uma visão de evolução e **não impedem a conclusão do MVP**.
-
-* **Materiais Didáticos:** Upload e download de arquivos (PDF, DOCX, PPTX) e links para turmas.
-* **Calendário Acadêmico:** Cadastro de eventos institucionais, feriados e período de provas.
-* **Comunicados / Mural:** Publicação de avisos segmentados por perfil ou curso.
-* **Horário Consolidado:** Grade semanal visual de aulas do aluno.
-* **Recuperação de Senha:** Envio de link de redefinição por e-mail.
-* **Transferência Simplificada:** Registro de entrada/saída com instituição de origem/destino e data.
-* **Documentos Cadastrais:** Anexo de RG, CPF, histórico do ensino médio e comprovante de residência.
-
----
-
-### 3.3 Roadmap Opcional — Fase 3
-
-> [!WARNING]
-> Funcionalidades complexas reservadas para expansão futura do sistema.
-
-* **Pré-requisitos:** Bloqueio automático de matrícula caso o aluno não tenha concluído a disciplina pré-requisito.
-* **Cancelamento por Autoatendimento:** Cancelamento de disciplina efetuado diretamente pelo aluno.
-* **Emissão de Documentos Oficiais:** Geração de Histórico Escolar, Declaração de Matrícula e Atestados formatados.
-* **Módulo Financeiro:** Gestão de mensalidades, boletos e inadimplência.
-* **Aplicativo Mobile & Integrações:** App nativo iOS/Android e integração com sistemas externos (MEC, e-MEC).
-
----
-
-## 4. Critério de Conclusão do MVP
-
-O MVP estará concluído e validado quando o seguinte fluxo ponta a ponta for executado com sucesso:
-
-1. A **Secretaria** cadastra o Aluno e o Professor.
-2. A **Coordenação** cadastra o Curso, a Disciplina, abre a Turma e aloca o Professor.
-3. A **Secretaria** realiza a matrícula do Aluno na Turma.
-4. O **Professor** realiza o lançamento das notas (P1, P2, Trabalho) e o registro das faltas.
-5. O **Sistema** calcula a média, a frequência e a situação final do Aluno.
-6. O **Aluno** realiza login e visualiza seu boletim e percentual de frequência atualizados.
+- [Regras de negócio](SGA-02-REGRAS-DE-NEGOCIO.md)
+- [Requisitos](SGA-03-REQUISITOS.md)
+- [Modelo de dados](SGA-04-MODELAGEM-DADOS.md)
+- [Casos de uso](SGA-06-CASOS-DE-USO.md)

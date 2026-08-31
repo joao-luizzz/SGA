@@ -1,123 +1,40 @@
 # SGA — Sistema de Gestão Acadêmica
 
-## 📜 Regras de Negócio (RN)
+## Regras de negócio
 
-| Metadado | Detalhe |
-| :--- | :--- |
-| **Versão** | `0.3` |
-| **Domínio** | Ensino Superior |
-| **Escopo Referência** | `SGA-01-ESCOPO.md` |
+| Metadado | Valor |
+| --- | --- |
+| Versão | **1.0 — MVP Fase 1 concluído** |
+| Data | **31 de agosto de 2026** |
 
----
+As regras abaixo descrevem somente comportamentos implementados na Fase 1. Os IDs são a referência única para requisitos, casos de uso e rastreabilidade.
 
-## 1. Perfis e Hierarquia de Acesso
+| ID | Regra |
+| --- | --- |
+| **RN01** | Cada `CustomUser` possui um único papel: `ALUNO`, `PROFESSOR`, `SECRETARIA` ou `COORDENACAO`. As telas e ações são protegidas por papel e pelo vínculo com o recurso. |
+| **RN02** | Contas criadas administrativamente recebem senha inicial e `must_change_password=True`; o primeiro acesso exige sua alteração antes do painel. Conta inativa não autentica. |
+| **RN03** | A Secretaria cria, edita, lista, ativa e inativa somente contas de Aluno e Professor. A edição administrativa preserva senha, papel, flag de primeira senha e estado de ativação; não pode atingir a própria conta, Secretaria ou Coordenação. |
+| **RN04** | A Coordenação administra `Curso`, `Disciplina` e `Turma`. `Disciplina` pertence diretamente a um `Curso`; horários são texto validado em `Turma.horarios`. |
+| **RN05** | Uma turma só recebe matrícula se estiver ativa, com professor, horários, sala e vagas máximas positivas configurados. Professor não pode ter sobreposição de horários em turmas ativas do mesmo período. |
+| **RN06** | Vagas ocupadas são a contagem de matrículas `ATIVA`; a Secretaria bloqueia matrícula quando a capacidade for atingida. |
+| **RN07** | Somente a Secretaria efetiva matrícula de Aluno ativo. A matrícula aceita `ATIVA`, `TRANCADA`, `CANCELADA` e `CONCLUIDA`; somente uma matrícula ativa pode ser alterada para os três últimos status. |
+| **RN08** | Não se cria nova matrícula para aluno e mesma turma quando houver qualquer matrícula anterior naquela turma. Retentativa ocorre em **outra `Turma`/período**, preservando faltas e notas da tentativa anterior. |
+| **RN09** | O Professor registra ou edita chamada apenas para turma ativa sob sua responsabilidade. A chamada deve informar exatamente todos os alunos com matrícula ativa naquela turma. |
+| **RN10** | `Falta` representa presença/ausência de um Aluno em uma Turma e data de aula; há no máximo um registro por `Turma + Aluno + data_aula`. |
+| **RN11** | Frequência é calculada pelos registros de chamada. Abaixo de 75% resulta em reprovação por falta e bloqueia o exame; sem aulas registradas, a frequência exibida é 100% e a situação de frequência é “Sem aulas registradas”. |
+| **RN12** | O Professor responsável por turma ativa lança P1, P2 e Trabalho para matrículas ativas. Cada nota vale de 0 a 10 e pertence à matrícula, não à turma ou ao aluno diretamente. `MP = (P1 + P2 + Trabalho) / 3`. |
+| **RN13** | Com MP completa: MP >= 6 aprova diretamente; 4 <= MP < 6, com frequência mínima, torna o aluno elegível ao exame; MP < 4 reprova por nota. |
+| **RN14** | O Exame só pode ser lançado para matrícula elegível. `MF = (MP + Exame) / 2`; MF >= 6 aprova após exame e MF < 6 reprova por nota. |
+| **RN15** | Criação e edição de `Nota` e `Falta` registram `AuditoriaLog` com autor, ação, valor anterior/novo e momento. O log não pode ser atualizado ou excluído. |
+| **RN16** | Integridade de dados: e-mail é único; há no máximo uma matrícula ativa por Aluno+Turma; uma nota por Matrícula+tipo; e chamada única por Turma+Aluno+data. |
+| **RN17** | Formulários, serviços e restrições de banco validam os dados críticos; a CI executa `check`, verificação de migrations e a suíte automatizada em SQLite e PostgreSQL 16. |
 
-| Perfil | Criação no Sistema | Escopo de Acesso & Atribuições |
-| :--- | :--- | :--- |
-| **Secretaria** | Seed inicial do sistema | **Administrativo:** cadastro/inativação de Alunos e Professores e matrícula em turmas. |
-| **Coordenação** | Seed inicial do sistema | **Pedagógico:** gestão de Cursos e Disciplinas, abertura de Turmas e alocação de Professores. |
-| **Professor** | Cadastrado pela Secretaria | **Docente:** acesso exclusivo às turmas alocadas; lançamento de notas e presenças/faltas. |
-| **Aluno** | Cadastrado pela Secretaria | **Discente:** acesso exclusivo às próprias matrículas, notas, médias, situação e frequência. |
+## Fora do MVP
 
----
+Não há regra implementada para auto-matrícula, recuperação de senha, materiais, calendário, comunicados, documentos, transferências, financeiro, aplicativo mobile, integrações ou pré-requisitos. Esses tópicos são apenas Roadmap.
 
-## 2. Regras Detalhadas por Módulo
+## Referências
 
-### 🔐 Perfis e Permissões (RBAC)
-* **RN01 `[MVP]`**: Um usuário possui exatamente um perfil entre: `SECRETARIA`, `COORDENACAO`, `PROFESSOR` ou `ALUNO`.
-* **RN02 `[MVP]`**: Um Professor só pode lançar ou editar notas e faltas nas turmas às quais está formalmente alocado pela Coordenação.
-* **RN03 `[MVP]`**: Um Aluno só pode visualizar notas e faltas das próprias matrículas ativas.
-* **RN04a `[MVP]`**: A Secretaria não realiza abertura de turmas ou alocação de professores — ações exclusivas da Coordenação.
-* **RN04b `[MVP]`**: A Coordenação não realiza cadastro de alunos/professores nem matrículas — ações exclusivas da Secretaria.
-* **RN04c `[ROADMAP - FASE 2]`**: Todo usuário poderá solicitar recuperação de senha ("esqueci minha senha") via link enviado por e-mail com expiração temporária (ex.: 30 minutos).
-
----
-
-### 🏛️ Estrutura Acadêmica
-* **RN05 `[MVP]`**: Toda Disciplina possui ligação direta e obrigatória com um Curso.
-* **RN06 `[MVP]`**: O Aluno acessa uma Disciplina por meio de sua matrícula em uma Turma; não existe turma fixa compartilhada.
-* **RN07 `[MVP]`**: Uma Turma é a oferta de uma Disciplina em um período letivo específico, com limite máximo de vagas, horário e sala definidos pela Coordenação.
-* **RN08 `[MVP]`**: Cada Turma é ministrada por um Professor responsável alocado pela Coordenação.
-* **RN09 `[MVP]`**: O horário de uma turma define dia da semana e horário de início/fim. Não pode haver conflito de horário para o mesmo Professor no mesmo dia e horário.
-* **RN40 `[MVP]`**: A turma pode ser criada pela Coordenação sem professor alocado inicialmente, mas só fica disponível para matrícula após possuir professor alocado, horário, sala e limite de vagas configurados.
-
----
-
-### 📝 Matrícula em Disciplinas
-* **RN10 `[MVP]`**: Um Aluno só pode ser matriculado em uma Turma se houver vagas disponíveis (`COUNT(matrículas ativas) < vagas_máximas`). Ao atingir o limite, a matrícula deve ser bloqueada.
-* **RN10a `[ROADMAP - FASE 2]`**: A matrícula do aluno por autoatendimento só é permitida durante a janela de matrícula aberta no calendário acadêmico.
-* **RN11 `[MVP]`**: A quantidade de vagas disponíveis deve ser calculada dinamicamente com base nas matrículas ativas.
-* **RN12 `[MVP]`**: A matrícula em uma Turma possui status próprio: `Ativa`, `Trancada`, `Concluída` ou `Cancelada`.
-* **RN13 `[ROADMAP - FASE 3]`**: Não há validação de pré-requisitos entre disciplinas no MVP. Essa regra é reservada para a Fase 3.
-* **RN13a `[MVP]`**: No MVP, o cancelamento de matrícula em turma é realizado exclusivamente pela Secretaria (sem autoatendimento do aluno).
-* **RN42 `[MVP]`**: A matrícula do aluno em turma é realizada pela Secretaria. A matrícula por autoatendimento do aluno fica no roadmap da Fase 2.
-
----
-
-### 🎓 Situação de Matrícula do Aluno
-* **RN14 `[MVP]`**: Contas de Aluno e Professor podem ser inativadas pela Secretaria sem apagar o histórico.
-* **RN15 `[MVP]`**: Usuário Aluno inativo não pode receber nova matrícula.
-* **RN16 `[ROADMAP - FASE 2]`**: Registro de transferências de entrada (exigindo instituição de origem e data) e de saída (exigindo instituição de destino e data).
-* **RN39 `[ROADMAP - FASE 2]`**: Caso a transferência seja implementada, será simplificada, registrando apenas dados de instituição e data.
-* **RN47 `[MVP]`**: O aluno reprovado poderá cursar novamente a disciplina em outro período letivo. A tentativa anterior permanece registrada com o resultado de reprovação.
-
----
-
-### 📊 Avaliação e Cálculo de Médias
-* **RN17 `[MVP]`**: O cálculo da média parcial do aluno na disciplina é realizado pela fórmula:
-  $$\text{Média Parcial} = \frac{P1 + P2 + \text{Trabalho}}{3}$$
-* **RN18 `[MVP]`**: Média e situação são calculadas sob demanda; não são persistidas.
-* **RN19 `[MVP]`**: Critérios de aprovação e situação por disciplina:
-  * **Média Parcial $\ge 6,0$**: `Aprovado Direto`.
-  * **$4,0 \le \text{Média Parcial} < 6,0$**: Elegível para `Exame Final` de recuperação.
-  * **Média Parcial $< 4,0$**: `Reprovado por Nota`.
-* **RN20 `[MVP]`**: Apenas o Professor responsável pela turma pode lançar ou editar notas.
-* **RN32 `[MVP]`**: Cada matrícula possui no máximo uma nota de cada tipo (`P1`, `P2`, `TRABALHO`, `EXAME`), sempre entre $0,00$ e $10,00$.
-* **RN33 `[MVP]`**: A média mínima para aprovação direta é $6,0$.
-* **RN34 `[MVP]`**: Alunos com média parcial entre $4,0$ e $5,9$ e frequência $\ge 75\%$ realizam o Exame Final.
-* **RN35 `[MVP]`**: A média final pós-exame é calculada por:
-  $$\text{Média Final} = \frac{\text{Média Parcial} + \text{Nota do Exame}}{2}$$
-  Aprovação exige Média Final $\ge 6,0$.
-
----
-
-### ⏱️ Frequência e Presença
-* **RN21 `[MVP]`**: A frequência é registrada por aula/data para cada aluno matriculado (presente/ausente).
-* **RN22 `[MVP]`**: O percentual de frequência do aluno é recalculado automaticamente a cada falta registrada ou alterada.
-* **RN23 `[MVP]`**: A frequência mínima obrigatória para aprovação é de **75%**.
-* **RN36 `[MVP]`**: Aluno com frequência abaixo de **75%** é reprovado por falta.
-* **RN48 `[MVP]`**: Frequência inferior a **75%** resulta em `Reprovado por Falta` e **impede** a realização do Exame Final de recuperação.
-
----
-
-### 📢 Materiais, Comunicados e Calendário
-* **RN24 `[ROADMAP - FASE 2]`**: Somente o Professor responsável pode publicar materiais de aula na sua turma.
-* **RN25 `[ROADMAP - FASE 2]`**: Materiais podem ser arquivos (PDF, DOCX, PPTX) ou links externos (máx. 20MB).
-* **RN26 `[ROADMAP - FASE 2]`**: Comunicados cadastrados pela Coordenação podem ser institucionais, por perfil ou por curso.
-* **RN27 `[ROADMAP - FASE 2]`**: Eventos do calendário acadêmico são cadastrados pela Coordenação e visíveis aos alunos e professores.
-* **RN38 `[ROADMAP - FASE 2]`**: Comunicados aceitam públicos institucional, por perfil ou por curso.
-
----
-
-### 📂 Documentação Cadastral e Oficial
-* **RN28 `[ROADMAP - FASE 3]`**: A emissão de documentos oficiais (histórico escolar, declaração de matrícula, atestados) fica fora da Fase 1.
-* **RN29 `[ROADMAP - FASE 2]`**: Upload e armazenamento de documentos cadastrais do aluno (RG, CPF, comprovante de residência) pela Secretaria.
-
----
-
-### 🔍 Auditoria e Segurança
-* **RN30 `[MVP]`**: Toda alteração de nota ou falta gera registro de auditoria com: usuário responsável, ação realizada, valor anterior, novo valor e data/hora.
-* **RN31 `[MVP]`**: Registros de auditoria são imutáveis (não podem ser editados ou excluídos).
-
----
-
-## 3. Matriz de Classificação das Regras
-
-> [!IMPORTANT]
-> **MVP Compromissado (Fase 1):** RN01, RN02, RN03, RN04a, RN04b, RN05, RN06, RN07, RN08, RN09, RN10, RN11, RN12, RN13a, RN14, RN15, RN17, RN18, RN19, RN20, RN21, RN22, RN23, RN30, RN31, RN32, RN33, RN34, RN35, RN36, RN40, RN41, RN42, RN43, RN47, RN48.
-
-> [!NOTE]
-> **Roadmap Opcional (Fase 2):** RN04c, RN10a, RN16, RN24, RN25, RN26, RN27, RN29, RN38, RN39, RN44.
-
-> [!WARNING]
-> **Roadmap Futuro (Fase 3):** RN13, RN28, RN45.
+- [Requisitos](SGA-03-REQUISITOS.md)
+- [Casos de uso](SGA-06-CASOS-DE-USO.md)
+- [Rastreabilidade](SGA-05-RASTREABILIDADE.md)

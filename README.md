@@ -1,88 +1,43 @@
 # SGA — Sistema de Gestão Acadêmica
 
-O **SGA (Sistema de Gestão Acadêmica)** é um monólito Django para instituições de ensino superior. O projeto centraliza rotinas administrativas e pedagógicas; alunos consultam as próprias matrículas, notas, médias e frequência.
+**Versão 1.0 — MVP Fase 1 concluído (31 de agosto de 2026)**
 
----
+O SGA é um monólito Django para ensino superior. Centraliza a oferta acadêmica, matrícula administrativa, frequência, avaliações e consulta acadêmica pelo aluno, com acesso isolado por papel.
 
-## 🛠️ Stack Tecnológica (Fase 1)
+## Stack
 
-* **Linguagem**: Python 3.12+
-* **Framework Web**: Django 5.1+ (Django Templates + HTMX)
-* **Estilização**: Bootstrap 5 + Bootstrap Icons
-* **Banco de Dados**: PostgreSQL 16
-* **Testes**: pytest + pytest-django
-* **Ambiente**: Docker & Docker Compose
+- Python 3.12+, Django 5+, Django Templates, HTMX e Bootstrap 5.
+- PostgreSQL 16, Docker Compose, pytest e pytest-django.
+- Módulos: `accounts`, `academics`, `enrollment`, `attendance` e `assessments`.
 
----
+## Fase 1 entregue
 
-## 📚 Documentação
+| Perfil | Funcionalidades |
+| --- | --- |
+| Aluno | Consulta suas matrículas, boletim, médias, situação e frequência. |
+| Professor | Registra chamada completa e notas nas próprias turmas ativas; lança Exame somente a elegíveis. |
+| Secretaria | Cria, edita, lista, ativa/inativa Alunos e Professores; efetiva matrículas e altera seus status. |
+| Coordenação | Gerencia cursos, disciplinas, turmas e alocação docente. |
 
-A documentação técnica e funcional está em [`/docs`](docs/). Para a entrega, consulte o [roteiro de demonstração e checklist](docs/SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
+O sistema calcula MP, MF, frequência, situação e vagas. `Nota` pertence a `Matricula`; `Falta` pertence a Aluno, Turma e data; alterações desses registros são auditadas de forma imutável.
 
----
+## Documentação
 
-## 📁 Estrutura do Projeto
+- [Documento consolidado](docs/SGA-DOCUMENTO-CONSOLIDADO.md)
+- [Escopo](docs/SGA-01-ESCOPO.md), [regras](docs/SGA-02-REGRAS-DE-NEGOCIO.md), [requisitos](docs/SGA-03-REQUISITOS.md) e [modelo de dados](docs/SGA-04-MODELAGEM-DADOS.md)
+- [Rastreabilidade](docs/SGA-05-RASTREABILIDADE.md), [casos de uso](docs/SGA-06-CASOS-DE-USO.md) e [roteiro de demonstração](docs/SGA-07-ROTEIRO-DEMO-E-ENTREGA.md)
 
-```text
-/home/joao/Projects/SGA/
-├── config/             # Configurações do Django (settings, urls, wsgi, asgi)
-├── apps/
-│   ├── accounts/       # Autenticação, CustomUser (Email), Perfis e RBAC
-│   ├── academics/      # Cursos, Disciplinas, Turmas e alocação docente
-│   ├── enrollment/     # Matrícula administrativa e controle de vagas
-│   ├── assessments/    # Notas, médias, situação e boletim
-│   └── attendance/     # Chamada, frequência e auditoria
-├── templates/          # Templates base, componentes, erros 403/404 e dashboards por perfil
-├── static/             # Arquivos estáticos (CSS, JS, imagens)
-├── tests/              # Suíte de testes automatizados com Pytest
-├── requirements/       # Requisitos base e de desenvolvimento local
-├── docker-compose.yml  # Orquestração dos serviços Web e PostgreSQL
-├── Dockerfile          # Imagem container da aplicação
-├── .env.example        # Modelo seguro de variáveis de ambiente
-├── pytest.ini          # Configuração do Pytest
-├── manage.py
-└── README.md
-```
-
----
-
-## 👥 Perfis de Usuário & Permissões (RBAC)
-
-O sistema possui 4 perfis de usuário obrigatórios:
-
-1. **`ALUNO`**: Consulta exclusiva das próprias matrículas, notas, médias, situação e frequência.
-2. **`PROFESSOR`**: Acesso às turmas em que está alocado, diário de classe e lançamento de notas/frequência.
-3. **`SECRETARIA`**: Acesso a cadastros administrativos, status do aluno e matrículas.
-4. **`COORDENACAO`**: Acesso a cursos, disciplinas, turmas e alocação docente.
-
----
-
-## 🚀 Como Executar o Projeto
-
-### 1. Clonar e Configurar Variáveis de Ambiente
+## Executar com Docker Compose
 
 ```bash
 git clone https://github.com/joao-luizzz/SGA.git
 cd SGA
-
-# Criar o arquivo .env a partir do modelo .env.example
 cp .env.example .env
-```
-
-### 2. Executar via Docker Compose
-
-```bash
-# Subir os containers do PostgreSQL e da Aplicação Django
 docker compose up --build -d
-
-# Executar as migrações do banco de dados
 docker compose exec web python manage.py migrate
-
-# Verificar status dos serviços
-docker compose ps
 ```
 
-A aplicação estará acessível em: `http://localhost:8000`
+A aplicação fica em `http://localhost:8000`.
 
 ### Dados de demonstração
 
@@ -90,55 +45,26 @@ A aplicação estará acessível em: `http://localhost:8000`
 docker compose exec web python manage.py seed_demo
 ```
 
-O comando é idempotente e cria os quatro perfis, uma turma completa e cenários de aprovação direta, exame e reprovação por falta. As credenciais estão no [roteiro de demonstração](docs/SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
+O seed é idempotente e cria contas de demonstração para os quatro papéis e cenários de aprovação direta, exame e reprovação por falta. Use apenas essas contas em apresentações e configure uma senha de demonstração com `--password`; não use senha real.
 
----
-
-## 🔐 Criando o Primeiro Usuário da Secretaria
-
-Por ser um sistema fechado sem auto-cadastro público, o primeiro usuário administrativo da **Secretaria** deve ser gerado pelo comando seguro de gerenciamento:
+### Primeiro usuário de Secretaria
 
 ```bash
-# Modo Interativo (solicita e-mail, nome e senha):
 docker compose exec web python manage.py create_secretaria_user
-
-# Ou Modo Não-Interativo via argumentos:
-docker compose exec web python manage.py create_secretaria_user \
-  --email admin@sga.edu.br \
-  --full-name "Secretaria Principal" \
-  --password "SuaSenhaSegura123!"
 ```
 
-> **Nota**: Novos usuários criados por este comando possuem `must_change_password=True` ativado por padrão. No primeiro login, o sistema redirecionará obrigatoriamente para a tela de alteração de senha antes de permitir o uso do painel.
+O comando também aceita `--email`, `--full-name` e `--password`. A conta criada exige troca de senha no primeiro acesso.
 
----
-
-## 🧪 Executando os Testes Automatizados
-
-Os testes do sistema foram implementados com **Pytest** e **pytest-django**:
+## Validação e testes
 
 ```bash
-# Executar todos os testes via Docker Compose
+docker compose exec web python manage.py check
 docker compose exec web pytest
-
-# Executar os testes localmente (com ambiente virtual ativo)
-pytest -v
+git diff --check
 ```
 
-### Cobertura de testes incluída
+A suíte automatizada cobre autenticação, RBAC, usuários, oferta acadêmica, matrícula, vagas, chamada, frequência, notas, exame, auditoria, seed e fluxo ponta a ponta. A CI executa `python manage.py check`, `python manage.py makemigrations --check --dry-run` e `pytest` nos bancos **SQLite** e **PostgreSQL 16**. Não há uma contagem fixa de testes nesta documentação.
 
-- `CustomUser`, autenticação, primeira senha e RBAC.
-- CRUD acadêmico e separação entre Secretaria e Coordenação.
-- Matrícula administrativa, vagas, duplicidade ativa e nova tentativa após cancelamento/trancamento.
-- Chamada, frequência, notas, médias, Exame Final e situações acadêmicas.
-- Isolamento de turmas do Professor e boletim do Aluno.
-- Transações em lote e auditoria imutável de notas e faltas.
-- Seed idempotente e fluxo ponta a ponta do MVP.
+## Fora do MVP
 
----
-
-## Escopo da Fase 1
-
-O MVP usa `CustomUser`, Django Templates, Bootstrap 5, HTMX, PostgreSQL/Docker Compose e Pytest. `Disciplina` liga-se diretamente a `Curso`; horários ficam em `Turma.horarios`; `Nota` liga-se à `Matricula` e usa os tipos `P1`, `P2`, `TRABALHO` e `EXAME`. Média, frequência, vagas e situação são calculadas.
-
-Auto-matrícula, materiais, calendário, comunicados, recuperação de senha, transferências, documentos, financeiro, aplicativo mobile, integrações externas e pré-requisitos permanecem no roadmap.
+Auto-matrícula, recuperação de senha, materiais, calendário, comunicados, documentos, transferências, financeiro, app mobile, integrações e pré-requisitos são Roadmap e não estão implementados na Fase 1.
