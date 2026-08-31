@@ -57,12 +57,16 @@ def matricular_aluno_administrativo(
             _("A turma deve estar ativa e possuir professor, horário, sala e vagas configurados.")
         )
 
-    if Matricula.objects.filter(
+    matriculas_na_mesma_turma = Matricula.objects.filter(
         aluno=aluno,
         turma=turma_bloqueada,
-        status=StatusMatricula.ATIVA,
-    ).exists():
+    )
+    if matriculas_na_mesma_turma.filter(status=StatusMatricula.ATIVA).exists():
         raise ValidationError(_("O aluno já possui uma matrícula ativa nesta turma."))
+    if matriculas_na_mesma_turma.exists():
+        raise ValidationError(
+            _("O aluno já possui matrícula anterior nesta turma. A nova tentativa deve ser feita em outra turma/período.")
+        )
 
     vagas_ocupadas = Matricula.objects.filter(
         turma=turma_bloqueada,
