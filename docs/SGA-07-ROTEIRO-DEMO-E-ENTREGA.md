@@ -10,10 +10,19 @@
 ```bash
 docker compose up --build -d
 docker compose exec web python manage.py migrate
-docker compose exec web python manage.py seed_demo
+docker compose exec web python manage.py seed_demo --password 'SgaDemo2026!'
 ```
 
-`seed_demo` é idempotente e prepara os quatro papéis, uma turma completa e cenários de aprovação direta, exame e reprovação por falta. Use exclusivamente as contas de demonstração criadas por esse comando; a senha é configurável com `--password` e não deve ser uma senha real.
+`seed_demo` é idempotente e prepara os quatro papéis, uma turma completa e cenários de aprovação direta, exame e reprovação por falta. Todas as contas abaixo usam a senha `SgaDemo2026!`, definida explicitamente no comando. Para usar outra senha, altere o valor de `--password`; não reutilize uma senha real.
+
+| Papel/cenário | E-mail |
+| --- | --- |
+| Secretaria | `secretaria.demo@sga.edu.br` |
+| Coordenação | `coordenacao.demo@sga.edu.br` |
+| Professor | `professor.demo@sga.edu.br` |
+| Aluno aprovado direto | `aluno.aprovado@sga.edu.br` |
+| Aluno elegível ao exame | `aluno.exame@sga.edu.br` |
+| Aluno reprovado por falta | `aluno.falta@sga.edu.br` |
 
 ## Sequência de demonstração
 

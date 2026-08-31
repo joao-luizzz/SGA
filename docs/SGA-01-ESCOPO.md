@@ -4,6 +4,9 @@
 
 | Metadado | Valor |
 | --- | --- |
+| Disciplina | Laboratório de Engenharia de Software |
+| Professor responsável | Rodrigo Salgado |
+| Integrantes do grupo | Andrey Kerges Nascimento, Alexandre Hesse, Max Iago Villafan, João Luiz, Vitor Augusto |
 | Versão | **1.0 — MVP Fase 1 concluído** |
 | Data | **31 de agosto de 2026** |
 | Produto | SGA — Sistema de Gestão Acadêmica |
