@@ -123,3 +123,30 @@ class ProfessorCreationForm(BaseUsuarioCreationForm):
         if commit:
             user.save()
         return user
+
+
+class UsuarioEditForm(forms.ModelForm):
+    """Edição cadastral restrita a Alunos e Professores."""
+
+    class Meta:
+        from .models import CustomUser
+
+        model = CustomUser
+        fields = ['full_name', 'email']
+        widgets = {
+            'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome completo'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@instituicao.edu.br'}),
+        }
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if not email:
+            return email
+
+        email_normalizado = email.strip().lower()
+        from .models import CustomUser
+        if CustomUser.objects.filter(email__iexact=email_normalizado).exclude(
+            pk=self.instance.pk
+        ).exists():
+            raise forms.ValidationError(_("Já existe um usuário cadastrado com este e-mail."))
+        return email_normalizado

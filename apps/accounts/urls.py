@@ -16,5 +16,6 @@ urlpatterns = [
     # Gerenciamento de Usuários (Secretaria)
     path('usuarios/', views.usuario_list_view, name='usuario_list'),
     path('usuarios/novo/', views.usuario_create_view, name='usuario_create'),
+    path('usuarios/<int:user_id>/editar/', views.usuario_edit_view, name='usuario_edit'),
     path('usuarios/<int:user_id>/toggle-active/', views.usuario_toggle_active_view, name='usuario_toggle_active'),
 ]
