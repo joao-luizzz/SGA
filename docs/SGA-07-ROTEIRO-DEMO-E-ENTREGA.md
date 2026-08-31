@@ -1,21 +1,22 @@
 # SGA — Roteiro de demonstração e entrega
 
-## Preparar os dados
+| Metadado | Valor |
+| --- | --- |
+| Versão | **1.0 — MVP Fase 1 concluído** |
+| Data | **31 de agosto de 2026** |
+
+## Preparação
 
 ```bash
 docker compose up --build -d
 docker compose exec web python manage.py migrate
-docker compose exec web python manage.py seed_demo
+docker compose exec web python manage.py seed_demo --password 'SgaDemo2026!'
 ```
 
-O comando é idempotente: pode ser executado novamente sem duplicar usuários, turma, matrículas, notas, chamadas ou auditorias.
-
-## Credenciais de demonstração
-
-Senha padrão de todas as contas: `SgaDemo2026!`
+`seed_demo` é idempotente e prepara os quatro papéis, uma turma completa e cenários de aprovação direta, exame e reprovação por falta. Todas as contas abaixo usam a senha `SgaDemo2026!`, definida explicitamente no comando. Para usar outra senha, altere o valor de `--password`; não reutilize uma senha real.
 
 | Papel/cenário | E-mail |
-| :--- | :--- |
+| --- | --- |
 | Secretaria | `secretaria.demo@sga.edu.br` |
 | Coordenação | `coordenacao.demo@sga.edu.br` |
 | Professor | `professor.demo@sga.edu.br` |
@@ -23,56 +24,39 @@ Senha padrão de todas as contas: `SgaDemo2026!`
 | Aluno elegível ao exame | `aluno.exame@sga.edu.br` |
 | Aluno reprovado por falta | `aluno.falta@sga.edu.br` |
 
-Em uma demonstração compartilhada, altere a senha com `python manage.py seed_demo --password '...'` e não reutilize credenciais reais.
+## Sequência de demonstração
 
-## Roteiro curto de apresentação (10 minutos)
+1. **Coordenação:** entrar com a conta demo de Coordenação, criar/mostrar Curso e Disciplina, abrir ou editar Turma com período, horários textuais validados, sala, vagas e Professor responsável.
+2. **Secretaria — usuários:** listar Alunos e Professores, criar ou editar uma conta e mostrar ativação/inativação sem expor credenciais reais.
+3. **Secretaria — matrícula:** efetivar matrícula em turma apta e explicar que as vagas são calculadas pelas matrículas ativas.
+4. **Secretaria — status e retentativa:** alterar uma matrícula ativa para Trancada, Cancelada ou Concluída; explicar que nova tentativa exige outra Turma/período, preservando o histórico.
+5. **Professor — chamada:** abrir somente uma turma própria ativa, registrar uma chamada completa e mostrar o relatório de frequência e a auditoria.
+6. **Professor — notas:** lançar P1, P2 e Trabalho para matrículas ativas; mostrar MP e a validação de 0 a 10.
+7. **Professor — exame:** no cenário elegível, lançar Exame e mostrar MF; contrastar com o cenário abaixo de 75%, no qual o exame é bloqueado.
+8. **Aluno:** entrar com as contas demo e mostrar boletim, situação e frequência sem acesso a registros de outros alunos.
+9. **Qualidade:** apresentar a suíte automatizada, a CI nos dois bancos e a separação entre MVP e Roadmap.
 
-1. Coordenação (1 min): entrar, mostrar Curso/Disciplina ligados diretamente, Turma completa e Professor alocado.
-2. Secretaria (1 min): mostrar cadastro/inativação e matricular um Aluno em Turma válida; explicar vagas e duplicidade ativa.
-3. Professor — frequência (2 min): abrir apenas a própria Turma, registrar/editar uma chamada e mostrar o relatório.
-4. Professor — notas (2 min): lançar P1, P2 e Trabalho em lote; mostrar validação 0–10 e situação calculada.
-5. Exame (1 min): usar o Aluno Elegível, lançar Exame e mostrar que o Aluno com frequência abaixo de 75% é bloqueado.
-6. Aluno (2 min): entrar com cada cenário e mostrar boletim, médias, frequência e situação sem acesso a dados alheios.
-7. Qualidade (1 min): mostrar testes, CI verde, auditoria imutável e fronteira entre MVP e roadmap.
+## Validação antes da entrega
 
-## Divisão sugerida de fala
+```bash
+docker compose exec web python manage.py check
+docker compose exec web pytest
+git diff --check
+```
 
-| Integrante | Parte |
-| :--- | :--- |
-| Andrey Kerges Nascimento | Cadastro, Secretaria, matrícula e vagas |
-| Alexandre Hesse | Coordenação, Cursos, Disciplinas e Turmas |
-| Max Iago Villafan | Notas, médias, Exame Final e boletim |
-| Vitor Augusto | Frequência, reprovação por falta e auditoria |
-| João Luiz | Arquitetura, testes, CI, seed, escopo e encerramento |
+Além da execução local em Docker/PostgreSQL, a CI executa, nessa ordem, `python manage.py check`, `python manage.py makemigrations --check --dry-run` e `pytest` nos jobs **SQLite** e **PostgreSQL 16**.
 
-Se algum integrante estiver ausente, João conduz a abertura/encerramento e o integrante anterior assume a próxima etapa do roteiro.
+## Checklist
 
-## Checklist pré-apresentação
+- [ ] Containers `web` e `db` ativos; migrations aplicadas.
+- [ ] `seed_demo` executado e contas de demonstração acessíveis.
+- [ ] Quatro papéis demonstrados: Coordenação, Secretaria, Professor e Aluno.
+- [ ] Cadastro/edição de usuários, matrícula e gestão de status demonstrados.
+- [ ] Chamada completa, notas, exame, boletim e frequência demonstrados.
+- [ ] Retentativa em nova turma/período explicada e histórico anterior preservado.
+- [ ] Sem senha real, dado pessoal real ou credencial de produção em tela.
+- [ ] Validações locais e CI verdes.
 
-- [ ] Branch `develop` atualizada; `main` não foi alterada.
-- [ ] Containers `web` e `db` em execução e PostgreSQL saudável.
-- [ ] Migrations aplicadas e `manage.py check` sem erros.
-- [ ] `manage.py makemigrations --check --dry-run` informa `No changes detected`.
-- [ ] Suíte Pytest completa e CI do PR verdes.
-- [ ] `seed_demo` executado e logins das seis contas conferidos.
-- [ ] Fluxos de cadastro, matrícula, chamada, notas e boletim revisados no navegador.
-- [ ] Aluno aprovado direto exibe MP 8,00.
-- [ ] Aluno elegível exibe MP 5,00 e permite Exame.
-- [ ] Aluno com 50% de frequência exibe `Reprovado por Falta` e não aceita Exame.
-- [ ] Projetor, resolução, zoom do navegador e conexão preparados.
-- [ ] Nenhum dado ou senha pessoal aparece na apresentação.
+## Limite da apresentação
 
-## MVP entregue
-
-- Autenticação por sessão e RBAC para os quatro papéis.
-- Cadastro/inativação de Alunos e Professores.
-- Cursos, Disciplinas, Turmas e alocação docente.
-- Matrícula administrativa e controle de vagas.
-- Chamada, frequência e auditoria de faltas.
-- P1, P2, Trabalho, Exame, médias, situação e auditoria de notas.
-- Boletim isolado por Aluno.
-- Seed de demonstração, testes automatizados e CI.
-
-## Roadmap — não demonstrar como funcionalidade pronta
-
-Auto-matrícula, materiais, calendário, comunicados, recuperação de senha, transferências, documentos, financeiro, aplicativo mobile, integrações externas e pré-requisitos estão fora da Fase 1.
+Não apresentar como pronto: auto-matrícula, recuperação de senha, materiais, calendário, comunicados, documentos, transferências, financeiro, app mobile, integrações ou pré-requisitos. Eles pertencem ao Roadmap, não ao MVP.

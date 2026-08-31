@@ -1,76 +1,93 @@
 # SGA — Sistema de Gestão Acadêmica
 
-## Documento consolidado da Fase 1
+## Documento consolidado
 
-| Metadado | Detalhe |
-| :--- | :--- |
-| **Versão** | `1.0` |
-| **Data** | Agosto de 2026 |
-| **Produto** | SGA — Sistema de Gestão Acadêmica |
-| **Arquitetura** | Monólito Django com Templates, Bootstrap 5 e HTMX |
+| Metadado | Valor |
+| --- | --- |
+| Versão | **1.0 — MVP Fase 1 concluído** |
+| Data | **31 de agosto de 2026** |
 
-## 1. Escopo entregue
+## Resumo
 
-O MVP atende quatro papéis no modelo oficial `CustomUser`:
+O SGA é um monólito Django para ensino superior. A Fase 1 entrega a gestão acadêmica mínima: RBAC, usuários, oferta acadêmica, matrícula administrativa, frequência, notas, cálculos e consulta individual do aluno. A documentação individual é a referência detalhada; este documento reúne a visão de entrega.
 
-- Aluno consulta apenas as próprias matrículas, notas, médias, frequência e situação.
-- Professor consulta apenas as turmas em que foi alocado e lança notas e chamada.
-- Secretaria cadastra/inativa Alunos e Professores e realiza matrícula administrativa.
-- Coordenação mantém Cursos e Disciplinas, abre Turmas e aloca Professores.
+## Escopo e arquitetura
 
-Recursos transversais incluem sessão Django, RBAC, troca obrigatória da primeira senha, controle de vagas, auditoria imutável de notas e faltas e cálculos acadêmicos derivados.
+```mermaid
+flowchart TB
+    UI[Django Templates + Bootstrap 5 + HTMX] --> APP[Monólito Django 5+]
+    APP --> ACC[accounts]
+    APP --> ACA[academics]
+    APP --> ENR[enrollment]
+    APP --> ATT[attendance]
+    APP --> ASM[assessments]
+    APP --> DB[(PostgreSQL 16)]
+```
 
-## 2. Regras acadêmicas
+Os módulos correspondem a autenticação/auditoria, oferta acadêmica, matrícula, frequência e avaliações. Regras de negócio ficam em serviços, consultas reutilizáveis em selectors e permissões em decorators/mixins. A aplicação usa Docker Compose e Pytest.
+
+## Perfis
+
+| Papel | Entrega |
+| --- | --- |
+| `ALUNO` | Boletim, situação e frequência próprios. |
+| `PROFESSOR` | Turmas próprias, chamada completa, notas parciais e exame elegível. |
+| `SECRETARIA` | Usuários Aluno/Professor, matrícula e status. |
+| `COORDENACAO` | Cursos, disciplinas, turmas e alocação docente. |
+
+## Requisitos e regras centrais
+
+Os requisitos implementados são RF01–RF04, RF06–RF07, RF10–RF11, RF13–RF17, RF20–RF23 e RF27–RF35; detalhes e estado estão em [SGA-03](SGA-03-REQUISITOS.md). A matriz completa é [SGA-05](SGA-05-RASTREABILIDADE.md).
 
 ```text
 MP = (P1 + P2 + Trabalho) / 3
-
-MP >= 6,00        -> Aprovado Direto
-4,00 <= MP < 6,00 -> Elegível para Exame Final
-MP < 4,00         -> Reprovado por Nota
-
-MF = (MP + Exame) / 2
-MF >= 6,00        -> Aprovado após Exame
-MF < 6,00         -> Reprovado por Nota
-
-Frequência < 75%  -> Reprovado por Falta e Exame bloqueado
+MP >= 6            => aprovado direto
+4 <= MP < 6        => elegível ao exame, se frequência >= 75%
+MP < 4             => reprovado por nota
+MF = (MP + Exame) / 2; MF >= 6 => aprovado após exame
+Frequência < 75%   => reprovado por falta e exame bloqueado
 ```
 
-Enquanto P1, P2 ou Trabalho estiver ausente, a situação é `Em andamento`. O Exame só pode ser criado ou editado quando a média parcial está na faixa elegível e a frequência é de pelo menos 75%.
+Somente a Secretaria efetiva matrícula. A matrícula ativa pode ser trancada, cancelada ou concluída. Nova tentativa não é permitida na mesma turma; é criada em outra turma/período, para manter notas e frequência históricas isoladas. Alterações de Nota e Falta são auditadas em log imutável.
 
-## 3. Decisões de dados
+## Modelo de dados e ERD
 
-- `CustomUser` é a única entidade de usuário; os papéis ficam em `role`.
-- `Disciplina.curso` é uma chave estrangeira direta.
-- Horários são armazenados em `Turma.horarios` e validados pelo domínio.
-- `Matricula` representa uma tentativa do aluno na turma e aceita `ATIVA`, `TRANCADA`, `CONCLUIDA` ou `CANCELADA`.
-- `Nota` referencia a `Matricula` e aceita os tipos `P1`, `P2`, `TRABALHO` e `EXAME`.
-- Uma restrição garante uma nota por matrícula e tipo.
-- Média, frequência, vagas ocupadas e situação são calculadas, não persistidas.
-- `AuditoriaLog` registra criação/edição de Nota e Falta e impede edição/exclusão do próprio log.
+As entidades reais são `CustomUser`, `AuditoriaLog`, `Curso`, `Disciplina`, `Turma`, `Matricula`, `Falta` e `Nota`.
 
-## 4. Fluxo ponta a ponta
+```mermaid
+erDiagram
+    CURSO ||--o{ DISCIPLINA : possui
+    DISCIPLINA ||--o{ TURMA : oferta
+    CUSTOM_USER ||--o{ MATRICULA : aluno
+    TURMA ||--o{ MATRICULA : recebe
+    MATRICULA ||--o{ NOTA : possui
+    TURMA ||--o{ FALTA : registra
+    CUSTOM_USER ||--o{ FALTA : aluno
+    CUSTOM_USER ||--o{ AUDITORIA_LOG : autor
+```
 
-1. A Coordenação cria Curso e Disciplina, abre a Turma e aloca o Professor.
-2. A Secretaria cadastra Aluno e Professor e matricula o Aluno em uma Turma válida.
-3. O Professor registra chamadas e lança P1, P2 e Trabalho.
-4. O sistema calcula média, frequência e situação.
-5. Se elegível, o Professor lança o Exame Final.
-6. O Aluno consulta o próprio boletim.
+`Disciplina` pertence diretamente a `Curso`; horários são texto validado em `Turma.horarios`; `Nota` pertence a `Matricula`; e `Falta` pertence a Aluno, Turma e data. E-mail, matrícula ativa, nota por tipo e chamada por data possuem as restrições de unicidade descritas em [SGA-04](SGA-04-MODELAGEM-DADOS.md). Média, situação, frequência e vagas são calculadas, não tabelas.
 
-## 5. Segurança e integridade
+## Casos de uso
 
-- Views usam decorators de papel e filtram recursos pelo usuário autenticado.
-- Serviços repetem as validações críticas e operam lotes dentro de transações.
-- Somente a Secretaria matricula; somente a Coordenação abre turmas/aloca professor.
-- Professor alheio não lança nota ou frequência.
-- Matrícula cancelada/trancada não recebe novos lançamentos e não bloqueia nova tentativa ativa.
-- Notas são limitadas no formulário, serviço, validadores e banco de dados.
+Os 19 casos de uso abrangem autenticação (CU01–CU03), Aluno (CU04–CU05), Professor (CU06–CU08 e CU17), Secretaria (CU09–CU12, CU18–CU19) e Coordenação (CU13–CU16). Pré-condições, fluxos, exceções e RN estão em [SGA-06](SGA-06-CASOS-DE-USO.md).
 
-## 6. Roadmap fora da Fase 1
+## Testes, CI e demonstração
 
-Auto-matrícula, materiais, calendário, comunicados, recuperação de senha, transferências, documentos, financeiro, aplicativo mobile, integrações externas e pré-requisitos não fazem parte do MVP entregue.
+O projeto possui suíte automatizada para regras acadêmicas, permissões, modelos, serviços, views, seed e fluxo de MVP. A CI executa `check`, verificação de migrations e `pytest` em SQLite e PostgreSQL 16. Para preparar a demonstração, use `docker compose exec web python manage.py seed_demo`; o roteiro e checklist estão em [SGA-07](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
 
-## 7. Demonstração e entrega
+## MVP versus Roadmap
 
-O comando `python manage.py seed_demo` prepara contas e três cenários acadêmicos idempotentes. Credenciais, roteiro, checklist e divisão da apresentação estão em [SGA-07-ROTEIRO-DEMO-E-ENTREGA.md](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
+Fazem parte do MVP: autenticação, quatro papéis, usuários, cursos, disciplinas, turmas, matrícula administrativa, vagas, frequência, notas, exame, boletim, cálculos e auditoria.
+
+Ficam fora: auto-matrícula, recuperação de senha, materiais, calendário, comunicados, documentos, transferências, financeiro, app mobile, integrações e pré-requisitos.
+
+## Documentos individuais
+
+- [SGA-01 — Escopo](SGA-01-ESCOPO.md)
+- [SGA-02 — Regras de negócio](SGA-02-REGRAS-DE-NEGOCIO.md)
+- [SGA-03 — Requisitos](SGA-03-REQUISITOS.md)
+- [SGA-04 — Modelagem de dados](SGA-04-MODELAGEM-DADOS.md)
+- [SGA-05 — Rastreabilidade](SGA-05-RASTREABILIDADE.md)
+- [SGA-06 — Casos de uso](SGA-06-CASOS-DE-USO.md)
+- [SGA-07 — Roteiro de demonstração](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md)
