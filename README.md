@@ -26,6 +26,7 @@ O sistema calcula MP, MF, frequência, situação e vagas. `Nota` pertence a `Ma
 - [Documento consolidado](docs/SGA-DOCUMENTO-CONSOLIDADO.md)
 - [Escopo](docs/SGA-01-ESCOPO.md), [regras](docs/SGA-02-REGRAS-DE-NEGOCIO.md), [requisitos](docs/SGA-03-REQUISITOS.md) e [modelo de dados](docs/SGA-04-MODELAGEM-DADOS.md)
 - [Rastreabilidade](docs/SGA-05-RASTREABILIDADE.md), [casos de uso](docs/SGA-06-CASOS-DE-USO.md) e [roteiro de demonstração](docs/SGA-07-ROTEIRO-DEMO-E-ENTREGA.md)
+- [Preparação técnica da Fase 2](docs/SGA-08-PREPARACAO-FASE-2.md) — proposta de arquitetura e revisão do backlog, sem implementação funcional
 
 ## Executar com Docker Compose
 
