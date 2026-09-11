@@ -1,0 +1,16 @@
+[run]
+source = apps
+omit =
+    */__init__.py
+    */apps.py
+    */migrations/*
+    */urls.py
+    apps/assessments/management/commands/seed_demo.py
+
+[report]
+fail_under = 85
+precision = 2
+show_missing = True
+
+[xml]
+output = coverage.xml
