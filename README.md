@@ -64,6 +64,14 @@ docker compose exec web pytest
 git diff --check
 ```
 
+Com o ambiente virtual local ativado, a suíte também pode ser executada em SQLite:
+
+```bash
+USE_SQLITE=True pytest
+```
+
+Esse comando mede a cobertura do código relevante em `apps/`, mostra no terminal as linhas não cobertas e gera `coverage.xml` na raiz para consulta por ferramentas. O CI aplica essa medição no job SQLite; o job PostgreSQL executa a mesma suíte sem gerar o relatório novamente.
+
 A suíte automatizada cobre autenticação, RBAC, usuários, oferta acadêmica, matrícula, vagas, chamada, frequência, notas, exame, auditoria, seed e fluxo ponta a ponta. A CI executa `python manage.py check`, `python manage.py makemigrations --check --dry-run` e `pytest` nos bancos **SQLite** e **PostgreSQL 16**. Não há uma contagem fixa de testes nesta documentação.
 
 ## Fora do MVP
