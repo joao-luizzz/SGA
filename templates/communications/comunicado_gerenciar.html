@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Gestão de Comunicados" %} — SGA{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom flex-wrap gap-2">
+    <div>
+      <h3 class="page-title mb-1">
+        <i class="bi bi-sliders text-primary me-2"></i>{% trans "Painel de Gestão de Comunicados" %}
+      </h3>
+      <p class="page-subtitle mb-0">{% trans "Gerencie todos os avisos institucionais, edite ou inative comunicados." %}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'communications:mural' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-megaphone me-1"></i>{% trans "Ver Mural" %}
+      </a>
+      <a href="{% url 'communications:create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>{% trans "Novo Comunicado" %}
+      </a>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0 bg-white">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">{% trans "Título" %}</th>
+              <th scope="col">{% trans "Escopo / Alvo" %}</th>
+              <th scope="col">{% trans "Autor" %}</th>
+              <th scope="col">{% trans "Publicação" %}</th>
+              <th scope="col">{% trans "Status" %}</th>
+              <th scope="col" class="text-end">{% trans "Ações" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for com in comunicados %}
+              <tr>
+                <td>
+                  <a href="{% url 'communications:detail' com.pk %}" class="fw-bold text-decoration-none text-dark">
+                    {{ com.titulo }}
+                  </a>
+                </td>
+                <td>
+                  <span class="badge {% if com.escopo == 'GERAL' %}bg-primary{% elif com.escopo == 'CURSO' %}bg-danger{% elif com.escopo == 'TURMA' %}bg-success{% else %}bg-info text-dark{% endif %} me-1">
+                    {{ com.get_escopo_display }}
+                  </span>
+                  {% if com.papel_destino %}<small class="text-muted">({{ com.get_papel_destino_display }})</small>{% endif %}
+                  {% if com.curso %}<small class="text-muted">({{ com.curso.nome }})</small>{% endif %}
+                  {% if com.turma %}<small class="text-muted">({{ com.turma.disciplina.nome }})</small>{% endif %}
+                </td>
+                <td>
+                  <small>{{ com.autor.full_name }}</small>
+                </td>
+                <td>
+                  <small>{{ com.publicar_em|date:"d/m/Y H:i" }}</small>
+                  {% if com.expirar_em %}
+                    <br><small class="text-muted">Expira: {{ com.expirar_em|date:"d/m/Y" }}</small>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if com.ativo and com.is_vigente %}
+                    <span class="badge bg-success">{% trans "Vigente" %}</span>
+                  {% elif com.ativo and not com.is_vigente %}
+                    <span class="badge bg-warning text-dark">{% trans "Agendado/Expirado" %}</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{% trans "Inativo" %}</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <a href="{% url 'communications:update' com.pk %}" class="btn btn-outline-secondary" title="{% trans 'Editar' %}">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    {% if com.ativo %}
+                      <form method="post" action="{% url 'communications:inativar' com.pk %}" class="d-inline" onsubmit="return confirm('Deseja inativar este comunicado?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-warning" title="{% trans 'Inativar' %}">
+                          <i class="bi bi-eye-slash"></i>
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="text-center py-4 text-muted">
+                  {% trans "Nenhum comunicado cadastrado até o momento." %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
