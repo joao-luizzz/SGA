@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}
+  {% if is_edit %}{% trans "Editar Comunicado" %}{% else %}{% trans "Novo Comunicado" %}{% endif %} — SGA
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="mb-4 pb-3 border-bottom">
+    <a href="{% url 'communications:gestao' %}" class="btn btn-outline-secondary btn-sm mb-2">
+      <i class="bi bi-arrow-left me-1"></i>{% trans "Voltar ao Painel de Gestão" %}
+    </a>
+    <h3 class="page-title mb-1">
+      <i class="bi bi-megaphone-fill text-primary me-2"></i>
+      {% if is_edit %}{% trans "Editar Comunicado" %}{% else %}{% trans "Publicar Novo Comunicado" %}{% endif %}
+    </h3>
+    <p class="page-subtitle mb-0">{% trans "Preencha as informações do aviso e defina o público-alvo e vigência." %}</p>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 bg-white">
+        <div class="card-body p-4">
+          <form method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger mb-4">
+                {% for error in form.non_field_errors %}
+                  <p class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}</p>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label for="{{ form.titulo.id_for_label }}" class="form-label fw-bold">
+                {{ form.titulo.label }} <span class="text-danger">*</span>
+              </label>
+              {{ form.titulo }}
+              {% if form.titulo.errors %}
+                <div class="text-danger small mt-1">{{ form.titulo.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-3">
+              <label for="{{ form.conteudo.id_for_label }}" class="form-label fw-bold">
+                {{ form.conteudo.label }} <span class="text-danger">*</span>
+              </label>
+              {{ form.conteudo }}
+              {% if form.conteudo.errors %}
+                <div class="text-danger small mt-1">{{ form.conteudo.errors|striptags }}</div>
+              {% endif %}
+            </div>
+
+            <div class="card bg-light border p-3 mb-4">
+              <h6 class="fw-bold mb-3"><i class="bi bi-bullseye me-1"></i>{% trans "Segmentação e Público-Alvo" %}</h6>
+
+              <div class="mb-3">
+                <label for="id_escopo" class="form-label fw-semibold">{{ form.escopo.label }}</label>
+                {{ form.escopo }}
+                {% if form.escopo.errors %}
+                  <div class="text-danger small mt-1">{{ form.escopo.errors|striptags }}</div>
+                {% endif %}
+              </div>
+
+              <div id="bloco_papel" class="mb-3 target-block">
+                <label for="{{ form.papel_destino.id_for_label }}" class="form-label fw-semibold">{{ form.papel_destino.label }}</label>
+                {{ form.papel_destino }}
+                {% if form.papel_destino.errors %}
+                  <div class="text-danger small mt-1">{{ form.papel_destino.errors|striptags }}</div>
+                {% endif %}
+              </div>
+
+              {% if form.curso.widget.input_type != 'hidden' %}
+                <div id="bloco_curso" class="mb-3 target-block">
+                  <label for="{{ form.curso.id_for_label }}" class="form-label fw-semibold">{{ form.curso.label }}</label>
+                  {{ form.curso }}
+                  {% if form.curso.errors %}
+                    <div class="text-danger small mt-1">{{ form.curso.errors|striptags }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              {% if form.turma.widget.input_type != 'hidden' %}
+                <div id="bloco_turma" class="mb-3 target-block">
+                  <label for="{{ form.turma.id_for_label }}" class="form-label fw-semibold">{{ form.turma.label }}</label>
+                  {{ form.turma }}
+                  {% if form.turma.errors %}
+                    <div class="text-danger small mt-1">{{ form.turma.errors|striptags }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="{{ form.publicar_em.id_for_label }}" class="form-label fw-semibold">{{ form.publicar_em.label }}</label>
+                {{ form.publicar_em }}
+                {% if form.publicar_em.errors %}
+                  <div class="text-danger small mt-1">{{ form.publicar_em.errors|striptags }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label for="{{ form.expirar_em.id_for_label }}" class="form-label fw-semibold">{{ form.expirar_em.label }}</label>
+                {{ form.expirar_em }}
+                {% if form.expirar_em.errors %}
+                  <div class="text-danger small mt-1">{{ form.expirar_em.errors|striptags }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            {% if is_edit %}
+              <div class="form-check form-switch mb-4">
+                {{ form.ativo }}
+                <label class="form-check-label fw-bold ms-2" for="{{ form.ativo.id_for_label }}">
+                  {{ form.ativo.label }}
+                </label>
+              </div>
+            {% endif %}
+
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+              <a href="{% url 'communications:gestao' %}" class="btn btn-outline-secondary">
+                {% trans "Cancelar" %}
+              </a>
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-check-lg me-1"></i>
+                {% if is_edit %}{% trans "Salvar Alterações" %}{% else %}{% trans "Publicar Comunicado" %}{% endif %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const escopoSelect = document.getElementById('id_escopo');
+    const blocoPapel = document.getElementById('bloco_papel');
+    const blocoCurso = document.getElementById('bloco_curso');
+    const blocoTurma = document.getElementById('bloco_turma');
+
+    function updateTargetFields() {
+      const val = escopoSelect ? escopoSelect.value : 'GERAL';
+      if (blocoPapel) blocoPapel.style.display = (val === 'PAPEL') ? 'block' : 'none';
+      if (blocoCurso) blocoCurso.style.display = (val === 'CURSO') ? 'block' : 'none';
+      if (blocoTurma) blocoTurma.style.display = (val === 'TURMA') ? 'block' : 'none';
+    }
+
+    if (escopoSelect) {
+      escopoSelect.addEventListener('change', updateTargetFields);
+      updateTargetFields();
+    }
+  });
+</script>
+{% endblock %}

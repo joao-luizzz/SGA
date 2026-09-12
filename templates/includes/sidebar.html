@@ -10,6 +10,11 @@
       <span>Visão Geral</span>
     </a>
 
+    <a href="{% url 'communications:mural' %}" class="sidebar-link">
+      <i class="bi bi-megaphone text-primary"></i>
+      <span>Mural de Avisos</span>
+    </a>
+
     {% if user.role == 'ALUNO' %}
       <a href="{% url 'enrollment:index' %}" class="sidebar-link">
         <i class="bi bi-card-checklist text-info"></i>
@@ -23,6 +28,10 @@
         <i class="bi bi-calendar-check text-warning"></i>
         <span>Frequência</span>
       </a>
+      <a href="{% url 'materials:index' %}" class="sidebar-link">
+        <i class="bi bi-folder2-open text-primary"></i>
+        <span>Materiais de Aula</span>
+      </a>
     {% endif %}
 
     {% if user.role == 'PROFESSOR' %}
@@ -33,6 +42,10 @@
       <a href="{% url 'attendance:chamada_index' %}" class="sidebar-link">
         <i class="bi bi-person-check text-warning"></i>
         <span>Registro de Frequência</span>
+      </a>
+      <a href="{% url 'materials:index' %}" class="sidebar-link">
+        <i class="bi bi-folder2-open text-primary"></i>
+        <span>Materiais de Aula</span>
       </a>
     {% endif %}
 
@@ -45,6 +58,10 @@
         <i class="bi bi-person-lines-fill text-primary"></i>
         <span>Gestão de Matrículas</span>
       </a>
+      <a href="{% url 'communications:gestao' %}" class="sidebar-link">
+        <i class="bi bi-sliders text-info"></i>
+        <span>Gestão de Comunicados</span>
+      </a>
     {% endif %}
 
     {% if user.role == 'COORDENACAO' %}
@@ -55,6 +72,14 @@
       <a href="{% url 'academics:index' %}" class="sidebar-link">
         <i class="bi bi-person-badge text-info"></i>
         <span>Alocação Docente</span>
+      </a>
+      <a href="{% url 'materials:index' %}" class="sidebar-link">
+        <i class="bi bi-folder2-open text-primary"></i>
+        <span>Materiais Acadêmicos</span>
+      </a>
+      <a href="{% url 'communications:gestao' %}" class="sidebar-link">
+        <i class="bi bi-sliders text-info"></i>
+        <span>Gestão de Comunicados</span>
       </a>
     {% endif %}
 
