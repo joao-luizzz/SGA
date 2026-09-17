@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse
@@ -148,11 +149,21 @@ def turma_create_view(request):
     if request.method == 'POST':
         form = TurmaForm(request.POST)
         if form.is_valid():
-            turma = form.save()
-            from academics.services import sincronizar_horarios_turma
-            sincronizar_horarios_turma(turma)
-            messages.success(request, _(f"Turma para '{turma.disciplina.nome}' no período {turma.periodo_letivo} aberta com sucesso!"))
-            return redirect('academics:index')
+            try:
+                with transaction.atomic():
+                    turma = form.save()
+                    from academics.services import sincronizar_horarios_turma
+                    sincronizar_horarios_turma(turma)
+            except ValidationError as error:
+                if hasattr(error, 'error_dict'):
+                    for field, errors in error.message_dict.items():
+                        form.add_error(field if field in form.fields else None, errors)
+                else:
+                    form.add_error(None, error)
+                messages.error(request, _("Não foi possível criar a turma devido a um conflito de horário."))
+            else:
+                messages.success(request, _(f"Turma para '{turma.disciplina.nome}' no período {turma.periodo_letivo} aberta com sucesso!"))
+                return redirect('academics:index')
         else:
             messages.error(request, _("Por favor, corrija os erros no formulário abaixo."))
     else:
@@ -171,11 +182,21 @@ def turma_update_view(request, pk):
     if request.method == 'POST':
         form = TurmaForm(request.POST, instance=turma)
         if form.is_valid():
-            turma = form.save()
-            from academics.services import sincronizar_horarios_turma
-            sincronizar_horarios_turma(turma)
-            messages.success(request, _(f"Turma '{turma.disciplina.nome}' atualizada com sucesso!"))
-            return redirect('academics:index')
+            try:
+                with transaction.atomic():
+                    turma = form.save()
+                    from academics.services import sincronizar_horarios_turma
+                    sincronizar_horarios_turma(turma)
+            except ValidationError as error:
+                if hasattr(error, 'error_dict'):
+                    for field, errors in error.message_dict.items():
+                        form.add_error(field if field in form.fields else None, errors)
+                else:
+                    form.add_error(None, error)
+                messages.error(request, _("Não foi possível atualizar a turma devido a um conflito de horário."))
+            else:
+                messages.success(request, _(f"Turma '{turma.disciplina.nome}' atualizada com sucesso!"))
+                return redirect('academics:index')
         else:
             messages.error(request, _("Por favor, corrija os erros no formulário abaixo."))
     else:
@@ -349,6 +370,5 @@ def grade_horaria_view(request):
         'role': role,
     }
     return render(request, 'academics/grade_horaria.html', context)
-
 
 

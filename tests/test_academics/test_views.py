@@ -1,6 +1,6 @@
 import pytest
 from django.urls import reverse
-from academics.models import Curso, Disciplina, Turma
+from academics.models import Curso, Disciplina, HorarioTurma, Turma
 from accounts.models import CustomUser, UserRole
 
 @pytest.mark.django_db
@@ -205,6 +205,8 @@ class TestTurmaViews:
         assert response.status_code == 302
         assert response.url == reverse('academics:index')
         assert Turma.objects.filter(periodo_letivo='2026/1', sala='Laboratório 202').exists() is True
+        turma = Turma.objects.get(periodo_letivo='2026/1', sala='Laboratório 202')
+        assert turma.horarios_aula.filter(dia_semana='TER').exists()
 
     def test_coordenacao_edita_turma_com_sucesso(self, client, user_coordenacao, password, setup_dados):
         client.login(username=user_coordenacao.email, password=password)
@@ -233,6 +235,108 @@ class TestTurmaViews:
         assert turma_db.periodo_letivo == '2026/2'
         assert turma_db.sala == 'Sala Virtual'
         assert turma_db.vagas_maximas == 45
+        assert turma_db.horarios_aula.filter(dia_semana='SEG').exists()
+
+    def test_criacao_com_conflito_reverte_turma_e_horarios(
+        self, client, user_coordenacao, password, setup_dados
+    ):
+        client.login(username=user_coordenacao.email, password=password)
+        disciplina = setup_dados['disciplina']
+        Turma.objects.create(
+            disciplina=disciplina,
+            periodo_letivo='2026/1',
+            horarios='TER 19:00-20:40',
+            sala='Sala 101',
+            vagas_maximas=40,
+        )
+        turma_existente = Turma.objects.latest('pk')
+        HorarioTurma.objects.create(
+            turma=turma_existente,
+            dia_semana='TER',
+            hora_inicio='19:00',
+            hora_fim='20:40',
+        )
+
+        response = client.post(
+            reverse('academics:turma_create'),
+            {
+                'disciplina': disciplina.pk,
+                'periodo_letivo': '2026/1',
+                'horarios': 'TER 20:00-21:00',
+                'sala': 'Sala 101',
+                'vagas_maximas': 35,
+                'professor': '',
+                'ativo': True,
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.context['form'].non_field_errors()
+        assert Turma.objects.count() == 1
+        assert HorarioTurma.objects.count() == 1
+        assert HorarioTurma.objects.filter(
+            turma=turma_existente,
+            dia_semana='TER',
+            hora_inicio='19:00',
+            hora_fim='20:40',
+        ).exists()
+
+    def test_edicao_com_conflito_reverte_turma_e_horarios(
+        self, client, user_coordenacao, password, setup_dados
+    ):
+        client.login(username=user_coordenacao.email, password=password)
+        disciplina = setup_dados['disciplina']
+        turma_existente = Turma.objects.create(
+            disciplina=disciplina,
+            periodo_letivo='2026/1',
+            horarios='TER 19:00-20:40',
+            sala='Sala 101',
+            vagas_maximas=40,
+        )
+        HorarioTurma.objects.create(
+            turma=turma_existente,
+            dia_semana='TER',
+            hora_inicio='19:00',
+            hora_fim='20:40',
+        )
+        turma_editada = Turma.objects.create(
+            disciplina=disciplina,
+            periodo_letivo='2026/1',
+            horarios='SEG 19:00-20:40',
+            sala='Sala 202',
+            vagas_maximas=30,
+        )
+        horario_original = HorarioTurma.objects.create(
+            turma=turma_editada,
+            dia_semana='SEG',
+            hora_inicio='19:00',
+            hora_fim='20:40',
+        )
+
+        response = client.post(
+            reverse('academics:turma_update', args=[turma_editada.pk]),
+            {
+                'disciplina': disciplina.pk,
+                'periodo_letivo': '2026/1',
+                'horarios': 'TER 20:00-21:00',
+                'sala': 'Sala 101',
+                'vagas_maximas': 45,
+                'professor': '',
+                'ativo': True,
+            },
+        )
+
+        assert response.status_code == 200
+        assert response.context['form'].non_field_errors()
+        turma_editada.refresh_from_db()
+        assert turma_editada.horarios == 'SEG 19:00-20:40'
+        assert turma_editada.sala == 'Sala 202'
+        assert turma_editada.vagas_maximas == 30
+        assert HorarioTurma.objects.filter(pk=horario_original.pk).exists()
+        assert not HorarioTurma.objects.filter(
+            turma=turma_editada,
+            dia_semana='TER',
+        ).exists()
 
     def test_coordenacao_inativa_turma_com_sucesso(self, client, user_coordenacao, password, setup_dados):
         client.login(username=user_coordenacao.email, password=password)
@@ -486,6 +590,5 @@ class TestHorarioTurmaViews:
         response = client.get(url, {'curso': 99999})
         assert response.status_code == 200
         assert turma.disciplina.nome.encode() not in response.content
-
 
 
