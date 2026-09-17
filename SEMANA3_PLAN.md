@@ -38,12 +38,12 @@ Este documento divide e organiza as entregas da **Semana 3** em partes lógicas 
 ### 🟨 Parte 2: Regras de Negócio, Serviços e Testes de Conflitos (#58 e #46)
 *Implementar validadores robustos em `services.py`/`selectors.py` e garantir 100% de cobertura nos testes do pytest antes de construir as telas.*
 
-- [ ] **2.1. Criar Validações de Conflito em `apps/academics/services.py`:**
+- [x] **2.1. Criar Validações de Conflito em `apps/academics/services.py`:**
   - **Inconsistência de intervalo:** Rejeitar se `hora_inicio >= hora_fim`.
   - **Conflito de Professor:** Impedir alocação do mesmo professor em turmas/horários sobrepostos no mesmo período letivo (**RN09**).
   - **Conflito de Turma:** Impedir alocação da mesma turma em disciplinas/horários sobrepostos no mesmo período letivo.
   - **Conflito de Sala:** Impedir que uma mesma sala de aula receba mais de uma turma no mesmo dia e intervalo de horário.
-- [ ] **2.2. Escrever Testes Automatizados em `tests/test_academics/` (#46):**
+- [x] **2.2. Escrever Testes Automatizados em `tests/test_academics/` (#46):**
   - Testar conflitos de professor (sobreposição parcial, total e cruzada).
   - Testar conflitos de turma.
   - Testar conflitos de sala de aula.
@@ -86,8 +86,8 @@ Este documento divide e organiza as entregas da **Semana 3** em partes lógicas 
 | Parte | Tópico | Status | Descrição |
 | :---: | :--- | :---: | :--- |
 | 🟥 | **Parte 1: Modelos e Migrações** | ✅ **Concluído** | Criação de `HorarioTurma`, `EventoCalendario` e migração reversível. |
-| 🟨 | **Parte 2: Regras e Testes** | ⚙️ **Em Andamento** | Criação de services de validação e testes automatizados. |
-| 🟩 | **Parte 3: Montagem Coordenação** | ⏳ **A Fazer** | CRUD e interface com HTMX sob regras de RBAC. |
+| 🟨 | **Parte 2: Regras e Testes** | ✅ **Concluído** | Criação de services de validação e testes automatizados. |
+| 🟩 | **Parte 3: Montagem Coordenação** | ⚙️ **Em Andamento** | CRUD e interface com HTMX sob regras de RBAC. |
 | 🟦 | **Parte 4: Exibições por Perfil** | ⏳ **A Fazer** | Grades customizadas de Aluno, Professor e Administrativo. |
 
 ---

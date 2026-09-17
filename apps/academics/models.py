@@ -289,11 +289,8 @@ class HorarioTurma(models.Model):
 
     def clean(self):
         super().clean()
-        from django.core.exceptions import ValidationError
-        if self.hora_inicio and self.hora_fim and self.hora_inicio >= self.hora_fim:
-            raise ValidationError({
-                'hora_inicio': _("A hora de início deve ser menor que a hora de término.")
-            })
+        from academics.services import validar_horario_turma
+        validar_horario_turma(self)
 
 
 class EventoCalendario(models.Model):

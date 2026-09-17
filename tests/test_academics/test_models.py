@@ -349,3 +349,230 @@ class TestTurmaModels:
         assert turma_db is not None
         assert turma_db.ativo is False
         assert str(turma_db) == "Programação Orientada a Objetos (2026/1) - Sem professor alocado (Inativa)"
+
+
+@pytest.mark.django_db
+class TestHorarioTurmaConflitos:
+    @pytest.fixture
+    def setup_conflitos(self):
+        curso = Curso.objects.create(nome="Analise de Sistemas", codigo="ADS")
+        disc1 = Disciplina.objects.create(nome="POO", codigo="ADS-POO", carga_horaria=80, curso=curso)
+        disc2 = Disciplina.objects.create(nome="Banco de Dados", codigo="ADS-BD", carga_horaria=80, curso=curso)
+        
+        prof1 = CustomUser.objects.create_user(
+            email='prof1@sga.edu.br',
+            full_name='Professor Um',
+            password='senha',
+            role=UserRole.PROFESSOR
+        )
+        prof2 = CustomUser.objects.create_user(
+            email='prof2@sga.edu.br',
+            full_name='Professor Dois',
+            password='senha',
+            role=UserRole.PROFESSOR
+        )
+
+        turma1 = Turma.objects.create(
+            disciplina=disc1,
+            periodo_letivo="2026/1",
+            vagas_maximas=40,
+            professor=prof1,
+            sala="Sala 101",
+            ativo=True
+        )
+        turma2 = Turma.objects.create(
+            disciplina=disc2,
+            periodo_letivo="2026/1",
+            vagas_maximas=40,
+            professor=prof2,
+            sala="Sala 102",
+            ativo=True
+        )
+
+        return {
+            'turma1': turma1,
+            'turma2': turma2,
+            'prof1': prof1,
+            'prof2': prof2,
+        }
+
+    def test_inconsistencia_intervalo(self, setup_conflitos):
+        from django.core.exceptions import ValidationError
+        from datetime import time
+        from academics.models import HorarioTurma
+        
+        # hora_inicio == hora_fim
+        h = HorarioTurma(
+            turma=setup_conflitos['turma1'],
+            dia_semana='SEG',
+            hora_inicio=time(19, 0),
+            hora_fim=time(19, 0)
+        )
+        with pytest.raises(ValidationError) as excinfo:
+            h.full_clean()
+        assert 'hora_inicio' in excinfo.value.message_dict
+
+        # hora_inicio > hora_fim
+        h2 = HorarioTurma(
+            turma=setup_conflitos['turma1'],
+            dia_semana='SEG',
+            hora_inicio=time(20, 0),
+            hora_fim=time(19, 0)
+        )
+        with pytest.raises(ValidationError) as excinfo:
+            h2.full_clean()
+        assert 'hora_inicio' in excinfo.value.message_dict
+
+    def test_conflito_professor_mesmo_horario(self, setup_conflitos):
+        from django.core.exceptions import ValidationError
+        from datetime import time
+        from academics.models import HorarioTurma
+
+        # Registrar horário para turma1 com prof1 (SEG 19:00 - 20:40)
+        HorarioTurma.objects.create(
+            turma=setup_conflitos['turma1'],
+            dia_semana='SEG',
+            hora_inicio=time(19, 0),
+            hora_fim=time(20, 40)
+        )
+
+        # Agora tentar registrar horário para turma2 com o prof1 também (sobreposição total)
+        # Primeiro, vamos definir o prof1 na turma2
+        turma2 = setup_conflitos['turma2']
+        turma2.professor = setup_conflitos['prof1']
+        turma2.save()
+
+        h_conflito = HorarioTurma(
+            turma=turma2,
+            dia_semana='SEG',
+            hora_inicio=time(19, 0),
+            hora_fim=time(20, 40)
+        )
+        with pytest.raises(ValidationError) as excinfo:
+            h_conflito.full_clean()
+        assert "__all__" in excinfo.value.message_dict
+        assert "O professor" in excinfo.value.message_dict["__all__"][0]
+
+    def test_conflito_professor_sobreposicao_parcial(self, setup_conflitos):
+        from django.core.exceptions import ValidationError
+        from datetime import time
+        from academics.models import HorarioTurma
+
+        HorarioTurma.objects.create(
+            turma=setup_conflitos['turma1'],
+            dia_semana='SEG',
+            hora_inicio=time(19, 0),
+            hora_fim=time(20, 40)
+        )
+
+        # Definir mesmo professor na turma2
+        turma2 = setup_conflitos['turma2']
+        turma2.professor = setup_conflitos['prof1']
+        turma2.save()
+
+        # Horário: SEG 20:00 - 21:40 (conflita de 20:00 a 20:40)
+        h_conflito = HorarioTurma(
+            turma=turma2,
+            dia_semana='SEG',
+            hora_inicio=time(20, 0),
+            hora_fim=time(21, 40)
+        )
+        with pytest.raises(ValidationError) as excinfo:
+            h_conflito.full_clean()
+        assert "__all__" in excinfo.value.message_dict
+        assert "O professor" in excinfo.value.message_dict["__all__"][0]
+
+    def test_conflito_turma_sobreposicao(self, setup_conflitos):
+        from django.core.exceptions import ValidationError
+        from datetime import time
+        from academics.models import HorarioTurma
+
+        # Remover professor para testar especificamente o conflito de turma
+        turma1 = setup_conflitos['turma1']
+        turma1.professor = None
+        turma1.save()
+
+        # Registrar horário para turma1 (SEG 19:00 - 20:40)
+        HorarioTurma.objects.create(
+            turma=turma1,
+            dia_semana='SEG',
+            hora_inicio=time(19, 0),
+            hora_fim=time(20, 40)
+        )
+
+        # Registrar OUTRO horário para a MESMA turma1 (sobreposição)
+        h_conflito = HorarioTurma(
+            turma=turma1,
+            dia_semana='SEG',
+            hora_inicio=time(20, 0),
+            hora_fim=time(21, 0)
+        )
+        with pytest.raises(ValidationError) as excinfo:
+            h_conflito.full_clean()
+        assert "__all__" in excinfo.value.message_dict
+        assert "A turma já possui outra disciplina" in excinfo.value.message_dict["__all__"][0]
+
+    def test_conflito_sala_sobreposicao(self, setup_conflitos):
+        from django.core.exceptions import ValidationError
+        from datetime import time
+        from academics.models import HorarioTurma
+
+        # Colocar as duas turmas na mesma sala
+        turma1 = setup_conflitos['turma1']
+        turma2 = setup_conflitos['turma2']
+        turma1.sala = "Sala 101"
+        turma1.save()
+        turma2.sala = "Sala 101"
+        turma2.save()
+
+        # Registrar para turma1 (SEG 19:00 - 20:40)
+        HorarioTurma.objects.create(
+            turma=turma1,
+            dia_semana='SEG',
+            hora_inicio=time(19, 0),
+            hora_fim=time(20, 40)
+        )
+
+        # Registrar para turma2 na mesma sala (SEG 20:00 - 21:00)
+        h_conflito = HorarioTurma(
+            turma=turma2,
+            dia_semana='SEG',
+            hora_inicio=time(20, 0),
+            hora_fim=time(21, 0)
+        )
+        with pytest.raises(ValidationError) as excinfo:
+            h_conflito.full_clean()
+        assert "__all__" in excinfo.value.message_dict
+        assert "A sala Sala 101 já está sendo utilizada" in excinfo.value.message_dict["__all__"][0]
+
+    def test_cadastro_sem_conflitos_sucesso(self, setup_conflitos):
+        from datetime import time
+        from academics.models import HorarioTurma
+
+        # Registrar turma1: SEG 19:00 - 20:40
+        h1 = HorarioTurma.objects.create(
+            turma=setup_conflitos['turma1'],
+            dia_semana='SEG',
+            hora_inicio=time(19, 0),
+            hora_fim=time(20, 40)
+        )
+        h1.full_clean() # Sucesso
+
+        # Registrar turma1: SEG 20:40 - 22:20 (adjacente, sem conflito)
+        h2 = HorarioTurma.objects.create(
+            turma=setup_conflitos['turma1'],
+            dia_semana='SEG',
+            hora_inicio=time(20, 40),
+            hora_fim=time(22, 20)
+        )
+        h2.full_clean() # Sucesso
+
+        # Registrar turma2: SEG 19:00 - 20:40 (salas e professores diferentes, sem conflito)
+        h3 = HorarioTurma.objects.create(
+            turma=setup_conflitos['turma2'],
+            dia_semana='SEG',
+            hora_inicio=time(19, 0),
+            hora_fim=time(20, 40)
+        )
+        h3.full_clean() # Sucesso
+
