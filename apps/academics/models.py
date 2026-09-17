@@ -144,11 +144,6 @@ class Turma(models.Model):
         status = "" if self.ativo else f" ({_('Inativa')})"
         return f"{self.disciplina.nome} ({self.periodo_letivo}) - {professor_str}{status}"
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        from academics.services import sincronizar_horarios_turma
-        sincronizar_horarios_turma(self)
-
     def clean(self):
         super().clean()
         from django.core.exceptions import ValidationError
@@ -268,18 +263,6 @@ class HorarioTurma(models.Model):
         super().clean()
         from academics.services import validar_horario_turma
         validar_horario_turma(self)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        from academics.services import atualizar_campo_textual_turma
-        atualizar_campo_textual_turma(self.turma)
-
-    def delete(self, *args, **kwargs):
-        turma = self.turma
-        super().delete(*args, **kwargs)
-        from academics.services import atualizar_campo_textual_turma
-        atualizar_campo_textual_turma(turma)
-
 
 class EventoCalendario(models.Model):
     TIPO_EVENTO_CHOICES = [

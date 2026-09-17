@@ -67,18 +67,9 @@ def migrar_horarios_textuais_para_model(apps, schema_editor):
 
 
 def desfazer_migracao_horarios(apps, schema_editor):
-    Turma = apps.get_model('academics', 'Turma')
-    HorarioTurma = apps.get_model('academics', 'HorarioTurma')
-
-    for turma in Turma.objects.all():
-        intervalos = parse_horario_str_para_time(turma.horarios)
-        for val in intervalos:
-            HorarioTurma.objects.filter(
-                turma=turma,
-                dia_semana=val['dia_semana'],
-                hora_inicio=val['hora_inicio'],
-                hora_fim=val['hora_fim']
-            ).delete()
+    # Reversão não destrutiva segura: evita apagar acidentalmente registros legítimos
+    # criados ou modificados posteriormente por usuários do sistema.
+    pass
 
 
 class Migration(migrations.Migration):

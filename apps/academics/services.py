@@ -99,6 +99,7 @@ def criar_horario_turma(turma, dia_semana, hora_inicio, hora_fim):
     )
     horario.full_clean()
     horario.save()
+    atualizar_campo_textual_turma(turma)
     return horario
 
 

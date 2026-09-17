@@ -149,6 +149,8 @@ def turma_create_view(request):
         form = TurmaForm(request.POST)
         if form.is_valid():
             turma = form.save()
+            from academics.services import sincronizar_horarios_turma
+            sincronizar_horarios_turma(turma)
             messages.success(request, _(f"Turma para '{turma.disciplina.nome}' no período {turma.periodo_letivo} aberta com sucesso!"))
             return redirect('academics:index')
         else:
@@ -170,6 +172,8 @@ def turma_update_view(request, pk):
         form = TurmaForm(request.POST, instance=turma)
         if form.is_valid():
             turma = form.save()
+            from academics.services import sincronizar_horarios_turma
+            sincronizar_horarios_turma(turma)
             messages.success(request, _(f"Turma '{turma.disciplina.nome}' atualizada com sucesso!"))
             return redirect('academics:index')
         else:
@@ -215,6 +219,8 @@ def turma_horarios_view(request, turma_pk):
             try:
                 horario.full_clean()
                 horario.save()
+                from academics.services import atualizar_campo_textual_turma
+                atualizar_campo_textual_turma(turma)
                 messages.success(request, _("Horário adicionado com sucesso!"))
                 
                 if request.headers.get('HX-Request'):
@@ -250,8 +256,11 @@ def turma_horarios_view(request, turma_pk):
 @require_POST
 def horario_delete_view(request, pk):
     horario = get_object_or_404(HorarioTurma, pk=pk)
-    turma_pk = horario.turma.pk
+    turma = horario.turma
+    turma_pk = turma.pk
     horario.delete()
+    from academics.services import atualizar_campo_textual_turma
+    atualizar_campo_textual_turma(turma)
     
     messages.warning(request, _("Horário de aula removido com sucesso."))
     
