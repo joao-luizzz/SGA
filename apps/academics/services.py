@@ -48,7 +48,7 @@ def validar_horario_turma(horario_turma):
                     }
                 )
 
-    # 3. Conflito de Turma (Turma em duas disciplinas simultâneas)
+    # 3. Conflito de Horário interno da Turma (Aulas sobrepostas da própria turma)
     conflitos_turma = HorarioTurma.objects.filter(
         turma__ativo=True,
         turma__periodo_letivo=periodo,
@@ -61,9 +61,7 @@ def validar_horario_turma(horario_turma):
     for conf in conflitos_turma:
         if max(inicio, conf.hora_inicio) < min(fim, conf.hora_fim):
             raise ValidationError(
-                _("A turma já possui outra disciplina (%(disciplina)s) alocada neste dia e horário conflitante.") % {
-                    'disciplina': conf.turma.disciplina.nome
-                }
+                _("A turma já possui outra aula alocada neste dia e horário conflitante.")
             )
 
     # 4. Conflito de Sala (Sala em duas turmas simultâneas)
@@ -102,3 +100,55 @@ def criar_horario_turma(turma, dia_semana, hora_inicio, hora_fim):
     horario.full_clean()
     horario.save()
     return horario
+
+
+def sincronizar_horarios_turma(turma):
+    """
+    Sincroniza os registros estruturados de HorarioTurma com o campo legado/textual Turma.horarios.
+    """
+    if turma.horarios:
+        from academics.models import parse_horarios_lista
+        from datetime import time
+
+        try:
+            parsed_list = parse_horarios_lista(turma.horarios)
+        except ValidationError:
+            # Se a string de horários legada estiver inválida ou malformada, não faz a sincronização
+            return
+
+        novos_horarios = []
+        for dia, min_ini, min_fim in parsed_list:
+            h_ini, m_ini = divmod(min_ini, 60)
+            h_fim, m_fim = divmod(min_fim, 60)
+            novos_horarios.append((dia, time(h_ini, m_ini), time(h_fim, m_fim)))
+
+        existentes = list(turma.horarios_aula.all())
+        existentes_tuples = [(h.dia_semana, h.hora_inicio, h.hora_fim) for h in existentes]
+
+        if set(novos_horarios) != set(existentes_tuples):
+            turma.horarios_aula.all().delete()
+            for dia, h_ini, h_fim in novos_horarios:
+                HorarioTurma.objects.create(
+                    turma=turma,
+                    dia_semana=dia,
+                    hora_inicio=h_ini,
+                    hora_fim=h_fim
+                )
+
+
+def atualizar_campo_textual_turma(turma):
+    """
+    Atualiza o campo textual legado Turma.horarios a partir dos registros estruturados
+    de HorarioTurma, garantindo consistência total e única fonte de verdade.
+    """
+    horarios_queryset = turma.horarios_aula.all().order_by('dia_semana', 'hora_inicio')
+    partes = []
+    for h in horarios_queryset:
+        partes.append(f"{h.dia_semana} {h.hora_inicio.strftime('%H:%M')}-{h.hora_fim.strftime('%H:%M')}")
+
+    novo_texto = ", ".join(partes)
+
+    if turma.horarios != novo_texto:
+        from academics.models import Turma
+        Turma.objects.filter(pk=turma.pk).update(horarios=novo_texto)
+        turma.horarios = novo_texto

@@ -493,12 +493,14 @@ class TestHorarioTurmaConflitos:
         turma1.save()
 
         # Registrar horário para turma1 (SEG 19:00 - 20:40)
-        HorarioTurma.objects.create(
+        h_setup = HorarioTurma(
             turma=turma1,
             dia_semana='SEG',
             hora_inicio=time(19, 0),
             hora_fim=time(20, 40)
         )
+        h_setup.full_clean()
+        h_setup.save()
 
         # Registrar OUTRO horário para a MESMA turma1 (sobreposição)
         h_conflito = HorarioTurma(
@@ -510,7 +512,7 @@ class TestHorarioTurmaConflitos:
         with pytest.raises(ValidationError) as excinfo:
             h_conflito.full_clean()
         assert "__all__" in excinfo.value.message_dict
-        assert "A turma já possui outra disciplina" in excinfo.value.message_dict["__all__"][0]
+        assert "A turma já possui outra aula alocada" in excinfo.value.message_dict["__all__"][0]
 
     def test_conflito_sala_sobreposicao(self, setup_conflitos):
         from django.core.exceptions import ValidationError
@@ -526,12 +528,14 @@ class TestHorarioTurmaConflitos:
         turma2.save()
 
         # Registrar para turma1 (SEG 19:00 - 20:40)
-        HorarioTurma.objects.create(
+        h_setup = HorarioTurma(
             turma=turma1,
             dia_semana='SEG',
             hora_inicio=time(19, 0),
             hora_fim=time(20, 40)
         )
+        h_setup.full_clean()
+        h_setup.save()
 
         # Registrar para turma2 na mesma sala (SEG 20:00 - 21:00)
         h_conflito = HorarioTurma(
@@ -550,29 +554,32 @@ class TestHorarioTurmaConflitos:
         from academics.models import HorarioTurma
 
         # Registrar turma1: SEG 19:00 - 20:40
-        h1 = HorarioTurma.objects.create(
+        h1 = HorarioTurma(
             turma=setup_conflitos['turma1'],
             dia_semana='SEG',
             hora_inicio=time(19, 0),
             hora_fim=time(20, 40)
         )
         h1.full_clean() # Sucesso
+        h1.save()
 
         # Registrar turma1: SEG 20:40 - 22:20 (adjacente, sem conflito)
-        h2 = HorarioTurma.objects.create(
+        h2 = HorarioTurma(
             turma=setup_conflitos['turma1'],
             dia_semana='SEG',
             hora_inicio=time(20, 40),
             hora_fim=time(22, 20)
         )
         h2.full_clean() # Sucesso
+        h2.save()
 
         # Registrar turma2: SEG 19:00 - 20:40 (salas e professores diferentes, sem conflito)
-        h3 = HorarioTurma.objects.create(
+        h3 = HorarioTurma(
             turma=setup_conflitos['turma2'],
             dia_semana='SEG',
             hora_inicio=time(19, 0),
             hora_fim=time(20, 40)
         )
         h3.full_clean() # Sucesso
+        h3.save()
 

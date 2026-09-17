@@ -146,31 +146,8 @@ class Turma(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if self.horarios:
-            try:
-                parsed_list = parse_horarios_lista(self.horarios)
-                from datetime import time
-                
-                novos_horarios = []
-                for dia, min_ini, min_fim in parsed_list:
-                    h_ini, m_ini = divmod(min_ini, 60)
-                    h_fim, m_fim = divmod(min_fim, 60)
-                    novos_horarios.append((dia, time(h_ini, m_ini), time(h_fim, m_fim)))
-                
-                existentes = list(self.horarios_aula.all())
-                existentes_tuples = [(h.dia_semana, h.hora_inicio, h.hora_fim) for h in existentes]
-                
-                if set(novos_horarios) != set(existentes_tuples):
-                    self.horarios_aula.all().delete()
-                    for dia, h_ini, h_fim in novos_horarios:
-                        HorarioTurma.objects.create(
-                            turma=self,
-                            dia_semana=dia,
-                            hora_inicio=h_ini,
-                            hora_fim=h_fim
-                        )
-            except Exception:
-                pass
+        from academics.services import sincronizar_horarios_turma
+        sincronizar_horarios_turma(self)
 
     def clean(self):
         super().clean()
@@ -291,6 +268,17 @@ class HorarioTurma(models.Model):
         super().clean()
         from academics.services import validar_horario_turma
         validar_horario_turma(self)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        from academics.services import atualizar_campo_textual_turma
+        atualizar_campo_textual_turma(self.turma)
+
+    def delete(self, *args, **kwargs):
+        turma = self.turma
+        super().delete(*args, **kwargs)
+        from academics.services import atualizar_campo_textual_turma
+        atualizar_campo_textual_turma(turma)
 
 
 class EventoCalendario(models.Model):

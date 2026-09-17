@@ -33,14 +33,14 @@ def parse_horario_str_para_time(horario_str):
             fh_str, fm_str = fim_str.split(':')
             
             ih, im = int(ih_str), int(im_str)
-            fh, fm = int(fh_str), int(fim_str)
+            fh, fm = int(fh_str), int(fm_str)
             
             intervalos.append({
                 'dia_semana': dia,
                 'hora_inicio': time(ih, im),
                 'hora_fim': time(fh, fm)
             })
-        except Exception:
+        except (ValueError, IndexError):
             continue
     return intervalos
 
@@ -67,8 +67,18 @@ def migrar_horarios_textuais_para_model(apps, schema_editor):
 
 
 def desfazer_migracao_horarios(apps, schema_editor):
+    Turma = apps.get_model('academics', 'Turma')
     HorarioTurma = apps.get_model('academics', 'HorarioTurma')
-    HorarioTurma.objects.all().delete()
+
+    for turma in Turma.objects.all():
+        intervalos = parse_horario_str_para_time(turma.horarios)
+        for val in intervalos:
+            HorarioTurma.objects.filter(
+                turma=turma,
+                dia_semana=val['dia_semana'],
+                hora_inicio=val['hora_inicio'],
+                hora_fim=val['hora_fim']
+            ).delete()
 
 
 class Migration(migrations.Migration):
