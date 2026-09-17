@@ -1,5 +1,5 @@
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from .models import MaterialAcademico
 
 
@@ -57,6 +57,7 @@ def atualizar_material(
 
     antigo_arquivo_nome = material.arquivo.name
     storage = material.arquivo.storage
+    substituindo_arquivo = bool(arquivo)
 
     material.titulo = titulo.strip()
     material.descricao = descricao.strip()
@@ -69,9 +70,20 @@ def atualizar_material(
         material.link = link.strip()
 
     material.full_clean()
-    material.save()
+
+    try:
+        material.save()
+    except DatabaseError:
+        if (
+            substituindo_arquivo
+            and material.arquivo.name != antigo_arquivo_nome
+        ):
+            storage.delete(material.arquivo.name)
+        raise
+
     if material.arquivo.name != antigo_arquivo_nome:
         _remover_arquivo_apos_commit(storage, antigo_arquivo_nome)
+
     return material
 
 
