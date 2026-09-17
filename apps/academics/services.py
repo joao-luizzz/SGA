@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from academics.models import HorarioTurma, Turma
 
@@ -87,6 +88,7 @@ def validar_horario_turma(horario_turma):
                 )
 
 
+@transaction.atomic
 def criar_horario_turma(turma, dia_semana, hora_inicio, hora_fim):
     """
     Cria e valida um HorarioTurma de forma atômica e segura.
@@ -106,6 +108,7 @@ def criar_horario_turma(turma, dia_semana, hora_inicio, hora_fim):
 def sincronizar_horarios_turma(turma):
     """
     Sincroniza os registros estruturados de HorarioTurma com o campo legado/textual Turma.horarios.
+    A recriação é totalmente transacionada e valida todas as regras de negócio de HorarioTurma.
     """
     if turma.horarios:
         from academics.models import parse_horarios_lista
@@ -127,14 +130,22 @@ def sincronizar_horarios_turma(turma):
         existentes_tuples = [(h.dia_semana, h.hora_inicio, h.hora_fim) for h in existentes]
 
         if set(novos_horarios) != set(existentes_tuples):
-            turma.horarios_aula.all().delete()
-            for dia, h_ini, h_fim in novos_horarios:
-                HorarioTurma.objects.create(
-                    turma=turma,
-                    dia_semana=dia,
-                    hora_inicio=h_ini,
-                    hora_fim=h_fim
-                )
+            with transaction.atomic():
+                turma.horarios_aula.all().delete()
+                for dia, h_ini, h_fim in novos_horarios:
+                    horario = HorarioTurma(
+                        turma=turma,
+                        dia_semana=dia,
+                        hora_inicio=h_ini,
+                        hora_fim=h_fim
+                    )
+                    horario.full_clean()
+                    horario.save()
+    else:
+        # Se a string for esvaziada, remove os horários estruturados existentes de forma segura
+        if turma.horarios_aula.exists():
+            with transaction.atomic():
+                turma.horarios_aula.all().delete()
 
 
 def atualizar_campo_textual_turma(turma):
