@@ -104,7 +104,5 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Media files (Uploads)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-DATA_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20 MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20 MB
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

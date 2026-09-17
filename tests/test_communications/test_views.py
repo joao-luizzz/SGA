@@ -54,6 +54,18 @@ class TestComunicadoViews:
         assert resp.status_code == 302
         assert Comunicado.objects.filter(titulo='Novo Aviso da Secretaria').exists()
 
+    def test_secretaria_nao_publica_comunicado_por_turma_via_view(self, client, user_secretaria, password):
+        client.login(email=user_secretaria.email, password=password)
+
+        response = client.post(reverse('communications:create'), {
+            'titulo': 'Aviso segmentado indevido',
+            'conteudo': 'Não deve ser publicado.',
+            'escopo': EscopoComunicado.TURMA,
+        })
+
+        assert response.status_code == 200
+        assert not Comunicado.objects.filter(titulo='Aviso segmentado indevido').exists()
+
     def test_secretaria_edita_comunicado_via_post(self, client, user_secretaria, password, setup_comunicado):
         client.login(email=user_secretaria.email, password=password)
         url_edit = reverse('communications:update', kwargs={'pk': setup_comunicado.pk})

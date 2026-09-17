@@ -1,6 +1,7 @@
 import pytest
 from django.urls import reverse
 from academics.models import Curso, Disciplina, Turma
+from accounts.models import CustomUser, UserRole
 from enrollment.models import Matricula, StatusMatricula
 from materials.models import MaterialAcademico
 
@@ -102,3 +103,65 @@ class TestMaterialViews:
 
         resp_del = client.get(reverse('materials:material_delete', kwargs={'pk': material.pk}))
         assert resp_del.status_code == 403
+
+    def test_aluno_nao_acessa_material_de_turma_sem_matricula(self, client, user_aluno, password, setup_cenario):
+        turma, _ = setup_cenario
+        outra_turma = Turma.objects.create(
+            disciplina=turma.disciplina,
+            periodo_letivo="2026.2",
+            horarios="SEX 19:00-22:00",
+            vagas_maximas=40,
+            professor=turma.professor,
+        )
+        client.login(email=user_aluno.email, password=password)
+
+        response = client.get(reverse('materials:turma_materiais', kwargs={'turma_id': outra_turma.id}))
+
+        assert response.status_code == 403
+
+    def test_professor_nao_edita_ou_exclui_material_de_outro_professor(self, client, user_professor, password, setup_cenario):
+        turma, _ = setup_cenario
+        outro_professor = CustomUser.objects.create_user(
+            email="outro-professor@sga.edu.br",
+            full_name="Outro Professor",
+            role=UserRole.PROFESSOR,
+            password=password,
+            must_change_password=False,
+        )
+        outra_turma = Turma.objects.create(
+            disciplina=turma.disciplina,
+            periodo_letivo="2026.2",
+            horarios="SEX 19:00-22:00",
+            vagas_maximas=40,
+            professor=outro_professor,
+        )
+        material = MaterialAcademico.objects.create(
+            turma=outra_turma,
+            autor=outro_professor,
+            titulo="Material restrito",
+            link="https://example.com/restrito",
+        )
+        client.login(email=user_professor.email, password=password)
+
+        editar = client.get(reverse('materials:material_update', kwargs={'pk': material.pk}))
+        excluir = client.get(reverse('materials:material_delete', kwargs={'pk': material.pk}))
+
+        assert editar.status_code == 403
+        assert excluir.status_code == 403
+
+    def test_coordenacao_publica_e_secretaria_visualiza_materiais(self, client, user_coordenacao, user_secretaria, password, setup_cenario):
+        turma, _ = setup_cenario
+        client.login(email=user_coordenacao.email, password=password)
+
+        publicar = client.post(reverse('materials:material_create', kwargs={'turma_id': turma.id}), {
+            'titulo': 'Material da Coordenação',
+            'descricao': '',
+            'link': 'https://example.com/coordenacao',
+        })
+
+        assert publicar.status_code == 302
+        client.login(email=user_secretaria.email, password=password)
+        visualizar = client.get(reverse('materials:turma_materiais', kwargs={'turma_id': turma.id}))
+
+        assert visualizar.status_code == 200
+        assert 'Material da Coordenação' in visualizar.content.decode('utf-8')

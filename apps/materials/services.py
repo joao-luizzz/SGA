@@ -1,5 +1,4 @@
-import os
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from .models import MaterialAcademico
 
@@ -14,6 +13,11 @@ def _validar_permissao_autor(turma, autor):
     if autor.role == 'PROFESSOR' and turma.professor_id == autor.id:
         return True
     raise PermissionDenied("Você não tem permissão para gerenciar materiais desta turma.")
+
+
+def _remover_arquivo_apos_commit(storage, nome_arquivo):
+    if nome_arquivo:
+        transaction.on_commit(lambda: storage.delete(nome_arquivo))
 
 
 @transaction.atomic
@@ -45,61 +49,40 @@ def atualizar_material(
     descricao: str = "",
     arquivo=None,
     link: str = None,
-    remover_arquivo_anterior: bool = False
 ) -> MaterialAcademico:
     """
     Atualiza um material acadêmico existente.
     """
     _validar_permissao_autor(material.turma, autor)
 
-    antigo_arquivo = material.arquivo
+    antigo_arquivo_nome = material.arquivo.name
+    storage = material.arquivo.storage
 
     material.titulo = titulo.strip()
     material.descricao = descricao.strip()
 
     if arquivo:
-        # Se um novo arquivo foi enviado, exclui o anterior se existir
-        if antigo_arquivo and antigo_arquivo != arquivo and os.path.isfile(antigo_arquivo.path):
-            try:
-                os.remove(antigo_arquivo.path)
-            except OSError:
-                pass
         material.arquivo = arquivo
         material.link = None
     elif link:
-        # Se virou link, exclui o arquivo antigo
-        if antigo_arquivo and os.path.isfile(antigo_arquivo.path):
-            try:
-                os.remove(antigo_arquivo.path)
-            except OSError:
-                pass
         material.arquivo = None
         material.link = link.strip()
-    elif remover_arquivo_anterior:
-        if antigo_arquivo and os.path.isfile(antigo_arquivo.path):
-            try:
-                os.remove(antigo_arquivo.path)
-            except OSError:
-                pass
-        material.arquivo = None
 
     material.full_clean()
     material.save()
+    if material.arquivo.name != antigo_arquivo_nome:
+        _remover_arquivo_apos_commit(storage, antigo_arquivo_nome)
     return material
 
 
 @transaction.atomic
 def excluir_material(*, material: MaterialAcademico, autor) -> None:
     """
-    Exclui um material acadêmico e apaga o arquivo físico associado.
+    Exclui um material acadêmico e agenda a remoção do arquivo após o commit.
     """
     _validar_permissao_autor(material.turma, autor)
 
-    if material.arquivo:
-        try:
-            if os.path.isfile(material.arquivo.path):
-                os.remove(material.arquivo.path)
-        except OSError:
-            pass
-
+    nome_arquivo = material.arquivo.name
+    storage = material.arquivo.storage
     material.delete()
+    _remover_arquivo_apos_commit(storage, nome_arquivo)

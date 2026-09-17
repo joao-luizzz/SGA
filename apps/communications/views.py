@@ -82,8 +82,6 @@ def comunicado_create(request):
                         form.add_error(None if field == '__all__' else field, err)
             except PermissionDenied as e:
                 form.add_error(None, str(e))
-            except Exception as e:
-                form.add_error(None, str(e))
     else:
         form = ComunicadoForm(user=request.user)
 
@@ -125,8 +123,6 @@ def comunicado_update(request, pk):
                     for err in errors:
                         form.add_error(None if field == '__all__' else field, err)
             except PermissionDenied as e:
-                form.add_error(None, str(e))
-            except Exception as e:
                 form.add_error(None, str(e))
     else:
         form = ComunicadoForm(instance=comunicado, user=request.user)

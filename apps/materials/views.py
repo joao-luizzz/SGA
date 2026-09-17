@@ -77,8 +77,6 @@ def material_create(request, turma_id):
                 for field, errors in e.message_dict.items():
                     for err in errors:
                         form.add_error(None if field == '__all__' else field, err)
-            except Exception as e:
-                form.add_error(None, str(e))
     else:
         form = MaterialForm()
 
@@ -118,8 +116,6 @@ def material_update(request, pk):
                 for field, errors in e.message_dict.items():
                     for err in errors:
                         form.add_error(None if field == '__all__' else field, err)
-            except Exception as e:
-                form.add_error(None, str(e))
     else:
         form = MaterialForm(instance=material)
 
@@ -144,13 +140,9 @@ def material_delete(request, pk):
         raise PermissionDenied(_("Você só pode excluir materiais de suas próprias turmas."))
 
     if request.method == 'POST':
-        try:
-            excluir_material(material=material, autor=request.user)
-            messages.success(request, _("Material acadêmico excluído com sucesso!"))
-            return redirect('materials:turma_materiais', turma_id=turma_id)
-        except Exception as e:
-            messages.error(request, f"Erro ao excluir material: {e}")
-            return redirect('materials:turma_materiais', turma_id=turma_id)
+        excluir_material(material=material, autor=request.user)
+        messages.success(request, _("Material acadêmico excluído com sucesso!"))
+        return redirect('materials:turma_materiais', turma_id=turma_id)
 
     return render(request, 'materials/material_confirm_delete.html', {
         'material': material,

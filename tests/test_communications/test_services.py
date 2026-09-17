@@ -55,6 +55,17 @@ class TestComunicadoServices:
                 curso=curso
             )
 
+    def test_secretaria_bloqueada_para_comunicados_de_turma(self, setup_ambiente):
+        _, turma, sec, _, _, _ = setup_ambiente
+        with pytest.raises(PermissionDenied):
+            publicar_comunicado(
+                autor=sec,
+                titulo="Aviso da turma",
+                conteudo="Detalhes da turma",
+                escopo=EscopoComunicado.TURMA,
+                turma=turma,
+            )
+
     def test_coordenacao_publica_comunicado_de_curso_e_turma(self, setup_ambiente):
         curso, turma, _, coord, _, _ = setup_ambiente
         com_curso = publicar_comunicado(

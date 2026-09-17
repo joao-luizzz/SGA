@@ -1,8 +1,11 @@
+from datetime import timedelta
+
 import pytest
 from academics.models import Curso, Disciplina, Turma
 from accounts.models import CustomUser, UserRole
 from communications.models import Comunicado, EscopoComunicado
 from communications.selectors import listar_comunicados_para_usuario, listar_comunicados_gerenciamento
+from django.utils import timezone
 from enrollment.models import Matricula, StatusMatricula
 
 
@@ -70,3 +73,33 @@ class TestComunicadoSelectors:
     def test_usuario_anonimo_retorna_vazio(self):
         assert not listar_comunicados_para_usuario(None).exists()
         assert not listar_comunicados_gerenciamento(None).exists()
+
+    def test_mural_omite_comunicados_expirados_agendados_e_inativos(self, user_secretaria, user_aluno):
+        agora = timezone.now()
+        expirado = Comunicado.objects.create(
+            autor=user_secretaria,
+            titulo="Expirado",
+            conteudo="...",
+            escopo=EscopoComunicado.GERAL,
+            expirar_em=agora - timedelta(minutes=1),
+        )
+        agendado = Comunicado.objects.create(
+            autor=user_secretaria,
+            titulo="Agendado",
+            conteudo="...",
+            escopo=EscopoComunicado.GERAL,
+            publicar_em=agora + timedelta(minutes=1),
+        )
+        inativo = Comunicado.objects.create(
+            autor=user_secretaria,
+            titulo="Inativo",
+            conteudo="...",
+            escopo=EscopoComunicado.GERAL,
+            ativo=False,
+        )
+
+        visiveis = listar_comunicados_para_usuario(user_aluno)
+
+        assert expirado not in visiveis
+        assert agendado not in visiveis
+        assert inativo not in visiveis

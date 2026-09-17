@@ -1,6 +1,7 @@
 import os
 import pytest
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import DatabaseError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from academics.models import Curso, Disciplina, Turma
 from accounts.models import CustomUser, UserRole
@@ -71,7 +72,7 @@ class TestMaterialServices:
                 link="https://outro.com"
             )
 
-    def test_atualizar_material_substituindo_arquivo_por_link(self, setup_ambiente):
+    def test_atualizar_material_substituindo_arquivo_por_link(self, setup_ambiente, django_capture_on_commit_callbacks):
         turma, prof, _, _, _ = setup_ambiente
         arquivo = SimpleUploadedFile("apostila_antiga.pdf", b"dados", content_type="application/pdf")
         material = criar_material(
@@ -83,31 +84,33 @@ class TestMaterialServices:
         caminho_antigo = material.arquivo.path
         assert os.path.exists(caminho_antigo)
 
-        atualizar_material(
-            material=material,
-            autor=prof,
-            titulo="Novo Link de Apostila",
-            link="https://livro.com/apostila"
-        )
+        with django_capture_on_commit_callbacks(execute=True):
+            atualizar_material(
+                material=material,
+                autor=prof,
+                titulo="Novo Link de Apostila",
+                link="https://livro.com/apostila"
+            )
         material.refresh_from_db()
         assert material.titulo == "Novo Link de Apostila"
         assert material.is_link is True
         assert not os.path.exists(caminho_antigo)
 
-    def test_atualizar_material_substituindo_arquivo_por_novo_arquivo(self, setup_ambiente):
+    def test_atualizar_material_substituindo_arquivo_por_novo_arquivo(self, setup_ambiente, django_capture_on_commit_callbacks):
         turma, prof, _, _, _ = setup_ambiente
         arquivo1 = SimpleUploadedFile("v1.pdf", b"versao 1", content_type="application/pdf")
         material = criar_material(turma=turma, autor=prof, titulo="Doc V1", arquivo=arquivo1)
         caminho1 = material.arquivo.path
 
         arquivo2 = SimpleUploadedFile("v2.pdf", b"versao 2", content_type="application/pdf")
-        atualizar_material(material=material, autor=prof, titulo="Doc V2", arquivo=arquivo2)
+        with django_capture_on_commit_callbacks(execute=True):
+            atualizar_material(material=material, autor=prof, titulo="Doc V2", arquivo=arquivo2)
         material.refresh_from_db()
         assert material.titulo == "Doc V2"
         assert not os.path.exists(caminho1)
         assert os.path.exists(material.arquivo.path)
 
-    def test_excluir_material_apaga_arquivo_do_disco(self, setup_ambiente):
+    def test_excluir_material_apaga_arquivo_do_disco(self, setup_ambiente, django_capture_on_commit_callbacks):
         turma, prof, _, _, _ = setup_ambiente
         arquivo = SimpleUploadedFile("apostila.pdf", b"conteudo apostila teste", content_type="application/pdf")
         material = criar_material(
@@ -119,6 +122,54 @@ class TestMaterialServices:
         caminho_arquivo = material.arquivo.path
         assert os.path.exists(caminho_arquivo)
 
-        excluir_material(material=material, autor=prof)
+        with django_capture_on_commit_callbacks(execute=True):
+            excluir_material(material=material, autor=prof)
         assert not MaterialAcademico.objects.filter(pk=material.pk).exists()
         assert not os.path.exists(caminho_arquivo)
+
+    def test_falha_na_validacao_preserva_arquivo_anterior(self, setup_ambiente):
+        turma, prof, _, _, _ = setup_ambiente
+        material = criar_material(
+            turma=turma,
+            autor=prof,
+            titulo="Apostila",
+            arquivo=SimpleUploadedFile("apostila.pdf", b"dados"),
+        )
+        caminho_antigo = material.arquivo.path
+
+        with pytest.raises(ValidationError):
+            atualizar_material(
+                material=material,
+                autor=prof,
+                titulo="Apostila atualizada",
+                arquivo=SimpleUploadedFile("invalido.exe", b"dados"),
+            )
+
+        material.refresh_from_db()
+        assert material.arquivo.path == caminho_antigo
+        assert os.path.exists(caminho_antigo)
+
+    def test_falha_no_salvamento_preserva_arquivo_anterior(self, setup_ambiente, monkeypatch):
+        turma, prof, _, _, _ = setup_ambiente
+        material = criar_material(
+            turma=turma,
+            autor=prof,
+            titulo="Apostila",
+            arquivo=SimpleUploadedFile("apostila.pdf", b"dados"),
+        )
+        caminho_antigo = material.arquivo.path
+
+        def falhar_salvamento(*args, **kwargs):
+            raise DatabaseError("falha de banco simulada")
+
+        monkeypatch.setattr(MaterialAcademico, "save", falhar_salvamento)
+
+        with pytest.raises(DatabaseError):
+            atualizar_material(
+                material=material,
+                autor=prof,
+                titulo="Apostila atualizada",
+                arquivo=SimpleUploadedFile("nova.pdf", b"dados"),
+            )
+
+        assert os.path.exists(caminho_antigo)
