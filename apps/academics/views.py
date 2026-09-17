@@ -1,3 +1,5 @@
+from django import forms
+from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse
@@ -6,8 +8,8 @@ from django.views.decorators.http import require_POST
 
 from accounts.decorators import role_required
 from accounts.models import UserRole
-from .models import Curso, Disciplina, Turma
-from .forms import CursoForm, DisciplinaForm, TurmaForm
+from .models import Curso, Disciplina, Turma, HorarioTurma
+from .forms import CursoForm, DisciplinaForm, TurmaForm, HorarioTurmaForm
 
 @role_required(UserRole.COORDENACAO)
 def index_view(request):
@@ -198,4 +200,65 @@ def turma_inactivate_view(request, pk):
         return response
         
     return redirect('academics:index')
+
+
+@role_required(UserRole.COORDENACAO)
+def turma_horarios_view(request, turma_pk):
+    turma = get_object_or_404(Turma, pk=turma_pk)
+    horarios = turma.horarios_aula.all().order_by('dia_semana', 'hora_inicio')
+    
+    if request.method == 'POST':
+        form = HorarioTurmaForm(request.POST)
+        if form.is_valid():
+            horario = form.save(commit=False)
+            horario.turma = turma
+            try:
+                horario.full_clean()
+                horario.save()
+                messages.success(request, _("Horário adicionado com sucesso!"))
+                
+                if request.headers.get('HX-Request'):
+                    response = render(request, 'includes/messages.html')
+                    response['HX-Redirect'] = reverse('academics:turma_horarios', args=[turma.pk])
+                    return response
+                return redirect('academics:turma_horarios', turma_pk=turma.pk)
+            except ValidationError as e:
+                for field, errors in e.message_dict.items():
+                    for error in errors:
+                        form.add_error(field if field != '__all__' else None, error)
+                messages.error(request, _("Não foi possível salvar o horário devido a um conflito."))
+        else:
+            messages.error(request, _("Por favor, corrija os erros no formulário abaixo."))
+    else:
+        form = HorarioTurmaForm(initial={'turma': turma})
+    
+    if 'turma' in form.fields:
+        form.fields['turma'].widget = forms.HiddenInput()
+        form.fields['turma'].initial = turma.pk
+
+    context = {
+        'title': f"Grade de Horários - {turma.disciplina.nome} ({turma.periodo_letivo})",
+        'turma': turma,
+        'horarios': horarios,
+        'form': form,
+    }
+    return render(request, 'academics/turma_horarios.html', context)
+
+
+@role_required(UserRole.COORDENACAO)
+@require_POST
+def horario_delete_view(request, pk):
+    horario = get_object_or_404(HorarioTurma, pk=pk)
+    turma_pk = horario.turma.pk
+    horario.delete()
+    
+    messages.warning(request, _("Horário de aula removido com sucesso."))
+    
+    if request.headers.get('HX-Request'):
+        response = render(request, 'includes/messages.html')
+        response['HX-Redirect'] = reverse('academics:turma_horarios', args=[turma_pk])
+        return response
+        
+    return redirect('academics:turma_horarios', turma_pk=turma_pk)
+
 

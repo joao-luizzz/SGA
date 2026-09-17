@@ -10,7 +10,11 @@ def validar_horario_turma(horario_turma):
     3. Conflito de Turma: Turma alocada em duas disciplinas/aulas simultâneas no mesmo dia e horário sobrepostos no período letivo.
     4. Conflito de Sala: Sala alocada para outra turma no mesmo dia, horário sobrepostos e período letivo.
     """
-    turma = horario_turma.turma
+    from django.core.exceptions import ObjectDoesNotExist
+    try:
+        turma = horario_turma.turma
+    except ObjectDoesNotExist:
+        return
     dia = horario_turma.dia_semana
     inicio = horario_turma.hora_inicio
     fim = horario_turma.hora_fim

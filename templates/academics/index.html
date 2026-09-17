@@ -288,6 +288,9 @@
                     </td>
                     <td class="text-end pe-4">
                       <div class="btn-group" role="group">
+                        <a href="{% url 'academics:turma_horarios' turma.pk %}" class="btn btn-sm btn-outline-primary" title="{% trans 'Gerenciar Grade Horária' %}">
+                          <i class="bi bi-clock"></i>
+                        </a>
                         <a href="{% url 'academics:turma_update' turma.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Editar' %}">
                           <i class="bi bi-pencil"></i>
                         </a>

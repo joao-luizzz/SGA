@@ -282,3 +282,126 @@ class TestTurmaViews:
                 response = client.get(url)
             assert response.status_code == 403
 
+
+@pytest.mark.django_db
+class TestHorarioTurmaViews:
+    @pytest.fixture
+    def setup_dados_views(self):
+        curso = Curso.objects.create(nome="Analise de Sistemas", codigo="ADS")
+        disc = Disciplina.objects.create(nome="POO", codigo="ADS-POO", carga_horaria=80, curso=curso)
+        turma = Turma.objects.create(
+            disciplina=disc,
+            periodo_letivo="2026/1",
+            vagas_maximas=40,
+            sala="Sala 101",
+            ativo=True
+        )
+        return {
+            'curso': curso,
+            'disciplina': disc,
+            'turma': turma
+        }
+
+    @pytest.mark.parametrize('role', [UserRole.ALUNO, UserRole.PROFESSOR, UserRole.SECRETARIA])
+    def test_perfis_nao_autorizados_bloqueados_em_views_de_horario(self, client, password, setup_dados_views, role):
+        user = CustomUser.objects.create_user(
+            email=f'user_{role.lower()}_horarios@sga.edu.br',
+            full_name='Usuário de Teste',
+            password=password,
+            role=role
+        )
+        client.login(username=user.email, password=password)
+        turma = setup_dados_views['turma']
+        
+        url_manage = reverse('academics:turma_horarios', args=[turma.pk])
+        response = client.get(url_manage)
+        assert response.status_code == 403
+
+        from academics.models import HorarioTurma
+        from datetime import time
+        horario = HorarioTurma.objects.create(
+            turma=turma,
+            dia_semana='SEG',
+            hora_inicio=time(19, 0),
+            hora_fim=time(20, 40)
+        )
+        url_delete = reverse('academics:horario_delete', args=[horario.pk])
+        response = client.post(url_delete)
+        assert response.status_code == 403
+
+    def test_coordenacao_acessa_turma_horarios(self, client, user_coordenacao, password, setup_dados_views):
+        client.login(username=user_coordenacao.email, password=password)
+        turma = setup_dados_views['turma']
+        url = reverse('academics:turma_horarios', args=[turma.pk])
+        response = client.get(url)
+        assert response.status_code == 200
+        assert "Gerenciar Grade Horária".encode() in response.content
+        assert turma.disciplina.nome.encode() in response.content
+
+    def test_coordenacao_cadastra_horario_com_sucesso(self, client, user_coordenacao, password, setup_dados_views):
+        client.login(username=user_coordenacao.email, password=password)
+        turma = setup_dados_views['turma']
+        url = reverse('academics:turma_horarios', args=[turma.pk])
+        
+        data = {
+            'turma': turma.pk,
+            'dia_semana': 'TER',
+            'hora_inicio': '19:00',
+            'hora_fim': '20:40',
+        }
+        response = client.post(url, data)
+        assert response.status_code == 302
+        assert response.url == reverse('academics:turma_horarios', args=[turma.pk])
+        
+        from academics.models import HorarioTurma
+        assert HorarioTurma.objects.filter(turma=turma, dia_semana='TER').exists()
+
+    def test_coordenacao_cadastra_horario_com_conflito(self, client, user_coordenacao, password, setup_dados_views):
+        client.login(username=user_coordenacao.email, password=password)
+        turma = setup_dados_views['turma']
+        url = reverse('academics:turma_horarios', args=[turma.pk])
+        
+        from academics.models import HorarioTurma
+        from datetime import time
+        HorarioTurma.objects.create(
+            turma=turma,
+            dia_semana='TER',
+            hora_inicio=time(19, 0),
+            hora_fim=time(20, 40)
+        )
+
+        data = {
+            'turma': turma.pk,
+            'dia_semana': 'TER',
+            'hora_inicio': '20:00',
+            'hora_fim': '21:00',
+        }
+        response = client.post(url, data)
+        assert response.status_code == 200
+        assert not response.context['form'].is_valid()
+        assert len(response.context['form'].errors) > 0
+        
+        from django.contrib.messages import get_messages
+        messages = list(get_messages(response.wsgi_request))
+        assert any("Por favor, corrija os erros no formulário abaixo" in str(m) for m in messages)
+
+    def test_coordenacao_deleta_horario_com_sucesso(self, client, user_coordenacao, password, setup_dados_views):
+        client.login(username=user_coordenacao.email, password=password)
+        turma = setup_dados_views['turma']
+        
+        from academics.models import HorarioTurma
+        from datetime import time
+        horario = HorarioTurma.objects.create(
+            turma=turma,
+            dia_semana='TER',
+            hora_inicio=time(19, 0),
+            hora_fim=time(20, 40)
+        )
+
+        url = reverse('academics:horario_delete', args=[horario.pk])
+        response = client.post(url)
+        assert response.status_code == 302
+        assert response.url == reverse('academics:turma_horarios', args=[turma.pk])
+        assert not HorarioTurma.objects.filter(pk=horario.pk).exists()
+
+
