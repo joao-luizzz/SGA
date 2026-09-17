@@ -2,7 +2,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 import re
 from accounts.models import CustomUser
-from .models import Curso, Disciplina, Turma
+from .models import Curso, Disciplina, Turma, HorarioTurma
 
 class BaseSGAForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -119,3 +119,22 @@ class TurmaForm(BaseSGAForm):
         if not re.match(r'^\d{4}/[1-2]$', periodo_letivo):
             raise forms.ValidationError(_("O período letivo deve seguir o formato AAAA/N (ex: 2026/1)."))
         return periodo_letivo
+
+
+class HorarioTurmaForm(BaseSGAForm):
+    class Meta:
+        model = HorarioTurma
+        fields = ['turma', 'dia_semana', 'hora_inicio', 'hora_fim']
+        widgets = {
+            'hora_inicio': forms.TimeInput(format='%H:%M', attrs={'type': 'time'}),
+            'hora_fim': forms.TimeInput(format='%H:%M', attrs={'type': 'time'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from .models import Turma
+        self.fields['turma'].queryset = Turma.objects.filter(ativo=True)
+        if self.instance and self.instance.pk:
+            if not self.instance.turma.ativo:
+                self.fields['turma'].queryset = Turma.objects.filter(pk=self.instance.turma.pk) | self.fields['turma'].queryset
+

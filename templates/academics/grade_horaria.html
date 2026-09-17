@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} — SGA{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <!-- Cabeçalho -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-3 border-bottom">
+    <div>
+      <h3 class="page-title mb-1">{{ title }}</h3>
+      <p class="page-subtitle mb-0 text-muted">
+        {% if role == 'ALUNO' %}
+          {% translate "Sua grade de aulas semanais ativa com base nas suas matrículas no semestre atual." %}
+        {% elif role == 'PROFESSOR' %}
+          {% translate "Sua agenda semanal de aulas sob sua responsabilidade neste período letivo." %}
+        {% else %}
+          {% translate "Gerenciamento e consulta geral da grade de horários institucional." %}
+        {% endif %}
+      </p>
+    </div>
+    <div>
+      <span class="badge badge-sga-primary px-3 py-1.5 fs-7">
+        <i class="bi bi-calendar3 me-1"></i> {% translate "Semanal" %}
+      </span>
+    </div>
+  </div>
+
+  <!-- Filtros para Coordenacao/Secretaria -->
+  {% if role == 'COORDENACAO' or role == 'SECRETARIA' %}
+  <div class="card mb-4 shadow-sm border-0">
+    <div class="card-body bg-light rounded">
+      <form method="get" class="row g-3 align-items-end">
+        <div class="col-12 col-md-4">
+          <label for="id_curso" class="form-label fw-bold text-dark small">{% translate "Filtrar por Curso" %}</label>
+          <select name="curso" id="id_curso" class="form-select">
+            <option value="">{% translate "Todos os Cursos" %}</option>
+            {% for c in cursos %}
+              <option value="{{ c.pk }}" {% if selected_curso == c.pk %}selected{% endif %}>{{ c.nome }} ({{ c.codigo }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <label for="id_periodo" class="form-label fw-bold text-dark small">{% translate "Filtrar por Período Letivo" %}</label>
+          <select name="periodo" id="id_periodo" class="form-select">
+            <option value="">{% translate "Todos os Períodos" %}</option>
+            {% for p in periodos %}
+              <option value="{{ p }}" {% if selected_periodo == p %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-12 col-md-4 d-flex gap-2">
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-filter me-1"></i> {% translate "Aplicar Filtros" %}
+          </button>
+          <a href="{% url 'academics:grade_horaria' %}" class="btn btn-outline-secondary w-100">
+            <i class="bi bi-x-circle me-1"></i> {% translate "Limpar" %}
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Grid de Aulas Semanal -->
+  <div class="row g-4">
+    {% for dia_nome, horarios in grade_ordenada %}
+      <div class="col-12 col-lg-4 col-md-6">
+        <div class="card h-100 shadow-sm border-0 border-top border-4 border-primary">
+          <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark d-flex align-items-center">
+              <i class="bi bi-calendar-event text-primary me-2"></i>
+              {{ dia_nome }}
+            </h5>
+            <span class="badge bg-secondary-subtle text-secondary rounded-pill small">
+              {{ horarios|length }} {% if horarios|length == 1 %}{% translate "aula" %}{% else %}{% translate "aulas" %}{% endif %}
+            </span>
+          </div>
+
+          <div class="card-body p-3">
+            {% if horarios %}
+              <div class="d-flex flex-column gap-3">
+                {% for h in horarios %}
+                  <div class="p-3 bg-light rounded border border-start border-3 border-success shadow-sm">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <span class="badge bg-primary-subtle text-primary small">
+                        <i class="bi bi-clock me-1"></i>
+                        {{ h.hora_inicio|time:"H:i" }} - {{ h.hora_fim|time:"H:i" }}
+                      </span>
+                      <small class="text-muted fw-bold">{{ h.turma.periodo_letivo }}</small>
+                    </div>
+
+                    <h6 class="fw-bold text-dark mb-1">{{ h.turma.disciplina.nome }}</h6>
+                    <p class="mb-2 text-muted small">
+                      <span class="badge bg-light text-dark border me-1">{{ h.turma.disciplina.codigo }}</span>
+                      {% if h.turma.sala_aula %}
+                        <span class="text-secondary"><i class="bi bi-geo-alt me-1"></i>{% translate "Sala:" %} {{ h.turma.sala_aula }}</span>
+                      {% endif %}
+                    </p>
+
+                    <div class="d-flex justify-content-between align-items-center pt-2 border-top border-2 border-dashed">
+                      {% if role == 'ALUNO' %}
+                        <div class="small text-muted">
+                          <i class="bi bi-person-video3 me-1"></i>
+                          {% if h.turma.professor %}
+                            {{ h.turma.professor.full_name }}
+                          {% else %}
+                            <em class="text-danger">{% translate "Sem professor" %}</em>
+                          {% endif %}
+                        </div>
+                      {% elif role == 'PROFESSOR' %}
+                        <div class="small text-muted">
+                          <i class="bi bi-hash me-1"></i>
+                          {% translate "Turma:" %} {{ h.turma.codigo }}
+                        </div>
+                      {% else %}
+                        <div class="small text-muted mb-1">
+                          <div><i class="bi bi-person-video3 me-1"></i><strong>Prof:</strong> {{ h.turma.professor.full_name|default:"--" }}</div>
+                          <div><i class="bi bi-hash me-1"></i><strong>Turma:</strong> {{ h.turma.codigo }}</div>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="text-center py-5 text-muted">
+                <i class="bi bi-calendar-x fs-1 opacity-50 mb-2 d-block"></i>
+                <span class="small">{% translate "Nenhuma aula agendada" %}</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12 text-center py-5 bg-white rounded shadow-sm">
+        <i class="bi bi-calendar-x fs-1 text-muted mb-3 d-block"></i>
+        <h4>{% translate "Nenhuma grade horária disponível" %}</h4>
+        <p class="text-muted small">{% translate "Não encontramos horários de aula agendados para o seu perfil no momento." %}</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

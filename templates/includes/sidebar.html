@@ -15,6 +15,11 @@
       <span>Mural de Avisos</span>
     </a>
 
+    <a href="{% url 'academics:grade_horaria' %}" class="sidebar-link">
+      <i class="bi bi-calendar3 text-primary"></i>
+      <span>Grade Horária</span>
+    </a>
+
     {% if user.role == 'ALUNO' %}
       <a href="{% url 'enrollment:index' %}" class="sidebar-link">
         <i class="bi bi-card-checklist text-info"></i>

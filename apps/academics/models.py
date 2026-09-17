@@ -218,3 +218,124 @@ class Turma(models.Model):
             return 0
         disponiveis = self.vagas_maximas - self.vagas_ocupadas
         return disponiveis if disponiveis > 0 else 0
+
+
+class HorarioTurma(models.Model):
+    DIA_SEMANA_CHOICES = [
+        ('SEG', _('Segunda-feira')),
+        ('TER', _('Terça-feira')),
+        ('QUA', _('Quarta-feira')),
+        ('QUI', _('Quinta-feira')),
+        ('SEX', _('Sexta-feira')),
+        ('SAB', _('Sábado')),
+        ('DOM', _('Domingo')),
+    ]
+
+    turma = models.ForeignKey(
+        Turma,
+        on_delete=models.CASCADE,
+        related_name='horarios_aula',
+        verbose_name=_('turma')
+    )
+    dia_semana = models.CharField(
+        _('dia da semana'),
+        max_length=3,
+        choices=DIA_SEMANA_CHOICES
+    )
+    hora_inicio = models.TimeField(_('hora de início'))
+    hora_fim = models.TimeField(_('hora de fim'))
+
+    class Meta:
+        verbose_name = _('horário de aula')
+        verbose_name_plural = _('horários de aula')
+        ordering = ['dia_semana', 'hora_inicio']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['turma', 'dia_semana', 'hora_inicio', 'hora_fim'],
+                name='unique_horario_turma'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.turma} - {self.get_dia_semana_display()} {self.hora_inicio.strftime('%H:%M')}-{self.hora_fim.strftime('%H:%M')}"
+
+    def clean(self):
+        super().clean()
+        from academics.services import validar_horario_turma
+        validar_horario_turma(self)
+
+class EventoCalendario(models.Model):
+    TIPO_EVENTO_CHOICES = [
+        ('AULA', _('Aula')),
+        ('PROVA', _('Prova')),
+        ('FERIADO', _('Feriado')),
+        ('REUNIAO', _('Reunião')),
+        ('OUTRO', _('Outro')),
+    ]
+
+    ESCOPO_CHOICES = [
+        ('GERAL', _('Geral')),
+        ('CURSO', _('Curso')),
+        ('TURMA', _('Turma')),
+        ('PAPEL', _('Papel')),
+    ]
+
+    titulo = models.CharField(_('título'), max_length=150)
+    descricao = models.TextField(_('descrição'), blank=True, null=True)
+    tipo = models.CharField(_('tipo'), max_length=30, choices=TIPO_EVENTO_CHOICES, default='AULA')
+    inicio = models.DateTimeField(_('início'))
+    fim = models.DateTimeField(_('fim'))
+    escopo = models.CharField(_('escopo'), max_length=15, choices=ESCOPO_CHOICES, default='GERAL')
+    papel_destino = models.CharField(
+        _('papel de destino'),
+        max_length=15,
+        blank=True,
+        null=True,
+        choices=[
+            ('ALUNO', _('Aluno')),
+            ('PROFESSOR', _('Professor')),
+            ('SECRETARIA', _('Secretaria')),
+            ('COORDENACAO', _('Coordenação')),
+        ]
+    )
+    curso = models.ForeignKey(
+        Curso,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name=_('curso')
+    )
+    turma = models.ForeignKey(
+        Turma,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name=_('turma')
+    )
+    autor = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('autor')
+    )
+    ativo = models.BooleanField(_('ativo'), default=True)
+    created_at = models.DateTimeField(_('criado em'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('atualizado em'), auto_now=True)
+
+    class Meta:
+        verbose_name = _('evento do calendário')
+        verbose_name_plural = _('eventos do calendário')
+        ordering = ['inicio']
+
+    def __str__(self):
+        return f"{self.titulo} ({self.get_tipo_display()}) - {self.inicio.strftime('%d/%m/%Y %H:%M')}"
+
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        if self.inicio and self.fim and self.inicio >= self.fim:
+            raise ValidationError({
+                'inicio': _("A data/hora de início deve ser anterior à de término.")
+            })
+

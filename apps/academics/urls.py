@@ -21,4 +21,11 @@ urlpatterns = [
     path('turmas/criar/', views.turma_create_view, name='turma_create'),
     path('turmas/<int:pk>/editar/', views.turma_update_view, name='turma_update'),
     path('turmas/<int:pk>/inativar/', views.turma_inactivate_view, name='turma_inactivate'),
+    
+    # Horários de Turma
+    path('turmas/<int:turma_pk>/horarios/', views.turma_horarios_view, name='turma_horarios'),
+    path('horarios/<int:pk>/deletar/', views.horario_delete_view, name='horario_delete'),
+    
+    # Grade Horária Semanal (Visão Geral por Perfil)
+    path('grade-horaria/', views.grade_horaria_view, name='grade_horaria'),
 ]
