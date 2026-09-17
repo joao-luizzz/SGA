@@ -218,7 +218,8 @@ def turma_horarios_view(request, turma_pk):
                 messages.success(request, _("Horário adicionado com sucesso!"))
                 
                 if request.headers.get('HX-Request'):
-                    response = render(request, 'includes/messages.html')
+                    from django.http import HttpResponse
+                    response = HttpResponse()
                     response['HX-Redirect'] = reverse('academics:turma_horarios', args=[turma.pk])
                     return response
                 return redirect('academics:turma_horarios', turma_pk=turma.pk)
@@ -255,7 +256,8 @@ def horario_delete_view(request, pk):
     messages.warning(request, _("Horário de aula removido com sucesso."))
     
     if request.headers.get('HX-Request'):
-        response = render(request, 'includes/messages.html')
+        from django.http import HttpResponse
+        response = HttpResponse()
         response['HX-Redirect'] = reverse('academics:turma_horarios', args=[turma_pk])
         return response
         
