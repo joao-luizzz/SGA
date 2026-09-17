@@ -25,4 +25,7 @@ urlpatterns = [
     # Horários de Turma
     path('turmas/<int:turma_pk>/horarios/', views.turma_horarios_view, name='turma_horarios'),
     path('horarios/<int:pk>/deletar/', views.horario_delete_view, name='horario_delete'),
+    
+    # Grade Horária Semanal (Visão Geral por Perfil)
+    path('grade-horaria/', views.grade_horaria_view, name='grade_horaria'),
 ]

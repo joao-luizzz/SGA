@@ -405,3 +405,87 @@ class TestHorarioTurmaViews:
         assert not HorarioTurma.objects.filter(pk=horario.pk).exists()
 
 
+    def test_aluno_acessa_sua_grade_com_sucesso(self, client, user_aluno, password, setup_dados_views):
+        client.login(username=user_aluno.email, password=password)
+        
+        from academics.models import HorarioTurma
+        from datetime import time
+        turma = setup_dados_views['turma']
+        
+        # Matricula o aluno ativamente na turma
+        from enrollment.models import Matricula
+        Matricula.objects.create(
+            aluno=user_aluno,
+            turma=turma,
+            status='ATIVA'
+        )
+        
+        horario = HorarioTurma.objects.create(
+            turma=turma,
+            dia_semana='SEG',
+            hora_inicio=time(19, 0),
+            hora_fim=time(20, 40)
+        )
+        
+        url = reverse('academics:grade_horaria')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert "Minha Grade Horária".encode() in response.content
+        assert turma.disciplina.nome.encode() in response.content
+
+    def test_professor_acessa_sua_grade_com_sucesso(self, client, user_professor, password, setup_dados_views):
+        client.login(username=user_professor.email, password=password)
+        
+        from academics.models import HorarioTurma
+        from datetime import time
+        turma = setup_dados_views['turma']
+        turma.professor = user_professor
+        turma.save()
+        
+        horario = HorarioTurma.objects.create(
+            turma=turma,
+            dia_semana='QUA',
+            hora_inicio=time(19, 0),
+            hora_fim=time(20, 40)
+        )
+        
+        url = reverse('academics:grade_horaria')
+        response = client.get(url)
+        assert response.status_code == 200
+        assert "Minha Grade Horária".encode() in response.content
+        assert turma.disciplina.nome.encode() in response.content
+
+    def test_coordenacao_acessa_grade_com_filtros(self, client, user_coordenacao, password, setup_dados_views):
+        client.login(username=user_coordenacao.email, password=password)
+        
+        from academics.models import HorarioTurma
+        from datetime import time
+        turma = setup_dados_views['turma']
+        
+        horario = HorarioTurma.objects.create(
+            turma=turma,
+            dia_semana='QUI',
+            hora_inicio=time(19, 0),
+            hora_fim=time(20, 40)
+        )
+        
+        url = reverse('academics:grade_horaria')
+        
+        # Acesso padrão
+        response = client.get(url)
+        assert response.status_code == 200
+        assert "Grade Horária Geral".encode() in response.content
+        assert turma.disciplina.nome.encode() in response.content
+        
+        # Acesso filtrando por curso correto
+        response = client.get(url, {'curso': turma.disciplina.curso.pk})
+        assert response.status_code == 200
+        assert turma.disciplina.nome.encode() in response.content
+        
+        # Acesso filtrando por outro curso inexistente/vazio
+        response = client.get(url, {'curso': 99999})
+        assert response.status_code == 200
+        assert turma.disciplina.nome.encode() not in response.content
+
+
+

@@ -262,3 +262,82 @@ def horario_delete_view(request, pk):
     return redirect('academics:turma_horarios', turma_pk=turma_pk)
 
 
+@role_required(UserRole.ALUNO, UserRole.PROFESSOR, UserRole.SECRETARIA, UserRole.COORDENACAO)
+def grade_horaria_view(request):
+    from datetime import time
+    from django.db.models import Prefetch
+    from academics.models import Curso, Turma
+    
+    role = request.user.role
+    horarios_list = []
+    
+    if role == UserRole.ALUNO:
+        horarios_list = HorarioTurma.objects.filter(
+            turma__matriculas__aluno=request.user,
+            turma__matriculas__status='ATIVA',
+            turma__ativo=True
+        ).select_related('turma__disciplina', 'turma__professor', 'turma__disciplina__curso')
+    elif role == UserRole.PROFESSOR:
+        horarios_list = HorarioTurma.objects.filter(
+            turma__professor=request.user,
+            turma__ativo=True
+        ).select_related('turma__disciplina', 'turma__disciplina__curso')
+    else:
+        horarios_list = HorarioTurma.objects.filter(
+            turma__ativo=True
+        ).select_related('turma__disciplina', 'turma__professor', 'turma__disciplina__curso')
+        
+        # Filtros de curso e período para Coordenação/Secretaria
+        curso_id = request.GET.get('curso')
+        if curso_id:
+            horarios_list = horarios_list.filter(turma__disciplina__curso_id=curso_id)
+            
+        periodo = request.GET.get('periodo')
+        if periodo:
+            horarios_list = horarios_list.filter(turma__periodo_letivo=periodo)
+
+    DIAS_SEMANA_ORDEM = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM']
+    DIAS_LABELS = {
+        'SEG': _('Segunda-feira'),
+        'TER': _('Terça-feira'),
+        'QUA': _('Quarta-feira'),
+        'QUI': _('Quinta-feira'),
+        'SEX': _('Sexta-feira'),
+        'SAB': _('Sábado'),
+        'DOM': _('Domingo'),
+    }
+    
+    grade_por_dia = {dia: [] for dia in DIAS_SEMANA_ORDEM}
+    for h in horarios_list:
+        if h.dia_semana in grade_por_dia:
+            grade_por_dia[h.dia_semana].append(h)
+            
+    for dia in grade_por_dia:
+        grade_por_dia[dia].sort(key=lambda x: x.hora_inicio or time(0, 0))
+
+    cursos = []
+    periodos = []
+    if role in [UserRole.SECRETARIA, UserRole.COORDENACAO]:
+        cursos = Curso.objects.filter(ativo=True).order_by('nome')
+        periodos = Turma.objects.filter(ativo=True).values_list('periodo_letivo', flat=True).distinct().order_by('-periodo_letivo')
+
+    # Convertemos para lista de tuplas para iteração ordenada amigável no template
+    grade_ordenada = [
+        (DIAS_LABELS[dia], grade_por_dia[dia])
+        for dia in DIAS_SEMANA_ORDEM
+        if grade_por_dia[dia] or role in [UserRole.SECRETARIA, UserRole.COORDENACAO]
+    ]
+
+    context = {
+        'title': _("Minha Grade Horária") if role in [UserRole.ALUNO, UserRole.PROFESSOR] else _("Grade Horária Geral"),
+        'grade_ordenada': grade_ordenada,
+        'cursos': cursos,
+        'periodos': periodos,
+        'selected_curso': int(curso_id) if (request.GET.get('curso') and request.GET.get('curso').isdigit()) else None,
+        'selected_periodo': request.GET.get('periodo'),
+        'role': role,
+    }
+    return render(request, 'academics/grade_horaria.html', context)
+
+
+
