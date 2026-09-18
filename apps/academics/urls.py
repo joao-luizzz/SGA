@@ -6,6 +6,8 @@ app_name = 'academics'
 urlpatterns = [
     # Catálogo Acadêmico (Listagem Unificada)
     path('', views.index_view, name='index'),
+    path('relatorios/', views.relatorios_view, name='relatorios'),
+    path('relatorios/exportar.csv', views.relatorios_csv_view, name='relatorios_csv'),
     
     # Cursos
     path('cursos/criar/', views.curso_create_view, name='curso_create'),

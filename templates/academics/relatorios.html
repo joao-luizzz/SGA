@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} — SGA{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div>
+      <h3 class="page-title mb-1"><i class="bi bi-bar-chart-line text-success me-2"></i>{{ title }}</h3>
+      <p class="page-subtitle mb-0">Alunos, ocupação de vagas, notas, resultados e frequência por turma.</p>
+    </div>
+    <a class="btn btn-outline-success btn-sm" href="{% url 'academics:relatorios_csv' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}">
+      <i class="bi bi-download me-1"></i> Exportar CSV
+    </a>
+  </div>
+
+  <form method="get" class="card border mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label" for="id_curso">Curso</label>
+          <select class="form-select" id="id_curso" name="curso">
+            <option value="">Todos os cursos</option>
+            {% for curso in cursos %}<option value="{{ curso.pk }}" {% if filtros.curso == curso.pk|stringformat:'s' %}selected{% endif %}>{{ curso.nome }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label" for="id_periodo">Período</label>
+          <select class="form-select" id="id_periodo" name="periodo">
+            <option value="">Todos os períodos</option>
+            {% for periodo in periodos %}<option value="{{ periodo }}" {% if filtros.periodo == periodo %}selected{% endif %}>{{ periodo }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="id_turma">Turma</label>
+          <select class="form-select" id="id_turma" name="turma">
+            <option value="">Todas as turmas</option>
+            {% for turma in turmas_filtro %}<option value="{{ turma.pk }}" {% if filtros.turma == turma.pk|stringformat:'s' %}selected{% endif %}>{{ turma.disciplina.nome }} — {{ turma.periodo_letivo }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-1 d-grid"><button class="btn btn-primary" type="submit" title="Aplicar filtros"><i class="bi bi-search"></i></button></div>
+      </div>
+    </div>
+  </form>
+
+  {% for turma in turmas %}
+    <section class="card border mb-4">
+      <div class="card-header bg-body d-flex flex-wrap justify-content-between gap-2 align-items-center">
+        <div><strong>{{ turma.disciplina.nome }}</strong> <span class="text-muted">{{ turma.disciplina.curso.nome }} · {{ turma.periodo_letivo }}</span></div>
+        <span class="badge {% if turma.matriculas_ativas >= turma.vagas_maximas %}text-bg-warning{% else %}text-bg-success{% endif %}">{{ turma.matriculas_ativas }}/{{ turma.vagas_maximas }} vagas ocupadas</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle mb-0">
+          <thead><tr><th>Aluno</th><th>Matrícula</th><th>P1</th><th>P2</th><th>Trabalho</th><th>Exame</th><th>Média</th><th>Frequência</th><th>Situação</th></tr></thead>
+          <tbody>
+            {% for linha in linhas %}{% if linha.turma.pk == turma.pk %}
+              {% with resultado=linha.resultado notas=linha.matricula.notas.all %}
+              <tr><td>{{ linha.aluno.full_name }}</td><td>{{ linha.aluno.email }}</td>
+                <td>{% for nota in notas %}{% if nota.tipo == 'P1' %}{{ nota.valor }}{% endif %}{% endfor %}</td>
+                <td>{% for nota in notas %}{% if nota.tipo == 'P2' %}{{ nota.valor }}{% endif %}{% endfor %}</td>
+                <td>{% for nota in notas %}{% if nota.tipo == 'TRABALHO' %}{{ nota.valor }}{% endif %}{% endfor %}</td>
+                <td>{% for nota in notas %}{% if nota.tipo == 'EXAME' %}{{ nota.valor }}{% endif %}{% endfor %}</td>
+                <td>{{ resultado.media_final|default:resultado.media_parcial|default:'-' }}</td>
+                <td>{{ resultado.frequencia.percentual }}%</td><td>{{ resultado.situacao }}</td>
+              </tr>
+              {% endwith %}
+            {% endif %}{% empty %}<tr><td colspan="9" class="text-center text-muted py-3">Nenhum aluno matriculado ativamente.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  {% empty %}<div class="alert alert-info">Nenhuma turma encontrada com os filtros selecionados.</div>{% endfor %}
+</div>
+{% endblock %}
