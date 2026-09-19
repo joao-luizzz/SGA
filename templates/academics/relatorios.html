@@ -61,7 +61,7 @@
                 <td>{{ linha.p2|default_if_none:'-' }}</td>
                 <td>{{ linha.trabalho|default_if_none:'-' }}</td>
                 <td>{{ linha.exame|default_if_none:'-' }}</td>
-                <td>{{ resultado.media_final|default:resultado.media_parcial|default:'-' }}</td>
+                <td>{{ resultado.media_final|default_if_none:resultado.media_parcial|default_if_none:'-' }}</td>
                 <td>{{ resultado.frequencia.percentual }}%</td><td>{{ resultado.situacao }}</td>
               </tr>
               {% endwith %}

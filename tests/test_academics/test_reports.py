@@ -385,3 +385,27 @@ def test_pagina_exibe_estado_vazio_para_turma_sem_matriculas_ativas(
 
     assert response.status_code == 200
     assert 'Nenhum aluno matriculado ativamente.' in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_pagina_preserva_media_parcial_zero(
+    client, user_coordenacao, user_professor, password, dados_relatorio
+):
+    _criar_notas(
+        dados_relatorio['matricula'],
+        user_professor,
+        {
+            TipoAvaliacao.P1: '0.00',
+            TipoAvaliacao.P2: '0.00',
+            TipoAvaliacao.TRABALHO: '0.00',
+        },
+    )
+    client.login(username=user_coordenacao.email, password=password)
+
+    response = client.get(
+        reverse('academics:relatorios'),
+        {'turma': dados_relatorio['turma_ads_1'].pk},
+    )
+
+    assert response.status_code == 200
+    assert '<td>0,00</td>' in response.content.decode()
