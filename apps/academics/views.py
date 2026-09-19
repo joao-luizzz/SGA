@@ -63,7 +63,6 @@ def relatorios_csv_view(request):
     ])
     for linha in relatorio['linhas']:
         turma = linha['turma']
-        notas = {nota.tipo: nota.valor for nota in linha['matricula'].notas.all()}
         resultado = linha['resultado']
         frequencia = resultado['frequencia']
         writer.writerow([
@@ -71,16 +70,16 @@ def relatorios_csv_view(request):
             turma.disciplina.curso.nome,
             turma.periodo_letivo,
             linha['aluno'].full_name,
-            linha['aluno'].email,
+            linha['identificador_matricula'],
             turma.vagas_maximas,
             turma.matriculas_ativas,
             max(turma.vagas_maximas - turma.matriculas_ativas, 0),
-            notas.get('P1', ''),
-            notas.get('P2', ''),
-            notas.get('TRABALHO', ''),
-            notas.get('EXAME', ''),
-            resultado['media_parcial'] or '',
-            resultado['media_final'] or '',
+            linha['p1'] if linha['p1'] is not None else '',
+            linha['p2'] if linha['p2'] is not None else '',
+            linha['trabalho'] if linha['trabalho'] is not None else '',
+            linha['exame'] if linha['exame'] is not None else '',
+            resultado['media_parcial'] if resultado['media_parcial'] is not None else '',
+            resultado['media_final'] if resultado['media_final'] is not None else '',
             resultado['situacao'],
             frequencia['percentual'],
             frequencia['faltas'],
@@ -432,5 +431,3 @@ def grade_horaria_view(request):
         'role': role,
     }
     return render(request, 'academics/grade_horaria.html', context)
-
-

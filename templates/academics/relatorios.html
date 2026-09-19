@@ -54,18 +54,18 @@
         <table class="table table-sm table-hover align-middle mb-0">
           <thead><tr><th>Aluno</th><th>Matrícula</th><th>P1</th><th>P2</th><th>Trabalho</th><th>Exame</th><th>Média</th><th>Frequência</th><th>Situação</th></tr></thead>
           <tbody>
-            {% for linha in linhas %}{% if linha.turma.pk == turma.pk %}
-              {% with resultado=linha.resultado notas=linha.matricula.notas.all %}
-              <tr><td>{{ linha.aluno.full_name }}</td><td>{{ linha.aluno.email }}</td>
-                <td>{% for nota in notas %}{% if nota.tipo == 'P1' %}{{ nota.valor }}{% endif %}{% endfor %}</td>
-                <td>{% for nota in notas %}{% if nota.tipo == 'P2' %}{{ nota.valor }}{% endif %}{% endfor %}</td>
-                <td>{% for nota in notas %}{% if nota.tipo == 'TRABALHO' %}{{ nota.valor }}{% endif %}{% endfor %}</td>
-                <td>{% for nota in notas %}{% if nota.tipo == 'EXAME' %}{{ nota.valor }}{% endif %}{% endfor %}</td>
+            {% for linha in turma.linhas_relatorio %}
+              {% with resultado=linha.resultado %}
+              <tr><td>{{ linha.aluno.full_name }}</td><td>{{ linha.identificador_matricula }}</td>
+                <td>{{ linha.p1|default_if_none:'-' }}</td>
+                <td>{{ linha.p2|default_if_none:'-' }}</td>
+                <td>{{ linha.trabalho|default_if_none:'-' }}</td>
+                <td>{{ linha.exame|default_if_none:'-' }}</td>
                 <td>{{ resultado.media_final|default:resultado.media_parcial|default:'-' }}</td>
                 <td>{{ resultado.frequencia.percentual }}%</td><td>{{ resultado.situacao }}</td>
               </tr>
               {% endwith %}
-            {% endif %}{% empty %}<tr><td colspan="9" class="text-center text-muted py-3">Nenhum aluno matriculado ativamente.</td></tr>{% endfor %}
+            {% empty %}<tr><td colspan="9" class="text-center text-muted py-3">Nenhum aluno matriculado ativamente.</td></tr>{% endfor %}
           </tbody>
         </table>
       </div>

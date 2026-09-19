@@ -39,8 +39,15 @@ def get_frequencia_do_aluno_na_turma(aluno, turma) -> dict:
     Returns:
         dict com keys: total_aulas, presencas, faltas, percentual, situacao
     """
-    registros = Falta.objects.filter(turma=turma, aluno=aluno)
-    total_aulas = registros.count()
+    faltas_prefetched = getattr(turma, 'faltas_relatorio', None)
+    if faltas_prefetched is None:
+        registros = Falta.objects.filter(turma=turma, aluno=aluno)
+        total_aulas = registros.count()
+        presencas = registros.filter(presente=True).count() if total_aulas else 0
+    else:
+        registros = [falta for falta in faltas_prefetched if falta.aluno_id == aluno.pk]
+        total_aulas = len(registros)
+        presencas = sum(falta.presente for falta in registros)
 
     if total_aulas == 0:
         return {
@@ -51,7 +58,6 @@ def get_frequencia_do_aluno_na_turma(aluno, turma) -> dict:
             'situacao': SituacaoFrequencia.SEM_AULAS,
         }
 
-    presencas = registros.filter(presente=True).count()
     ausencias = total_aulas - presencas
     percentual = Decimal(str(round((presencas / total_aulas) * 100, 2)))
 
