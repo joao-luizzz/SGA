@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.http import HttpResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
@@ -11,6 +12,7 @@ from accounts.decorators import role_required
 from accounts.models import UserRole
 from .models import Curso, Disciplina, Turma, HorarioTurma
 from .forms import CursoForm, DisciplinaForm, TurmaForm, HorarioTurmaForm
+from .selectors import get_relatorio_turmas
 
 @role_required(UserRole.COORDENACAO)
 def index_view(request):
@@ -24,6 +26,65 @@ def index_view(request):
         'turmas': sorted(turmas, key=lambda t: (not t.ativo, t.periodo_letivo, t.disciplina.nome)),
     }
     return render(request, 'academics/index.html', context)
+
+
+@role_required(UserRole.COORDENACAO)
+def relatorios_view(request):
+    context = get_relatorio_turmas(
+        curso_id=request.GET.get('curso'),
+        periodo=request.GET.get('periodo'),
+        turma_id=request.GET.get('turma'),
+    )
+    context['title'] = 'Relatórios Acadêmicos'
+    context['turmas_filtro'] = Turma.objects.filter(ativo=True).select_related(
+        'disciplina', 'disciplina__curso'
+    ).order_by('-periodo_letivo', 'disciplina__nome')
+    return render(request, 'academics/relatorios.html', context)
+
+
+@role_required(UserRole.COORDENACAO)
+def relatorios_csv_view(request):
+    import csv
+
+    relatorio = get_relatorio_turmas(
+        curso_id=request.GET.get('curso'),
+        periodo=request.GET.get('periodo'),
+        turma_id=request.GET.get('turma'),
+    )
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="relatorio-academico.csv"'
+    response.write('\ufeff')
+    writer = csv.writer(response)
+    writer.writerow([
+        'Turma', 'Curso', 'Periodo', 'Aluno', 'Matricula',
+        'Vagas maximas', 'Matriculados ativos', 'Vagas disponiveis',
+        'P1', 'P2', 'Trabalho', 'Exame', 'Media parcial', 'Media final',
+        'Situacao', 'Frequencia (%)', 'Faltas',
+    ])
+    for linha in relatorio['linhas']:
+        turma = linha['turma']
+        resultado = linha['resultado']
+        frequencia = resultado['frequencia']
+        writer.writerow([
+            turma.disciplina.nome,
+            turma.disciplina.curso.nome,
+            turma.periodo_letivo,
+            linha['aluno'].full_name,
+            linha['identificador_matricula'],
+            turma.vagas_maximas,
+            turma.matriculas_ativas,
+            max(turma.vagas_maximas - turma.matriculas_ativas, 0),
+            linha['p1'] if linha['p1'] is not None else '',
+            linha['p2'] if linha['p2'] is not None else '',
+            linha['trabalho'] if linha['trabalho'] is not None else '',
+            linha['exame'] if linha['exame'] is not None else '',
+            resultado['media_parcial'] if resultado['media_parcial'] is not None else '',
+            resultado['media_final'] if resultado['media_final'] is not None else '',
+            resultado['situacao'],
+            frequencia['percentual'],
+            frequencia['faltas'],
+        ])
+    return response
 
 
 @role_required(UserRole.COORDENACAO)
@@ -370,5 +431,3 @@ def grade_horaria_view(request):
         'role': role,
     }
     return render(request, 'academics/grade_horaria.html', context)
-
-
