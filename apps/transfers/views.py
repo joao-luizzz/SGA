@@ -26,7 +26,6 @@ def _adicionar_erros(form, erro):
 @role_required(*PAPEIS_CONSULTA)
 @require_http_methods(['GET'])
 def index(request):
-    registros = listar_transferencias(usuario=request.user)
     filtros = FiltroTransferenciaForm(request.GET)
     if filtros.is_valid():
         registros = listar_transferencias(
@@ -34,7 +33,7 @@ def index(request):
             tipo=filtros.cleaned_data['tipo'], curso_id=filtros.cleaned_data['curso'],
         )
     else:
-        registros = registros.none()
+        registros = listar_transferencias(usuario=request.user).none()
     parametros = request.GET.copy()
     parametros.pop('page', None)
     return render(request, 'transfers/index.html', {

@@ -97,6 +97,9 @@ class SolicitacaoTransferencia(models.Model):
         for campo in ['instituicao_externa', 'curso_externo', 'documentos']:
             if not getattr(self, campo):
                 erros[campo] = 'Este campo é obrigatório.'
+        for campo in ['documentos', 'justificativa']:
+            if len(getattr(self, campo)) > 3000:
+                erros[campo] = 'Use no máximo 3000 caracteres.'
         if self.aluno_id and self.aluno.role != 'ALUNO':
             erros['aluno'] = 'Selecione um usuário com perfil de Aluno.'
         if self.status != StatusTransferencia.PENDENTE and not self.justificativa:
