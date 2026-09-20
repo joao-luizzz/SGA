@@ -58,3 +58,37 @@ def solicitar_transferencia(*, usuario, aluno, curso, tipo, instituicao_externa,
         valor_novo=_estado(solicitacao),
     )
     return solicitacao
+
+
+@transaction.atomic
+def analisar_transferencia(*, usuario, solicitacao_id, decisao, justificativa):
+    from django.utils import timezone
+
+    usuario = exigir_perfil(usuario, UserRole.COORDENACAO)
+    if decisao not in (StatusTransferencia.APROVADA, StatusTransferencia.RECUSADA):
+        raise ValidationError('Selecione aprovação ou recusa.')
+    justificativa = (justificativa or '').strip()
+    if not justificativa or len(justificativa) > 3000:
+        raise ValidationError({'justificativa': 'Informe uma justificativa entre 1 e 3000 caracteres.'})
+
+    solicitacao = SolicitacaoTransferencia.objects.select_for_update().get(pk=solicitacao_id)
+    if solicitacao.status != StatusTransferencia.PENDENTE:
+        raise ValidationError('Esta solicitação já foi analisada e não pode receber outra decisão.')
+    anterior = _estado(solicitacao)
+    momento = timezone.now()
+    # Compare-and-set é uma barreira adicional à decisão duplicada. SQLite não
+    # oferece o mesmo lock de linha; testes reais de concorrência usam PostgreSQL.
+    alteradas = SolicitacaoTransferencia.objects.filter(
+        pk=solicitacao.pk, status=StatusTransferencia.PENDENTE,
+    ).update(status=decisao, justificativa=justificativa,
+             analisada_por=usuario, analisada_em=momento)
+    if alteradas != 1:
+        raise ValidationError('Esta solicitação já foi analisada por outro usuário.')
+    solicitacao.refresh_from_db()
+    registrar_auditoria(
+        usuario=usuario, tabela_afetada='SolicitacaoTransferencia',
+        registro_id=solicitacao.pk, acao=AcaoAuditoria.EDITAR,
+        valor_antigo=anterior, valor_novo=_estado(solicitacao),
+    )
+    # Aprovação administrativa: não altera Matricula, Nota, Falta ou CustomUser.
+    return solicitacao
