@@ -15,6 +15,7 @@ urlpatterns = [
     path('enrollment/', include('enrollment.urls', namespace='enrollment')),
     path('assessments/', include('assessments.urls', namespace='assessments')),
     path('attendance/', include('attendance.urls', namespace='attendance')),
+    path('transfers/', include('transfers.urls', namespace='transfers')),
     path('materials/', include('materials.urls', namespace='materials')),
     path('communications/', include('communications.urls', namespace='communications')),
 ]
