@@ -74,7 +74,8 @@ def test_constraint_impede_duplicata_sem_servico(solicitacao):
         solicitacao.save()
 
 
-@pytest.mark.parametrize('alteracao', [{'status': 'APROVADA'}, {'status': 'INVALIDO'}, {'tipo': 'INVALIDO'}])
+# O tipo inválido cabe em varchar(7), isolando a CheckConstraint também no PostgreSQL.
+@pytest.mark.parametrize('alteracao', [{'status': 'APROVADA'}, {'status': 'INVALIDO'}, {'tipo': 'OUTRO'}])
 def test_constraint_impede_estado_inconsistente(solicitacao, alteracao):
     with pytest.raises(IntegrityError), transaction.atomic():
         SolicitacaoTransferencia.objects.filter(pk=solicitacao.pk).update(**alteracao)
