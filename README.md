@@ -21,12 +21,22 @@ O SGA é um monólito Django para ensino superior. Centraliza a oferta acadêmic
 
 O sistema calcula MP, MF, frequência, situação e vagas. `Nota` pertence a `Matricula`; `Falta` pertence a Aluno, Turma e data; alterações desses registros são auditadas de forma imutável.
 
+## Transferências simplificadas — Fase 2
+
+O módulo `transfers` permite à Secretaria registrar solicitações de entrada/saída,
+à Coordenação aprovar ou recusar com justificativa e ao Aluno consultar somente
+suas solicitações. Acesse **Transferências** no menu após aplicar as migrations.
+A aprovação é administrativa: preserva matrículas, notas e frequência e não
+efetiva nem encerra matrículas automaticamente. Regras, limites e roteiro de
+validação estão na [documentação de transferências](docs/SGA-09-TRANSFERENCIAS.md).
+
 ## Documentação
 
 - [Documento consolidado](docs/SGA-DOCUMENTO-CONSOLIDADO.md)
 - [Escopo](docs/SGA-01-ESCOPO.md), [regras](docs/SGA-02-REGRAS-DE-NEGOCIO.md), [requisitos](docs/SGA-03-REQUISITOS.md) e [modelo de dados](docs/SGA-04-MODELAGEM-DADOS.md)
 - [Rastreabilidade](docs/SGA-05-RASTREABILIDADE.md), [casos de uso](docs/SGA-06-CASOS-DE-USO.md) e [roteiro de demonstração](docs/SGA-07-ROTEIRO-DEMO-E-ENTREGA.md)
 - [Preparação técnica da Fase 2](docs/SGA-08-PREPARACAO-FASE-2.md) — proposta de arquitetura e revisão do backlog, sem implementação funcional
+- [Transferências simplificadas](docs/SGA-09-TRANSFERENCIAS.md) — implementação das #49/#61, regras adotadas e contribuição para #51
 
 ## Executar com Docker Compose
 
@@ -77,3 +87,6 @@ A suíte automatizada cobre autenticação, RBAC, usuários, oferta acadêmica, 
 ## Fora do MVP
 
 Auto-matrícula, recuperação de senha, materiais, calendário, comunicados, documentos, transferências, financeiro, app mobile, integrações e pré-requisitos são Roadmap e não estão implementados na Fase 1.
+
+Essa delimitação se refere à Fase 1. A transferência simplificada da Fase 2 está
+descrita acima; sua entrega não conclui todas as atividades da issue #36.
