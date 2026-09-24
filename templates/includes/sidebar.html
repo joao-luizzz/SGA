@@ -92,6 +92,13 @@
       </a>
     {% endif %}
 
+    {% if user.is_superuser or user.role == 'ALUNO' or user.role == 'SECRETARIA' or user.role == 'COORDENACAO' %}
+      <a href="{% url 'transfers:index' %}" class="sidebar-link">
+        <i class="bi bi-arrow-left-right text-primary"></i>
+        <span>Transferências</span>
+      </a>
+    {% endif %}
+
     <div class="sidebar-category mt-4">
       Minha Conta
     </div>

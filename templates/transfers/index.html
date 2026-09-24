@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Transferências — SGA{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <h1 class="h3 mb-0">Transferências</h1>
+  {% if pode_criar %}<a class="btn btn-primary" href="{% url 'transfers:criar' %}">Registrar transferência</a>{% endif %}
+</div>
+{% include 'transfers/_aviso.html' %}
+<form method="get" class="card card-body mb-4">
+  <div class="row">
+    {% for field in filtros %}<div class="col-md-4 mb-2"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endfor %}
+  </div>
+  <div><button class="btn btn-outline-primary" type="submit">Filtrar</button> <a href="{% url 'transfers:index' %}" class="btn btn-outline-secondary">Limpar</a></div>
+</form>
+<div class="card table-responsive">
+<table class="table table-hover align-middle mb-0">
+  <caption class="px-3">Solicitações visíveis para seu perfil</caption>
+  <thead><tr><th scope="col">Protocolo</th><th scope="col">Aluno</th><th scope="col">Tipo</th><th scope="col">Curso interno</th><th scope="col">Situação</th><th scope="col">Registrada em</th></tr></thead>
+  <tbody>
+  {% for registro in page_obj %}
+    <tr><td><a href="{% url 'transfers:detalhe' registro.pk %}">#{{ registro.pk }}</a></td><td>{{ registro.aluno.full_name }}</td><td>{{ registro.get_tipo_display }}</td><td>{{ registro.curso.nome }}</td><td>{{ registro.get_status_display }}</td><td>{{ registro.solicitada_em|date:'d/m/Y H:i' }}</td></tr>
+  {% empty %}<tr><td colspan="6" class="text-center py-4">Nenhuma solicitação encontrada.</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div>
+{% if page_obj.has_other_pages %}
+<nav aria-label="Paginação de transferências" class="d-flex gap-3 align-items-center mt-3">
+  {% if page_obj.has_previous %}<a href="?{{ parametros }}&amp;page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
+  <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a href="?{{ parametros }}&amp;page={{ page_obj.next_page_number }}">Próxima</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

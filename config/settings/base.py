@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "attendance.apps.AttendanceConfig",
     "materials.apps.MaterialsConfig",
     "communications.apps.CommunicationsConfig",
+    "transfers.apps.TransfersConfig",
 ]
 
 MIDDLEWARE = [
