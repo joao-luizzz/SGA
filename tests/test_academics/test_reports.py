@@ -228,6 +228,7 @@ def test_csv_exporta_dados_academicos_corretos(
         'Vagas maximas', 'Matriculados ativos', 'Vagas disponiveis',
         'P1', 'P2', 'Trabalho', 'Exame', 'Media parcial', 'Media final',
         'Situacao', 'Frequencia (%)', 'Faltas',
+        'Acompanhamento', 'Motivos de atencao',
     ]
     assert linhas[1] == [
         'Relatórios',
@@ -247,6 +248,8 @@ def test_csv_exporta_dados_academicos_corretos(
         SituacaoAcademica.APROVADO_EXAME,
         '75.0',
         '1',
+        'Sem alerta nos dados disponíveis',
+        '',
     ]
 
 

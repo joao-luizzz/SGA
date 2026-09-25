@@ -6,9 +6,10 @@ from attendance.models import Falta
 from enrollment.models import Matricula, StatusMatricula
 
 from .models import Curso, Turma
+from .services import identificar_risco_academico
 
 
-def get_relatorio_turmas(*, curso_id=None, periodo=None, turma_id=None):
+def get_relatorio_turmas(*, curso_id=None, periodo=None, turma_id=None, risco=''):
     """Monta o relatório consolidado de turmas para a Coordenação."""
     matriculas_ativas = (
         Matricula.objects
@@ -56,6 +57,11 @@ def get_relatorio_turmas(*, curso_id=None, periodo=None, turma_id=None):
         for matricula in turma.matriculas_relatorio:
             notas = {nota.tipo: nota.valor for nota in matricula.notas.all()}
             resultado = calcular_resultado_academico(matricula, notas)
+            acompanhamento = identificar_risco_academico(notas=notas, resultado=resultado)
+            if risco == 'sim' and not acompanhamento['em_risco']:
+                continue
+            if risco == 'nao' and acompanhamento['em_risco']:
+                continue
             linha = {
                 'turma': turma,
                 'matricula': matricula,
@@ -66,10 +72,13 @@ def get_relatorio_turmas(*, curso_id=None, periodo=None, turma_id=None):
                 'trabalho': notas.get(TipoAvaliacao.TRABALHO),
                 'exame': notas.get(TipoAvaliacao.EXAME),
                 'resultado': resultado,
+                'risco': acompanhamento,
             }
             turma.linhas_relatorio.append(linha)
             linhas.append(linha)
 
+    if risco:
+        turmas = [turma for turma in turmas if turma.linhas_relatorio]
     return {
         'turmas': turmas,
         'linhas': linhas,
@@ -85,5 +94,6 @@ def get_relatorio_turmas(*, curso_id=None, periodo=None, turma_id=None):
             'curso': str(curso_id or ''),
             'periodo': periodo or '',
             'turma': str(turma_id or ''),
+            'risco': risco,
         },
     }
