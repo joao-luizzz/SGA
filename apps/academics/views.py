@@ -42,6 +42,11 @@ def relatorios_view(request):
         risco=filtros.cleaned_data['risco'],
     )
     context['title'] = 'Relatórios Acadêmicos'
+    if filtros.cleaned_data['curso']:
+        context['curso_selecionado'] = Curso.objects.filter(pk=filtros.cleaned_data['curso']).first()
+    if filtros.cleaned_data['turma']:
+        context['turma_selecionada'] = Turma.objects.select_related('disciplina').filter(
+            pk=filtros.cleaned_data['turma']).first()
     context['turmas_filtro'] = Turma.objects.filter(ativo=True).select_related(
         'disciplina', 'disciplina__curso'
     ).order_by('-periodo_letivo', 'disciplina__nome')

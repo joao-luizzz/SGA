@@ -1,7 +1,8 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{{ title }} — SGA{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/relatorios.css' %}">{% endblock %}
 
 {% block content %}
 <div class="container-fluid p-0">
@@ -10,36 +11,50 @@
       <h3 class="page-title mb-1"><i class="bi bi-bar-chart-line text-success me-2"></i>{{ title }}</h3>
       <p class="page-subtitle mb-0">Alunos, ocupação de vagas, notas, resultados e frequência por turma.</p>
     </div>
+    <div class="report-actions d-flex gap-2">
+    <button class="btn btn-outline-primary btn-sm" type="button" id="imprimir-relatorio">Imprimir relatório</button>
     <a class="btn btn-outline-success btn-sm" href="{% url 'academics:relatorios_csv' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}">
       <i class="bi bi-download me-1"></i> Exportar CSV
     </a>
+    </div>
   </div>
 
-  <form method="get" class="card border mb-4">
+  {% if erros_filtros %}<div class="alert alert-danger" role="alert">Filtros inválidos: {{ erros_filtros }} <a href="{% url 'academics:relatorios' %}">Limpar filtros</a></div>{% endif %}
+  <p class="small">Gerado em {% now 'd/m/Y H:i' %}. Curso: {% if filtros.curso %}{{ curso_selecionado.nome|default:'Não encontrado' }}{% else %}Todos{% endif %} · Período: {{ filtros.periodo|default:'Todos' }} · Turma: {% if filtros.turma %}{{ turma_selecionada.disciplina.nome|default:'Não encontrada' }} — {{ turma_selecionada.periodo_letivo }}{% else %}Todas{% endif %} · Risco: {% if filtros.risco == 'sim' %}Em risco / atenção{% elif filtros.risco == 'nao' %}Sem alerta identificado{% else %}Todos{% endif %}.</p>
+  <p class="small text-muted">Acompanhamento com os dados atuais: média abaixo de 6 ou frequência abaixo de 75%. Notas incompletas geram alerta provisório; dados ausentes não significam aprovação. A situação acadêmica é exibida separadamente. A ocupação mostra todas as matrículas ativas, mesmo ao filtrar risco.</p>
+  <form method="get" class="card border mb-4 report-filters">
     <div class="card-body">
       <div class="row g-3 align-items-end">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="form-label" for="id_curso">Curso</label>
           <select class="form-select" id="id_curso" name="curso">
             <option value="">Todos os cursos</option>
             {% for curso in cursos %}<option value="{{ curso.pk }}" {% if filtros.curso == curso.pk|stringformat:'s' %}selected{% endif %}>{{ curso.nome }}</option>{% endfor %}
           </select>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
           <label class="form-label" for="id_periodo">Período</label>
           <select class="form-select" id="id_periodo" name="periodo">
             <option value="">Todos os períodos</option>
             {% for periodo in periodos %}<option value="{{ periodo }}" {% if filtros.periodo == periodo %}selected{% endif %}>{{ periodo }}</option>{% endfor %}
           </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <label class="form-label" for="id_turma">Turma</label>
           <select class="form-select" id="id_turma" name="turma">
             <option value="">Todas as turmas</option>
             {% for turma in turmas_filtro %}<option value="{{ turma.pk }}" {% if filtros.turma == turma.pk|stringformat:'s' %}selected{% endif %}>{{ turma.disciplina.nome }} — {{ turma.periodo_letivo }}</option>{% endfor %}
           </select>
         </div>
-        <div class="col-md-1 d-grid"><button class="btn btn-primary" type="submit" title="Aplicar filtros"><i class="bi bi-search"></i></button></div>
+        <div class="col-md-3">
+          <label class="form-label" for="id_risco">Acompanhamento</label>
+          <select class="form-select" id="id_risco" name="risco">
+            <option value="">Todos</option>
+            <option value="sim" {% if filtros.risco == 'sim' %}selected{% endif %}>Em risco / atenção</option>
+            <option value="nao" {% if filtros.risco == 'nao' %}selected{% endif %}>Sem alerta identificado</option>
+          </select>
+        </div>
+        <div class="col-md-1 d-grid"><button class="btn btn-primary" type="submit" title="Aplicar filtros" aria-label="Aplicar filtros"><i class="bi bi-search"></i></button></div>
       </div>
     </div>
   </form>
@@ -52,7 +67,7 @@
       </div>
       <div class="table-responsive">
         <table class="table table-sm table-hover align-middle mb-0">
-          <thead><tr><th>Aluno</th><th>Matrícula</th><th>P1</th><th>P2</th><th>Trabalho</th><th>Exame</th><th>Média</th><th>Frequência</th><th>Situação</th></tr></thead>
+          <thead><tr><th>Aluno</th><th>Matrícula</th><th>P1</th><th>P2</th><th>Trabalho</th><th>Exame</th><th>Média</th><th>Frequência</th><th>Situação</th><th>Acompanhamento</th></tr></thead>
           <tbody>
             {% for linha in turma.linhas_relatorio %}
               {% with resultado=linha.resultado %}
@@ -62,10 +77,11 @@
                 <td>{{ linha.trabalho|default_if_none:'-' }}</td>
                 <td>{{ linha.exame|default_if_none:'-' }}</td>
                 <td>{{ resultado.media_final|default_if_none:resultado.media_parcial|default_if_none:'-' }}</td>
-                <td>{{ resultado.frequencia.percentual }}%</td><td>{{ resultado.situacao }}</td>
+                <td>{% if resultado.frequencia.total_aulas %}{{ resultado.frequencia.percentual }}%{% else %}Sem aulas registradas{% endif %}</td><td>{{ resultado.situacao }}</td>
+                <td class="report-risk"><strong>{{ linha.risco.rotulo }}</strong>{% for motivo in linha.risco.motivos %}<div>{{ motivo }}</div>{% endfor %}</td>
               </tr>
               {% endwith %}
-            {% empty %}<tr><td colspan="9" class="text-center text-muted py-3">Nenhum aluno matriculado ativamente.</td></tr>{% endfor %}
+            {% empty %}<tr><td colspan="10" class="text-center text-muted py-3">Nenhum aluno matriculado ativamente.</td></tr>{% endfor %}
           </tbody>
         </table>
       </div>
@@ -73,3 +89,4 @@
   {% empty %}<div class="alert alert-info">Nenhuma turma encontrada com os filtros selecionados.</div>{% endfor %}
 </div>
 {% endblock %}
+{% block extra_js %}<script src="{% static 'js/relatorios.js' %}"></script>{% endblock %}
