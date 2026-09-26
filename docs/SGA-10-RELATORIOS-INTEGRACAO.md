@@ -34,3 +34,97 @@ AGENTS.md e das regras acadêmicas existentes: média 6 e frequência mínima 75
 
 1. Regra de risco e testes de limites; 2. filtros e CSV; 3. tela e impressão;
 4. testes de integração com demonstração; 5. documentação e evidências finais.
+
+## Matriz de entrega
+
+| Requisito | Implementação e evidência |
+| --- | --- |
+| #62 — notas e resultados | Reutiliza cálculo oficial existente; regressões em `test_reports.py`, preservando média zero e aprovação após exame |
+| #62 — frequência | Mantém cálculo existente; tela distingue ausência de aulas de frequência real; tests de limites em `test_report_risk.py` |
+| #62 — alunos em risco | `identificar_risco_academico` em services, integrado ao selector; motivos explícitos, filtro sim/não e testes de valores limítrofes |
+| #62 — impressão | Botão chama impressão do navegador, CSS A4 paisagem, cabeçalho com data/filtros, menus removidos, cabeçalho da tabela repetível |
+| #62 — CSV | Mesmos filtros da tela; duas colunas novas ao final: acompanhamento e motivos; formato anterior preservado nas demais colunas |
+| #51 — integração | `test_semana5_flow.py` usa `seed_demo`, criação/decisão HTTP e compara CSV e registros acadêmicos antes/depois |
+| #51 — acesso | Coordenação consulta relatórios; Secretaria solicita, Coordenação decide; Aluno só lê suas transferências; Professor bloqueado nestes módulos |
+| #51 — filtros com demo | Curso, período, turma e risco combinados; dois alunos sinalizados no seed; ocupação permanece 3/30 apesar de mostrar duas linhas |
+| #51 — regras críticas | Duplicidade, justificativa, reenvio de decisão, isolamento, preservação de histórico, fronteiras 6/75, notas ausentes/zero e média final |
+| #36 — N+1 | Selector continua usando quatro consultas para turmas com alunos, também com filtro de risco; filtro não muda a ocupação real |
+
+`risco=nao` significa ausência de alerta identificado e **inclui dados insuficientes**;
+não é filtro de alunos aprovados. Filtro de risco remove turmas sem linhas correspondentes,
+mas sem esse filtro turmas vazias continuam aparecendo. IDs/período/risco inválidos
+retornam HTTP 400 em HTML e CSV, em vez de gerar erro de servidor.
+
+Não há alteração de schema ou migration nesta entrega. CSV recebeu colunas ao final:
+consumidores que exigem exatamente 17 colunas devem aceitar as duas novas colunas.
+A impressão utiliza o diálogo do navegador (papel ou salvar como PDF), sem serviço PDF
+adicional no servidor. Somente matrículas e turmas ativas compõem o relatório, conforme
+escopo que já existia; registros históricos continuam armazenados.
+
+## Validação executada em 24/09/2026
+
+- Suíte completa local SQLite: **380 passed, 2 skipped**, cobertura **88,75%** (mínimo 85%).
+- 31 testes novos de risco, filtros, impressão HTTP e integração; testes anteriores mantidos.
+- Os dois skips são de concorrência PostgreSQL, já existentes no módulo transfers;
+  devem ser confirmados pelo job PostgreSQL 16 do novo PR.
+- `manage.py check`, `makemigrations --check --dry-run` e `git diff --check` sem problemas.
+- Migrations existentes aplicadas em banco SQLite novo; `seed_demo` executado.
+- Revisão estática do diff: regra separada do resultado oficial, permissões, consultas,
+  compatibilidade de filtros/exportação, ausência de escritas acadêmicas e CSS de impressão.
+- Navegador real Chromium: login por perfil; filtro de risco retornou os dois alunos
+  esperados; CSV baixado antes/depois idêntico; entrada aprovada e saída recusada;
+  Aluno próprio 200, outro Aluno 404, Professor 403; decisão final sem novo botão.
+- Botão de impressão acionou `window.print` (instrumentado no teste); renderização
+  de mídia print e PDF Chromium executadas; inspeção visual de desktop 1440px,
+  mobile 390px e PDF de uma página A4 paisagem realizada.
+- A tabela no mobile permite rolagem horizontal, seguindo o layout Bootstrap existente.
+- Limitação ambiental: fontes e ícones externos indisponíveis no teste. Bootstrap
+  5.3.3 original servido de cache somente no navegador de teste, mantendo URL e SRI;
+  CSS local renderizado normalmente. A aplicação não teve seu mecanismo de assets alterado.
+- Impressão em impressora física não executada. Nenhum resultado de CI é presumido:
+  consultar os checks do PR para confirmar a execução no GitHub.
+
+## Reproduzir
+
+Use **banco descartável**, nunca dados reais. Com as dependências do projeto instaladas:
+
+```bash
+export SGA_DEMO_PASSWORD='<senha-temporaria-exclusiva>'
+USE_SQLITE=True python manage.py migrate
+USE_SQLITE=True python manage.py seed_demo --password "$SGA_DEMO_PASSWORD"
+USE_SQLITE=True python manage.py check
+USE_SQLITE=True python manage.py makemigrations --check --dry-run
+USE_SQLITE=True pytest
+```
+
+Verificação opcional em navegador: instale Playwright em ambiente de teste separado
+(`pip install playwright` e `python -m playwright install chromium`), e execute:
+
+```bash
+python scripts/validar_semana5_browser.py \
+  --django-python /caminho/do/venv-do-sga/bin/python \
+  --output /caminho/temporario/evidencias \
+  --confirmar-banco-demo
+```
+
+Esse script inicia servidor local na porta 8001 usando SQLite, utiliza contas de
+`seed_demo`, cria duas solicitações fictícias, registra decisões e gera evidências.
+Ele não limpa dados ao terminar e exige `SGA_DEMO_PASSWORD` com a mesma senha
+temporária usada no seed. O parâmetro opcional `--bootstrap-cache` recebe diretório com os arquivos
+originais `bootstrap.css` (bootstrap.min.css) e `bootstrap.js` (bootstrap.bundle.min.js)
+da versão 5.3.3; nesse modo fontes/ícones de CDN são omitidos e somente os dois assets
+Bootstrap são atendidos pelo cache do teste. Não versionar banco, senha ou evidências locais.
+
+Roteiro manual: entrar como Coordenação, abrir Relatórios Acadêmicos, combinar os
+quatro filtros, comparar tela/CSV e imprimir; depois executar uma entrada aprovada
+ e uma saída recusada como Secretaria/Coordenação. Conferir relatórios/histórico
+antes e depois e tentar acessar a transferência com outro aluno e Professor.
+
+## Aceitação e encerramento
+
+O novo PR entrega o complemento da #62 e as evidências da #51. A #36 continua aberta
+até a revisão do João, confirmação da regra descritiva de risco, merge do complemento
+e validação final da Semana 5. Não confundir checklist de implementação com aprovação
+formal. #49/#61 já encerradas não precisam ser reabertas; a transferência administrativa
+aprovada pela equipe permanece igual. Andrey assumiu este complemento para evitar trabalho
+duplicado com Max; a equipe deve acompanhar a branch e o PR antes de iniciar outra solução.
