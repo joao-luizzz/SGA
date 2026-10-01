@@ -54,3 +54,10 @@ Esses itens podem ser priorizados em fases futuras, mas não são requisito, ent
 - [Requisitos](SGA-03-REQUISITOS.md)
 - [Modelo de dados](SGA-04-MODELAGEM-DADOS.md)
 - [Casos de uso](SGA-06-CASOS-DE-USO.md)
+
+
+## Atualização de estado — 01 de outubro de 2026
+
+Este documento preserva a especificação da Fase 1/MVP como referência do núcleo acadêmico. O código evoluiu para a Fase 2. Materiais e comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68) e transferências simplificadas (PR #69) já possuem entregas integradas. A integração conjunta #51 e algumas pendências da #62 permanecem em validação; recuperação de senha/notificações (#35) e Fase 3 (#37) ainda são roadmap.
+
+Consulte o Documento Consolidado para o estado atual e o SGA-09 para a especificação de transferências.
