@@ -136,3 +136,8 @@ em uma base com solicitações que precisam ser preservadas.
 - Equipe: concluir a validação conjunta da #51 e demais requisitos da #36.
 - Não encerrar #36/#51 com esta entrega. #49/#61 devem ser avaliadas após revisão,
   integração e validação do contrato de negócio; o PR não as encerra automaticamente.
+
+
+## Estado atual em 01/10/2026
+
+A implementação foi integrada ao `develop` pelo PR #69. A entrega individual de transferências está concluída. A integração conjunta com relatórios permanece na #51 e a validação final da #36 depende dessa integração. Trechos anteriores que descrevem o merge como pendente são registro histórico da revisão original.
