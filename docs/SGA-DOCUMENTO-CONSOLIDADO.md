@@ -21,6 +21,9 @@ flowchart TB
     APP --> ENR[enrollment]
     APP --> ATT[attendance]
     APP --> ASM[assessments]
+    APP --> MAT[materials]
+    APP --> COM[communications]
+    APP --> TRN[transfers]
     APP --> DB[(PostgreSQL 16)]
 ```
 
