@@ -90,3 +90,8 @@ Auto-matrícula, recuperação de senha, materiais, calendário, comunicados, do
 
 Essa delimitação se refere à Fase 1. A transferência simplificada da Fase 2 está
 descrita acima; sua entrega não conclui todas as atividades da issue #36.
+
+
+## Estado para apresentação — 01/10/2026
+
+A Fase 1/MVP está concluída. A Fase 2 já possui entregas integradas em materiais/comunicados (#66), calendário/grade/conflitos (#67), relatórios (#68) e transferências (#69). Permanecem em aberto #51, #62, #35 e #37. “Fora do MVP” refere-se ao escopo original da Fase 1.

@@ -150,3 +150,8 @@ Não criar `TokenRecuperacaoSenha`. Usar `PasswordResetView`, `PasswordResetConf
 - Normalizar horários somente mediante migração de dados separada e reversível.
 - Decidir antes da implementação: vínculo Aluno–Curso, autores/públicos de comunicados, fluxo de transferência e escopo real do calendário.
 - Nenhuma issue autoriza React, SPA, API REST/JWT ou provedor externo de e-mail.
+
+
+## Estado atual em 01/10/2026
+
+Este arquivo é o registro do planejamento técnico original da Fase 2 e não é uma fotografia atual. Depois dele foram integrados materiais/comunicados (#66), calendário/grade/conflitos (#67), relatórios (#68) e transferências (#69). Use o Documento Consolidado para o estado vigente.

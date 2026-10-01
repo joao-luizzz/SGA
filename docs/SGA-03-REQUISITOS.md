@@ -57,3 +57,24 @@ Auto-matrícula, recuperação de senha, materiais, horário consolidado, calend
 
 - [Regras de negócio](SGA-02-REGRAS-DE-NEGOCIO.md)
 - [Matriz de rastreabilidade](SGA-05-RASTREABILIDADE.md)
+
+
+## Estado atual — 01/10/2026
+
+Este documento continua sendo a referência detalhada da **Fase 1/MVP**. Para a apresentação, ele deve ser lido junto ao Documento Consolidado, que diferencia o contrato original do MVP das extensões efetivamente integradas na Fase 2.
+
+### Extensões já integradas
+
+- Materiais e comunicados — PR #66.
+- Calendário, grade e conflitos — PR #67.
+- Relatórios de alunos/turmas/vagas, notas/resultados e frequência, com filtros e CSV — PR #68.
+- Transferências simplificadas — PR #69.
+
+### Extensões ainda não concluídas
+
+- Integração conjunta transferências + relatórios — #51.
+- Identificação de alunos em risco de reprovação e impressão nos relatórios — #62.
+- Recuperação de senha e notificações — #35.
+- Fase 3 — #37.
+
+Assim, expressões como “fora do MVP” significam **fora do escopo original da Fase 1**, e não necessariamente “inexistente no código atual”.

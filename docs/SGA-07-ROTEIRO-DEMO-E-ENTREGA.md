@@ -57,6 +57,24 @@ Além da execução local em Docker/PostgreSQL, a CI executa, nessa ordem, `pyth
 - [ ] Sem senha real, dado pessoal real ou credencial de produção em tela.
 - [ ] Validações locais e CI verdes.
 
-## Limite da apresentação
+## Estado atual para a P1 — 01/10/2026
 
-Não apresentar como pronto: auto-matrícula, recuperação de senha, materiais, calendário, comunicados, documentos, transferências, financeiro, app mobile, integrações ou pré-requisitos. Eles pertencem ao Roadmap, não ao MVP.
+A Fase 1/MVP continua sendo o núcleo documental. Desde então, já estão integradas no `develop` as entregas de materiais/comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68) e transferências simplificadas (PR #69).
+
+### Sequência de demonstração
+
+1. Coordenação: curso, disciplina, turma, horários, sala, vagas e professor.
+2. Secretaria: pessoas, matrícula e status.
+3. Professor: chamada e notas; Exame apenas para aluno elegível.
+4. Aluno: boletim, situação e frequência próprias.
+5. Se houver tempo: materiais/comunicados, calendário/grade, relatórios e transferência.
+6. Encerrar com arquitetura, PostgreSQL, testes/CI e versionamento.
+
+### Pendências que não devem ser declaradas como concluídas
+
+- #62: identificação de alunos em risco de reprovação e impressão.
+- #51: integração conjunta de transferências e relatórios.
+- #35: recuperação de senha e notificações.
+- #37: Fase 3.
+
+**Importante:** “fora do MVP” nos documentos da Fase 1 significa fora do escopo original, não necessariamente ausente do código atual.
