@@ -91,3 +91,10 @@ Ficam fora: auto-matrícula, recuperação de senha, materiais, calendário, com
 - [SGA-05 — Rastreabilidade](SGA-05-RASTREABILIDADE.md)
 - [SGA-06 — Casos de uso](SGA-06-CASOS-DE-USO.md)
 - [SGA-07 — Roteiro de demonstração](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md)
+
+
+## Estado atual — 01 de outubro de 2026
+
+**Fase 1/MVP:** concluída. **Fase 2:** em evolução, com materiais/comunicados (#66), calendário/grade/conflitos (#67), relatórios (#68) e transferências (#69) integrados. **Pendências:** #51 integração conjunta; #62 risco de reprovação e impressão; #35 recuperação de senha/notificações; #37 Fase 3.
+
+Este documento é a visão consolidada para apresentação. Os documentos SGA-01 a SGA-06 permanecem como especificação detalhada do MVP e não devem ser interpretados como inventário exaustivo das extensões posteriores.
