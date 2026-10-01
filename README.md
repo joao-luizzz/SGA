@@ -30,6 +30,13 @@ A aprovação é administrativa: preserva matrículas, notas e frequência e nã
 efetiva nem encerra matrículas automaticamente. Regras, limites e roteiro de
 validação estão na [documentação de transferências](docs/SGA-09-TRANSFERENCIAS.md).
 
+## Relatórios e integração — Semana 5
+
+A Coordenação consulta relatórios com filtro de acompanhamento, motivos de risco,
+exportação CSV e impressão da consulta filtrada. A sinalização usa notas e frequência
+disponíveis, sem modificar o resultado acadêmico. Consulte as regras e evidências
+na [validação da Semana 5](docs/SGA-10-RELATORIOS-INTEGRACAO.md).
+
 ## Documentação
 
 - [Documento consolidado](docs/SGA-DOCUMENTO-CONSOLIDADO.md)

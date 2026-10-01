@@ -11,7 +11,7 @@ from django.views.decorators.http import require_POST
 from accounts.decorators import role_required
 from accounts.models import UserRole
 from .models import Curso, Disciplina, Turma, HorarioTurma
-from .forms import CursoForm, DisciplinaForm, TurmaForm, HorarioTurmaForm
+from .forms import CursoForm, DisciplinaForm, TurmaForm, HorarioTurmaForm, FiltroRelatorioForm
 from .selectors import get_relatorio_turmas
 
 @role_required(UserRole.COORDENACAO)
@@ -30,12 +30,23 @@ def index_view(request):
 
 @role_required(UserRole.COORDENACAO)
 def relatorios_view(request):
+    filtros = FiltroRelatorioForm(request.GET)
+    if not filtros.is_valid():
+        return render(request, 'academics/relatorios.html', {
+            'title': 'Relatórios Acadêmicos', 'erros_filtros': filtros.errors,
+        }, status=400)
     context = get_relatorio_turmas(
-        curso_id=request.GET.get('curso'),
-        periodo=request.GET.get('periodo'),
-        turma_id=request.GET.get('turma'),
+        curso_id=filtros.cleaned_data['curso'],
+        periodo=filtros.cleaned_data['periodo'],
+        turma_id=filtros.cleaned_data['turma'],
+        risco=filtros.cleaned_data['risco'],
     )
     context['title'] = 'Relatórios Acadêmicos'
+    if filtros.cleaned_data['curso']:
+        context['curso_selecionado'] = Curso.objects.filter(pk=filtros.cleaned_data['curso']).first()
+    if filtros.cleaned_data['turma']:
+        context['turma_selecionada'] = Turma.objects.select_related('disciplina').filter(
+            pk=filtros.cleaned_data['turma']).first()
     context['turmas_filtro'] = Turma.objects.filter(ativo=True).select_related(
         'disciplina', 'disciplina__curso'
     ).order_by('-periodo_letivo', 'disciplina__nome')
@@ -46,10 +57,15 @@ def relatorios_view(request):
 def relatorios_csv_view(request):
     import csv
 
+    filtros = FiltroRelatorioForm(request.GET)
+    if not filtros.is_valid():
+        return HttpResponse('Filtros inválidos. Confira curso, turma, período e risco.', status=400,
+                            content_type='text/plain; charset=utf-8')
     relatorio = get_relatorio_turmas(
-        curso_id=request.GET.get('curso'),
-        periodo=request.GET.get('periodo'),
-        turma_id=request.GET.get('turma'),
+        curso_id=filtros.cleaned_data['curso'],
+        periodo=filtros.cleaned_data['periodo'],
+        turma_id=filtros.cleaned_data['turma'],
+        risco=filtros.cleaned_data['risco'],
     )
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'attachment; filename="relatorio-academico.csv"'
@@ -60,6 +76,7 @@ def relatorios_csv_view(request):
         'Vagas maximas', 'Matriculados ativos', 'Vagas disponiveis',
         'P1', 'P2', 'Trabalho', 'Exame', 'Media parcial', 'Media final',
         'Situacao', 'Frequencia (%)', 'Faltas',
+        'Acompanhamento', 'Motivos de atencao',
     ])
     for linha in relatorio['linhas']:
         turma = linha['turma']
@@ -83,6 +100,8 @@ def relatorios_csv_view(request):
             resultado['situacao'],
             frequencia['percentual'],
             frequencia['faltas'],
+            linha['risco']['rotulo'],
+            ' '.join(linha['risco']['motivos']),
         ])
     return response
 

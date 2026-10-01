@@ -4,6 +4,15 @@ import re
 from accounts.models import CustomUser
 from .models import Curso, Disciplina, Turma, HorarioTurma
 
+
+class FiltroRelatorioForm(forms.Form):
+    curso = forms.IntegerField(required=False, min_value=1, max_value=9223372036854775807)
+    turma = forms.IntegerField(required=False, min_value=1, max_value=9223372036854775807)
+    periodo = forms.CharField(required=False, max_length=10)
+    risco = forms.ChoiceField(required=False, choices=[
+        ('', 'Todos'), ('sim', 'Em risco / atenção'), ('nao', 'Sem alerta identificado'),
+    ])
+
 class BaseSGAForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -137,4 +146,3 @@ class HorarioTurmaForm(BaseSGAForm):
         if self.instance and self.instance.pk:
             if not self.instance.turma.ativo:
                 self.fields['turma'].queryset = Turma.objects.filter(pk=self.instance.turma.pk) | self.fields['turma'].queryset
-
