@@ -66,10 +66,27 @@ Este documento preserva a especificação original da Fase 1/MVP. A develop atua
 - Calendário, grade e conflitos — concluídos pela PR #67.
 - Relatórios — entregues pela PR #68 e complementados pela PR #70.
 - Transferências — concluídas pela PR #69; integração com relatórios concluída pela PR #70.
-- Recuperação de senha e notificações — pendentes (#35; detalhadas nas #47–#48 e #59–#60).
+- Recuperação de senha e notificações — implementadas nesta entrega (#35; detalhadas nas #47–#48 e #59–#60).
 
 ### Fase 3
 
 Futura (#37), condicionada à estabilização e decisão da equipe. Este documento não amplia nem substitui o escopo original da Fase 1.
 
 “Fora do MVP” significa **fora do escopo original da Fase 1**, e não necessariamente “inexistente no código atual”.
+
+## Entrega da Semana 4 — Issue #35 (08/10/2026)
+
+**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
+aguardando revisão e integração. Isso não declara merge na develop nem fechamento
+das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
+e Fase 3 permanece futura.
+
+Recuperação usa tokens nativos Django com expiração configurável, validação de
+senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
+paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
+Comunicados, notas e frequência geram notificações conforme as regras existentes.
+Detalhes, configuração e evidências: [Semana 4](SGA-11-RECUPERACAO-NOTIFICACOES.md).
+
+**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
+e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
+o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.

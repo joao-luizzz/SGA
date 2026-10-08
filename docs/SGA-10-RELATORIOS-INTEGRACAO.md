@@ -149,6 +149,9 @@ na develop pelo merge `950d871597dea7499bd9e63ca75029639314a97a`.
   transferências e permissões.
 
 Os números acima são evidência desta validação específica da Semana 5, não uma promessa
-de contagem ou cobertura fixa para execuções futuras. As pendências funcionais atuais
-da Fase 2 são recuperação segura de senha e notificações (#35 e issues relacionadas);
+de contagem ou cobertura fixa para execuções futuras. **Registro histórico após PR #70:** naquele momento, as pendências funcionais
+da Fase 2 eram recuperação segura de senha e notificações (#35 e issues relacionadas);
 Fase 3 (#37) permanece futura.
+
+A Semana 4 foi implementada posteriormente nesta branch e aguarda revisão/integração.
+Consulte [Recuperação e notificações](SGA-11-RECUPERACAO-NOTIFICACOES.md).
