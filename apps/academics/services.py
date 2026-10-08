@@ -164,3 +164,35 @@ def atualizar_campo_textual_turma(turma):
         from academics.models import Turma
         Turma.objects.filter(pk=turma.pk).update(horarios=novo_texto)
         turma.horarios = novo_texto
+
+
+def identificar_risco_academico(*, notas, resultado):
+    """Sinaliza atenção com dados disponíveis, sem modificar o resultado oficial."""
+    from decimal import Decimal
+    from assessments.models import TipoAvaliacao
+    from assessments.selectors import FREQUENCIA_MINIMA
+
+    motivos = []
+    frequencia = resultado['frequencia']
+    if frequencia['total_aulas'] and frequencia['percentual'] < FREQUENCIA_MINIMA:
+        motivos.append('Frequência registrada abaixo de 75%.')
+
+    parciais = [notas[tipo] for tipo in (TipoAvaliacao.P1, TipoAvaliacao.P2, TipoAvaliacao.TRABALHO)
+                if tipo in notas]
+    if resultado['media_final'] is not None:
+        if resultado['media_final'] < Decimal('6'):
+            motivos.append('Média final abaixo de 6.')
+    elif resultado['media_parcial'] is not None:
+        if resultado['media_parcial'] < Decimal('6'):
+            motivos.append('Média parcial abaixo de 6; confira a situação e o exame.')
+    elif parciais and sum(parciais) / len(parciais) < Decimal('6'):
+        motivos.append('Média das notas lançadas abaixo de 6 (avaliações incompletas).')
+
+    incompletos = len(parciais) < 3 or not frequencia['total_aulas']
+    return {
+        'em_risco': bool(motivos),
+        'rotulo': 'Em risco / atenção' if motivos else (
+            'Dados insuficientes' if incompletos else 'Sem alerta nos dados disponíveis'),
+        'motivos': motivos,
+        'dados_incompletos': incompletos,
+    }
