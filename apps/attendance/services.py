@@ -6,6 +6,8 @@ from accounts.models import AcaoAuditoria, UserRole
 from accounts.services import registrar_auditoria
 from academics.models import Turma
 from .models import Falta
+from notifications.models import TipoNotificacao
+from notifications.services import notificar_evento_academico
 
 
 def _representacao_falta(falta: Optional[Falta]) -> Optional[str]:
@@ -118,6 +120,7 @@ def registrar_chamada(professor, turma, data_aula: str, presencas: dict) -> list
             valor_novo=valor_novo,
         )
 
+        notificar_evento_academico(destinatario=falta.aluno, tipo=TipoNotificacao.FREQUENCIA)
         resultados.append(falta)
 
     return resultados

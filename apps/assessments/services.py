@@ -9,6 +9,9 @@ from accounts.services import registrar_auditoria
 from academics.models import Turma
 from enrollment.models import Matricula, StatusMatricula
 
+from notifications.models import TipoNotificacao
+from notifications.services import notificar_evento_academico
+
 from .models import Nota, TipoAvaliacao
 from .selectors import pode_realizar_exame
 
@@ -46,6 +49,7 @@ def _salvar_nota(professor, matricula, tipo, valor):
             acao=AcaoAuditoria.CRIAR,
             valor_novo=_representacao_nota(nota),
         )
+        notificar_evento_academico(destinatario=matricula.aluno, tipo=TipoNotificacao.NOTA)
         return nota
 
     if nota.valor == valor:
@@ -63,6 +67,7 @@ def _salvar_nota(professor, matricula, tipo, valor):
         valor_antigo=valor_antigo,
         valor_novo=_representacao_nota(nota),
     )
+    notificar_evento_academico(destinatario=matricula.aluno, tipo=TipoNotificacao.NOTA)
     return nota
 
 

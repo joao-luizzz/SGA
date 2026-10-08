@@ -2,6 +2,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.utils import timezone
 from .models import Comunicado, EscopoComunicado
+from notifications.services import notificar_comunicado
 
 
 def _validar_permissao_publicador(autor, escopo):
@@ -57,6 +58,7 @@ def publicar_comunicado(
     )
     comunicado.full_clean()
     comunicado.save()
+    notificar_comunicado(comunicado)
     return comunicado
 
 
@@ -83,6 +85,10 @@ def atualizar_comunicado(
     if not autor.is_superuser and autor.role not in ('COORDENACAO', 'SECRETARIA'):
         raise PermissionDenied("Sem permissão para editar comunicado.")
 
+    campos_evento = ['titulo', 'conteudo', 'escopo', 'papel_destino', 'curso_id',
+                     'turma_id', 'publicar_em', 'expirar_em', 'ativo']
+    anterior = Comunicado.objects.filter(pk=comunicado.pk).values(*campos_evento).get()
+
     comunicado.titulo = titulo.strip()
     comunicado.conteudo = conteudo.strip()
     comunicado.escopo = escopo
@@ -96,6 +102,8 @@ def atualizar_comunicado(
 
     comunicado.full_clean()
     comunicado.save()
+    if any(anterior[campo] != getattr(comunicado, campo) for campo in campos_evento):
+        notificar_comunicado(comunicado)
     return comunicado
 
 

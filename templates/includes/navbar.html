@@ -23,6 +23,10 @@
 
       {% if user.is_authenticated %}
         <div class="d-flex align-items-center text-white">
+          <a class="btn btn-outline-light btn-sm me-3" href="{% url 'notifications:central' %}">
+            <i class="bi bi-bell" aria-hidden="true"></i> Notificações
+            <span class="badge bg-primary" aria-label="Não lidas">{{ notificacoes_nao_lidas }}</span>
+          </a>
           <div class="me-3 text-end d-none d-md-block">
             <div class="fw-semibold text-white small">{{ user.full_name }}</div>
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5" style="font-size: 0.72rem;">

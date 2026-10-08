@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "materials.apps.MaterialsConfig",
     "communications.apps.CommunicationsConfig",
     "transfers.apps.TransfersConfig",
+    "notifications.apps.NotificationsConfig",
 ]
 
 MIDDLEWARE = [
@@ -59,6 +60,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "notifications.context_processors.notifications",
             ],
         },
     },
