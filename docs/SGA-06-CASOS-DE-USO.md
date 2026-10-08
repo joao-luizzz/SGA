@@ -80,22 +80,10 @@ flowchart LR
 - [Rastreabilidade](SGA-05-RASTREABILIDADE.md)
 
 
-## Estado atual — 01/10/2026
+## Estado atual após a PR #70 — 08/10/2026
 
-Este documento continua sendo a referência detalhada da **Fase 1/MVP**. Para a apresentação, ele deve ser lido junto ao Documento Consolidado, que diferencia o contrato original do MVP das extensões efetivamente integradas na Fase 2.
+Os casos CU01–CU19 acima permanecem a referência dos fluxos da **Fase 1/MVP**. As extensões da Fase 2 implementadas na develop incluem materiais/comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68) e transferências (PR #69). A integração entre relatórios e transferências foi concluída pela PR #70.
 
-### Extensões já integradas
+Relatórios da Coordenação incluem acompanhamento de risco, motivos, filtros combinados, CSV e impressão A4. O fluxo de transferência é administrativo: Secretaria registra, Coordenação analisa e o Aluno consulta suas solicitações, sem alteração automática do histórico acadêmico. As PRs #66–#70 e os testes correspondentes são a referência dessas extensões; elas não alteram retroativamente os casos de uso da Fase 1.
 
-- Materiais e comunicados — PR #66.
-- Calendário, grade e conflitos — PR #67.
-- Relatórios de alunos/turmas/vagas, notas/resultados e frequência, com filtros e CSV — PR #68.
-- Transferências simplificadas — PR #69.
-
-### Extensões ainda não concluídas
-
-- Integração conjunta transferências + relatórios — #51.
-- Identificação de alunos em risco de reprovação e impressão nos relatórios — #62.
-- Recuperação de senha e notificações — #35.
-- Fase 3 — #37.
-
-Assim, expressões como “fora do MVP” significam **fora do escopo original da Fase 1**, e não necessariamente “inexistente no código atual”.
+Recuperação de senha e notificações permanecem pendentes (#35; #47–#48 e #59–#60); não são descritas como casos de uso implementados aqui. A Fase 3 (#37) é futura. “Fora do MVP” significa fora do escopo original da Fase 1, não necessariamente ausente do código atual.

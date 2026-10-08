@@ -46,7 +46,7 @@ git diff --check
 
 Além da execução local em Docker/PostgreSQL, a CI executa, nessa ordem, `python manage.py check`, `python manage.py makemigrations --check --dry-run` e `pytest` nos jobs **SQLite** e **PostgreSQL 16**.
 
-## Checklist
+## Checklist da demonstração da Fase 1
 
 - [ ] Containers `web` e `db` ativos; migrations aplicadas.
 - [ ] `seed_demo` executado e contas de demonstração acessíveis.
@@ -57,24 +57,22 @@ Além da execução local em Docker/PostgreSQL, a CI executa, nessa ordem, `pyth
 - [ ] Sem senha real, dado pessoal real ou credencial de produção em tela.
 - [ ] Validações locais e CI verdes.
 
-## Estado atual para a P1 — 01/10/2026
+## Estado atual e demonstração da Fase 2 — 08/10/2026
 
-A Fase 1/MVP continua sendo o núcleo documental. Desde então, já estão integradas no `develop` as entregas de materiais/comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68) e transferências simplificadas (PR #69).
+A Fase 1/MVP continua sendo o núcleo documental. Na develop atual também estão integradas as entregas de materiais/comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68), transferências (PR #69) e conclusão dos relatórios com integração da Semana 5 (PR #70).
 
 ### Sequência de demonstração
 
-1. Coordenação: curso, disciplina, turma, horários, sala, vagas e professor.
-2. Secretaria: pessoas, matrícula e status.
-3. Professor: chamada e notas; Exame apenas para aluno elegível.
-4. Aluno: boletim, situação e frequência próprias.
-5. Se houver tempo: materiais/comunicados, calendário/grade, relatórios e transferência.
-6. Encerrar com arquitetura, PostgreSQL, testes/CI e versionamento.
+1. Coordenação: curso, disciplina, turma, grade/horários e calendário; mostrar conflitos e filtros por perfil.
+2. Secretaria: pessoas, matrícula/status e registro de solicitação de transferência.
+3. Professor: materiais nas próprias turmas, chamada e notas; Exame apenas para aluno elegível.
+4. Aluno: materiais e comunicados pertinentes, calendário, boletim, situação e frequência próprias.
+5. Coordenação: relatórios acadêmicos com filtros combinados; demonstrar motivos de risco, exportação CSV e impressão A4.
+6. Secretaria e Coordenação: completar o fluxo de transferência (registro e decisão) e conferir que o histórico acadêmico e os relatórios permanecem preservados.
+7. Encerrar com arquitetura, PostgreSQL, testes/CI e estado das fases. Recuperação de senha/notificações estão pendentes; Fase 3 é futura.
 
-### Pendências que não devem ser declaradas como concluídas
+Use dados de demonstração e um banco descartável. A validação da PR #70 inclui roteiro de navegador com filtros, CSV, impressão, decisões de transferência e permissões; ela não substitui a preparação específica do ambiente da apresentação.
 
-- #62: identificação de alunos em risco de reprovação e impressão.
-- #51: integração conjunta de transferências e relatórios.
-- #35: recuperação de senha e notificações.
-- #37: Fase 3.
+**Estado:** Fase 1/MVP concluída; Semana 1 concluída; Semana 2 concluída (PR #66); Semana 3 concluída (PR #67); Semana 4 pendente (#35); Semana 5 concluída (#36, #49, #51 e #62; PRs #68–#70); Fase 3 futura (#37).
 
-**Importante:** “fora do MVP” nos documentos da Fase 1 significa fora do escopo original, não necessariamente ausente do código atual.
+Não apresentar recuperação de senha ou notificações como implementadas. “Fora do MVP” nos documentos da Fase 1 significa fora do escopo original, não necessariamente ausente do código atual.

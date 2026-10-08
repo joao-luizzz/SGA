@@ -45,7 +45,7 @@ transferência. A interface deve explicar esse limite antes de registrar e decid
 5. consultas/permissões; 6. interface; 7. testes de regras;
 8. integração/concorrência; 9. documentação de entrega e validação.
 
-A #36 e a #51 continuam dependentes das demais entregas da equipe.
+Registro histórico do plano inicial, elaborado antes da conclusão das entregas: naquele momento, #36 e #51 dependiam das demais entregas da equipe.
 
 ## Rastreabilidade da entrega
 
@@ -128,7 +128,7 @@ em uma base com solicitações que precisam ser preservadas.
   no PostgreSQL depende do job correspondente do CI; consulte os checks do PR
   para seu resultado efetivo, posterior a este registro local.
 
-## Revisão e pendências da equipe
+## Registro histórico da revisão original — 20/09/2026
 
 - João: revisar código, regra de aprovação administrativa e decisões delegadas,
   executar roteiro visual e decidir o merge para `develop`.
@@ -138,6 +138,8 @@ em uma base com solicitações que precisam ser preservadas.
   integração e validação do contrato de negócio; o PR não as encerra automaticamente.
 
 
-## Estado atual em 01/10/2026
+## Estado atual após a PR #70 — 08/10/2026
 
-A implementação foi integrada ao `develop` pelo PR #69. A entrega individual de transferências está concluída. A integração conjunta com relatórios permanece na #51 e a validação final da #36 depende dessa integração. Trechos anteriores que descrevem o merge como pendente são registro histórico da revisão original.
+A implementação individual de transferências foi integrada ao `develop` pela PR #69 (merge `a41e42b5e467df9e6395060440c3a418c64f9ff3`). A PR #70 (`950d871597dea7499bd9e63ca75029639314a97a`) concluiu a integração com relatórios e a validação da Semana 5. Portanto, #49, #61, #51 e #36 estão concluídas. A integração preserva o caráter administrativo da transferência e não modifica automaticamente matrículas, notas ou frequência.
+
+As seções “Plano dos nove commits”, “Validação local em 20/09/2026” e “Registro histórico da revisão original” documentam o estado e a revisão anteriores aos merges; não descrevem pendências atuais.

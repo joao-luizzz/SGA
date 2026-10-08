@@ -9,7 +9,7 @@
 
 ## Resumo
 
-O SGA é um monólito Django para ensino superior. A Fase 1 entrega a gestão acadêmica mínima: RBAC, usuários, oferta acadêmica, matrícula administrativa, frequência, notas, cálculos e consulta individual do aluno. A documentação individual é a referência detalhada; este documento reúne a visão de entrega.
+O SGA é um monólito Django para ensino superior. A Fase 1/MVP entrega RBAC, usuários, oferta acadêmica, matrícula administrativa, frequência, notas, cálculos e consulta individual do aluno. A Fase 2 adiciona materiais/comunicados, calendário/grade/conflitos, transferências e relatórios acadêmicos. A recuperação segura de senha e as notificações internas continuam pendentes; a Fase 3 é futura. A documentação individual é a referência detalhada; este documento resume o estado atual da develop.
 
 ## Escopo e arquitetura
 
@@ -27,7 +27,7 @@ flowchart TB
     APP --> DB[(PostgreSQL 16)]
 ```
 
-Os módulos correspondem a autenticação/auditoria, oferta acadêmica, matrícula, frequência e avaliações. Regras de negócio ficam em serviços, consultas reutilizáveis em selectors e permissões em decorators/mixins. A aplicação usa Docker Compose e Pytest.
+Os apps atuais são `accounts`, `academics`, `enrollment`, `attendance`, `assessments`, `materials`, `communications` e `transfers`. Eles cobrem autenticação/auditoria, oferta e grade acadêmica, matrícula, frequência, avaliações, materiais, comunicados e transferências. Regras de negócio ficam em services, consultas reutilizáveis em selectors e permissões em decorators/mixins. Relatórios são consultas/selectors, sem entidade persistente própria. A aplicação usa Docker Compose e Pytest.
 
 ## Perfis
 
@@ -37,6 +37,8 @@ Os módulos correspondem a autenticação/auditoria, oferta acadêmica, matrícu
 | `PROFESSOR` | Turmas próprias, chamada completa, notas parciais e exame elegível. |
 | `SECRETARIA` | Usuários Aluno/Professor, matrícula e status. |
 | `COORDENACAO` | Cursos, disciplinas, turmas e alocação docente. |
+
+Na Fase 2, Professor gerencia materiais das próprias turmas; Secretaria e Coordenação participam do fluxo administrativo de transferências conforme permissões; a Coordenação consulta relatórios acadêmicos. Os detalhes estão nos documentos de cada entrega.
 
 ## Requisitos e regras centrais
 
@@ -53,23 +55,53 @@ Frequência < 75%   => reprovado por falta e exame bloqueado
 
 Somente a Secretaria efetiva matrícula. A matrícula ativa pode ser trancada, cancelada ou concluída. Nova tentativa não é permitida na mesma turma; é criada em outra turma/período, para manter notas e frequência históricas isoladas. Alterações de Nota e Falta são auditadas em log imutável.
 
-## Modelo de dados e ERD
+## Modelo de dados e MER atual
 
-As entidades reais são `CustomUser`, `AuditoriaLog`, `Curso`, `Disciplina`, `Turma`, `Matricula`, `Falta` e `Nota`.
+O modelo persistente atual possui as 13 entidades listadas em [SGA-04 — Modelagem de dados](SGA-04-MODELAGEM-DADOS.md): `CustomUser`, `AuditoriaLog`, `Curso`, `Disciplina`, `Turma`, `HorarioTurma`, `EventoCalendario`, `Matricula`, `Falta`, `Nota`, `MaterialAcademico`, `Comunicado` e `SolicitacaoTransferencia`. Aluno e Professor são papéis de `CustomUser`, não tabelas separadas. Relatórios são consultas e não possuem entidade `Relatorio`.
 
 ```mermaid
 erDiagram
+    CUSTOM_USER ||--o{ AUDITORIA_LOG : registra
     CURSO ||--o{ DISCIPLINA : possui
     DISCIPLINA ||--o{ TURMA : oferta
+    CUSTOM_USER o|--o{ TURMA : ministra
+    TURMA ||--o{ HORARIO_TURMA : possui
+    CURSO o|--o{ EVENTO_CALENDARIO : alvo
+    TURMA o|--o{ EVENTO_CALENDARIO : alvo
+    CUSTOM_USER o|--o{ EVENTO_CALENDARIO : autor
     CUSTOM_USER ||--o{ MATRICULA : aluno
     TURMA ||--o{ MATRICULA : recebe
-    MATRICULA ||--o{ NOTA : possui
-    TURMA ||--o{ FALTA : registra
+    TURMA ||--o{ FALTA : possui
     CUSTOM_USER ||--o{ FALTA : aluno
-    CUSTOM_USER ||--o{ AUDITORIA_LOG : autor
+    CUSTOM_USER o|--o{ FALTA : registra
+    MATRICULA ||--o{ NOTA : possui
+    CUSTOM_USER ||--o{ NOTA : registra
+    TURMA ||--o{ MATERIAL_ACADEMICO : disponibiliza
+    CUSTOM_USER ||--o{ MATERIAL_ACADEMICO : publica
+    CUSTOM_USER ||--o{ COMUNICADO : publica
+    CURSO o|--o{ COMUNICADO : segmenta
+    TURMA o|--o{ COMUNICADO : segmenta
+    CUSTOM_USER ||--o{ SOLICITACAO_TRANSFERENCIA : aluno
+    CURSO ||--o{ SOLICITACAO_TRANSFERENCIA : curso
+    CUSTOM_USER ||--o{ SOLICITACAO_TRANSFERENCIA : registra
+    CUSTOM_USER o|--o{ SOLICITACAO_TRANSFERENCIA : analisa
+
+    CUSTOM_USER { bigint id PK string email UK string full_name string role boolean is_active }
+    AUDITORIA_LOG { bigint id PK bigint usuario_id FK string tabela_afetada bigint registro_id string acao datetime realizado_em }
+    CURSO { bigint id PK string codigo UK string nome boolean ativo }
+    DISCIPLINA { bigint id PK bigint curso_id FK string codigo UK int carga_horaria }
+    TURMA { bigint id PK bigint disciplina_id FK bigint professor_id FK string periodo_letivo string horarios int vagas_maximas boolean ativo }
+    HORARIO_TURMA { bigint id PK bigint turma_id FK string dia_semana time hora_inicio time hora_fim }
+    EVENTO_CALENDARIO { bigint id PK bigint curso_id FK bigint turma_id FK bigint autor_id FK string tipo datetime inicio datetime fim string escopo }
+    MATRICULA { bigint id PK bigint aluno_id FK bigint turma_id FK string status datetime matriculado_em }
+    FALTA { bigint id PK bigint turma_id FK bigint aluno_id FK bigint registrado_por_id FK date data_aula boolean presente }
+    NOTA { bigint id PK bigint matricula_id FK bigint registrado_por_id FK string tipo decimal valor }
+    MATERIAL_ACADEMICO { bigint id PK bigint turma_id FK bigint autor_id FK string titulo string arquivo_or_link datetime criado_em }
+    COMUNICADO { bigint id PK bigint autor_id FK bigint curso_id FK bigint turma_id FK string titulo string escopo datetime publicar_em }
+    SOLICITACAO_TRANSFERENCIA { bigint id PK bigint aluno_id FK bigint curso_id FK bigint solicitada_por_id FK bigint analisada_por_id FK string tipo string status date data_referencia }
 ```
 
-`Disciplina` pertence diretamente a `Curso`; horários são texto validado em `Turma.horarios`; `Nota` pertence a `Matricula`; e `Falta` pertence a Aluno, Turma e data. E-mail, matrícula ativa, nota por tipo e chamada por data possuem as restrições de unicidade descritas em [SGA-04](SGA-04-MODELAGEM-DADOS.md). Média, situação, frequência e vagas são calculadas, não tabelas.
+`Disciplina` pertence diretamente a `Curso`; `HorarioTurma` estrutura a grade e `Turma.horarios` permanece como campo textual legado/compatibilidade; `Nota` pertence a `Matricula`; `Falta` liga Aluno, Turma e data. `MaterialAcademico`, `Comunicado` e `SolicitacaoTransferencia` persistem as extensões da Fase 2. E-mail, matrícula ativa, nota por tipo, chamada por data e solicitação pendente equivalente possuem as restrições descritas em [SGA-04](SGA-04-MODELAGEM-DADOS.md). Média, situação, frequência, risco acadêmico e vagas são calculados, não tabelas.
 
 ## Casos de uso
 
@@ -77,13 +109,30 @@ Os 19 casos de uso abrangem autenticação (CU01–CU03), Aluno (CU04–CU05), P
 
 ## Testes, CI e demonstração
 
-O projeto possui suíte automatizada para regras acadêmicas, permissões, modelos, serviços, views, seed e fluxo de MVP. A CI executa `check`, verificação de migrations e `pytest` em SQLite e PostgreSQL 16. Para preparar a demonstração, use `docker compose exec web python manage.py seed_demo`; o roteiro e checklist estão em [SGA-07](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
+O projeto possui suíte automatizada para regras acadêmicas, permissões, modelos, services, views, seed e fluxos integrados da Fase 2. A CI executa `check`, verificação de migrations e `pytest` em SQLite e PostgreSQL 16. Na validação específica da PR #70 foram registrados **380 testes aprovados, 2 skips de concorrência PostgreSQL e cobertura de 88,75%**; os dois jobs do CI (SQLite e PostgreSQL) passaram. Essa evidência descreve aquela execução da Semana 5, não fixa a contagem/cobertura futura. Para preparar a demonstração, use `docker compose exec web python manage.py seed_demo`; o roteiro e checklist estão em [SGA-07](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
 
-## MVP versus Roadmap
+## Fases e estado atual
 
-Fazem parte do MVP: autenticação, quatro papéis, usuários, cursos, disciplinas, turmas, matrícula administrativa, vagas, frequência, notas, exame, boletim, cálculos e auditoria.
+### Fase 1/MVP — concluída
 
-Ficam fora: auto-matrícula, recuperação de senha, materiais, calendário, comunicados, documentos, transferências, financeiro, app mobile, integrações e pré-requisitos.
+Autenticação e quatro papéis, usuários, cursos, disciplinas, turmas, matrícula administrativa, vagas, frequência, notas, exame, boletim, cálculos e auditoria compõem o núcleo original.
+
+### Fase 2 — estado na develop após PR #70
+
+Semanas 1, 2, 3 e 5 concluídas; Semana 4 pendente.
+
+- Materiais e comunicados — concluídos (PR #66).
+- Calendário, grade e conflitos — concluídos (PR #67).
+- Relatórios acadêmicos — entregues na PR #68 e complementados na PR #70.
+- Transferências — concluídas na PR #69; integração com relatórios concluída na PR #70.
+- Recuperação segura de senha — pendente (#35; solicitação #47 e redefinição/token #59).
+- Notificações internas, leitura e testes — pendentes (#35; central #48 e leitura/testes #60).
+
+### Fase 3 — futura
+
+Planejada para etapa posterior (#37), após estabilização e decisão da equipe. Pré-requisitos/equivalência de créditos, documentos acadêmicos oficiais, financeiro acadêmico, dashboard gerencial e estudos de API pública, integrações, aplicativo mobile e IA não são declarados como entregues neste estado.
+
+“Fora do MVP” identifica o escopo original da Fase 1; não significa que os módulos posteriores implementados na Fase 2 estejam ausentes do código.
 
 ## Documentos individuais
 
@@ -96,8 +145,8 @@ Ficam fora: auto-matrícula, recuperação de senha, materiais, calendário, com
 - [SGA-07 — Roteiro de demonstração](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md)
 
 
-## Estado atual — 01 de outubro de 2026
+## Estado atual — 08 de outubro de 2026
 
-**Fase 1/MVP:** concluída. **Fase 2:** em evolução, com materiais/comunicados (#66), calendário/grade/conflitos (#67), relatórios (#68) e transferências (#69) integrados. **Pendências:** #51 integração conjunta; #62 risco de reprovação e impressão; #35 recuperação de senha/notificações; #37 Fase 3.
+**Fase 1/MVP:** concluída. **Fase 2:** materiais/comunicados, calendário/grade/conflitos, relatórios e transferências integrados; Semana 5 concluída pela PR #70 (`950d871597dea7499bd9e63ca75029639314a97a`). A pendência funcional da Fase 2 é recuperação de senha e notificações (#35 e issues relacionadas). **Fase 3:** futura (#37).
 
 Este documento é a visão consolidada para apresentação. Os documentos SGA-01 a SGA-06 permanecem como especificação detalhada do MVP e não devem ser interpretados como inventário exaustivo das extensões posteriores.

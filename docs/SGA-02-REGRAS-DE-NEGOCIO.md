@@ -29,9 +29,9 @@ As regras abaixo descrevem somente comportamentos implementados na Fase 1. Os ID
 | **RN16** | Integridade de dados: e-mail é único; há no máximo uma matrícula ativa por Aluno+Turma; uma nota por Matrícula+tipo; e chamada única por Turma+Aluno+data. |
 | **RN17** | Formulários, serviços e restrições de banco validam os dados críticos; a CI executa `check`, verificação de migrations e a suíte automatizada em SQLite e PostgreSQL 16. |
 
-## Fora do MVP
+## Limites do contrato da Fase 1
 
-Não há regra implementada para auto-matrícula, recuperação de senha, materiais, calendário, comunicados, documentos, transferências, financeiro, aplicativo mobile, integrações ou pré-requisitos. Esses tópicos são apenas Roadmap.
+As regras acima descrevem somente o contrato da Fase 1. Os módulos posteriores da Fase 2 não alteram retroativamente estas regras. Transferências e relatórios foram implementados; recuperação segura de senha e notificações internas continuam pendentes. A Fase 3 é futura. Consulte o estado atual abaixo e o Documento Consolidado.
 
 ## Referências
 
@@ -40,22 +40,15 @@ Não há regra implementada para auto-matrícula, recuperação de senha, materi
 - [Rastreabilidade](SGA-05-RASTREABILIDADE.md)
 
 
-## Estado atual — 01/10/2026
+## Estado atual após a PR #70 — 08/10/2026
 
-Este documento continua sendo a referência detalhada da **Fase 1/MVP**. Para a apresentação, ele deve ser lido junto ao Documento Consolidado, que diferencia o contrato original do MVP das extensões efetivamente integradas na Fase 2.
+Este documento continua sendo a referência detalhada das regras da **Fase 1/MVP**. A develop atual também contém extensões da Fase 2:
 
-### Extensões já integradas
+- Materiais e comunicados — PR #66, concluída.
+- Calendário, grade e conflitos — PR #67, concluída.
+- Relatórios — PR #68, complementada e integrada com transferências pela PR #70.
+- Transferências — PR #69, com integração conjunta de relatórios concluída pela PR #70. As operações não alteram automaticamente o histórico acadêmico.
+- Recuperação segura de senha e notificações — pendentes (#35; issues relacionadas #47–#48 e #59–#60).
+- Fase 3 — futura (#37).
 
-- Materiais e comunicados — PR #66.
-- Calendário, grade e conflitos — PR #67.
-- Relatórios de alunos/turmas/vagas, notas/resultados e frequência, com filtros e CSV — PR #68.
-- Transferências simplificadas — PR #69.
-
-### Extensões ainda não concluídas
-
-- Integração conjunta transferências + relatórios — #51.
-- Identificação de alunos em risco de reprovação e impressão nos relatórios — #62.
-- Recuperação de senha e notificações — #35.
-- Fase 3 — #37.
-
-Assim, expressões como “fora do MVP” significam **fora do escopo original da Fase 1**, e não necessariamente “inexistente no código atual”.
+“Fora do MVP” significa fora do escopo original da Fase 1, e não que todos os módulos relacionados estejam ausentes do código atual.
