@@ -86,4 +86,21 @@ Os casos CU01–CU19 acima permanecem a referência dos fluxos da **Fase 1/MVP**
 
 Relatórios da Coordenação incluem acompanhamento de risco, motivos, filtros combinados, CSV e impressão A4. O fluxo de transferência é administrativo: Secretaria registra, Coordenação analisa e o Aluno consulta suas solicitações, sem alteração automática do histórico acadêmico. As PRs #66–#70 e os testes correspondentes são a referência dessas extensões; elas não alteram retroativamente os casos de uso da Fase 1.
 
-Recuperação de senha e notificações permanecem pendentes (#35; #47–#48 e #59–#60); não são descritas como casos de uso implementados aqui. A Fase 3 (#37) é futura. “Fora do MVP” significa fora do escopo original da Fase 1, não necessariamente ausente do código atual.
+Recuperação de senha e notificações estão implementadas nesta entrega (#35; #47–#48 e #59–#60); seus fluxos estão descritos no SGA-11, sem renumerar os casos de uso originais da Fase 1. A Fase 3 (#37) é futura. “Fora do MVP” significa fora do escopo original da Fase 1, não necessariamente ausente do código atual.
+
+## Entrega da Semana 4 — Issue #35 (08/10/2026)
+
+**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
+aguardando revisão e integração. Isso não declara merge na develop nem fechamento
+das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
+e Fase 3 permanece futura.
+
+Recuperação usa tokens nativos Django com expiração configurável, validação de
+senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
+paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
+Comunicados, notas e frequência geram notificações conforme as regras existentes.
+Detalhes, configuração e evidências: [Semana 4](SGA-11-RECUPERACAO-NOTIFICACOES.md).
+
+**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
+e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
+o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.

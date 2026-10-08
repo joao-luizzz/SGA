@@ -8,7 +8,7 @@ O SGA é um monólito Django para ensino superior. Centraliza a oferta acadêmic
 
 - Python 3.12+, Django 5+, Django Templates, HTMX e Bootstrap 5.
 - PostgreSQL 16, Docker Compose, pytest e pytest-django.
-- Módulos: `accounts`, `academics`, `enrollment`, `attendance`, `assessments`, `materials`, `communications` e `transfers`.
+- Módulos: `accounts`, `academics`, `enrollment`, `attendance`, `assessments`, `materials`, `communications`, `transfers` e `notifications`.
 
 ## Fase 1 entregue
 
@@ -37,6 +37,13 @@ exportação CSV e impressão A4 da consulta filtrada. A sinalização usa notas
 frequência disponíveis, sem modificar o resultado acadêmico. A integração de
 relatórios e transferências foi concluída na PR #70. Consulte as regras e evidências
 na [conclusão da Semana 5](docs/SGA-10-RELATORIOS-INTEGRACAO.md).
+
+## Recuperação de senha e notificações — Semana 4
+
+A opção **Esqueci minha senha** fica no login. A central **Notificações** na navbar
+é pessoal para todos os papéis, inclusive superusuários. E-mails usam configuração
+por ambiente; o padrão em memória não envia mensagens nem imprime links em logs.
+Consulte [configuração, segurança e demonstração](docs/SGA-11-RECUPERACAO-NOTIFICACOES.md).
 
 ## Documentação
 
@@ -109,13 +116,30 @@ indica que todos esses módulos continuam ausentes do código.
 
 **Fase 2:**
 
-Semanas 1, 2, 3 e 5 concluídas; Semana 4 pendente.
+Semanas 1, 2, 3 e 5 integradas; Semana 4 implementada nesta entrega, aguardando revisão.
 
 - Materiais e comunicados — concluídos na PR #66.
 - Calendário, grade e conflitos — concluídos na PR #67.
 - Relatórios acadêmicos — entregues na PR #68; complementados e integrados com transferências na PR #70.
 - Transferências — concluídas na PR #69; integração com relatórios concluída na PR #70.
-- Recuperação segura de senha — pendente (#35; solicitação #47 e redefinição/token #59).
-- Notificações internas, leitura e testes — pendentes (#35; central #48 e leitura/testes #60).
+- Recuperação segura de senha — implementada nesta entrega (#35; solicitação #47 e redefinição/token #59).
+- Notificações internas, leitura e testes — implementados nesta entrega (#35; central #48 e leitura/testes #60).
 
 **Fase 3:** futura (#37). “Fora do MVP” significa fora do escopo original da Fase 1, não necessariamente ausente do código atual.
+
+## Entrega da Semana 4 — Issue #35 (08/10/2026)
+
+**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
+aguardando revisão e integração. Isso não declara merge na develop nem fechamento
+das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
+e Fase 3 permanece futura.
+
+Recuperação usa tokens nativos Django com expiração configurável, validação de
+senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
+paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
+Comunicados, notas e frequência geram notificações conforme as regras existentes.
+Detalhes, configuração e evidências: [Semana 4](docs/SGA-11-RECUPERACAO-NOTIFICACOES.md).
+
+**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
+e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
+o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.

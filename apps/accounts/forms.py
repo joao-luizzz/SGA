@@ -1,7 +1,13 @@
+import logging
+
 from django import forms
+from django.conf import settings
 from django.contrib.auth import password_validation
-from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm, SetPasswordForm
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.debug import sensitive_variables
 
 class SGAAuthenticationForm(AuthenticationForm):
     username = forms.EmailField(
@@ -150,3 +156,26 @@ class UsuarioEditForm(forms.ModelForm):
         ).exists():
             raise forms.ValidationError(_("Já existe um usuário cadastrado com este e-mail."))
         return email_normalizado
+
+
+class RecoveryForm(PasswordResetForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].widget.attrs.update({'class': 'form-control'})
+
+    @sensitive_variables()
+    def send_mail(self, subject_template_name, email_template_name, context,
+                  from_email, to_email, html_email_template_name=None):
+        # Nunca incluir exceção SMTP, destinatário ou conteúdo em logs.
+        if settings.EMAIL_BACKEND in {
+            'django.core.mail.backends.console.EmailBackend',
+            'django.core.mail.backends.filebased.EmailBackend',
+        }:
+            logging.getLogger(__name__).warning('Backend de e-mail inseguro para recuperação; envio bloqueado.')
+            return
+        subject = ''.join(render_to_string(subject_template_name, context).splitlines())
+        body = render_to_string(email_template_name, context)
+        try:
+            EmailMultiAlternatives(subject, body, from_email, [to_email]).send()
+        except Exception:
+            logging.getLogger(__name__).warning('Falha na entrega de recuperação de senha.')
