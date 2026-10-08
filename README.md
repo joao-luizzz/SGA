@@ -8,7 +8,7 @@ O SGA é um monólito Django para ensino superior. Centraliza a oferta acadêmic
 
 - Python 3.12+, Django 5+, Django Templates, HTMX e Bootstrap 5.
 - PostgreSQL 16, Docker Compose, pytest e pytest-django.
-- Módulos: `accounts`, `academics`, `enrollment`, `attendance` e `assessments`.
+- Módulos: `accounts`, `academics`, `enrollment`, `attendance`, `assessments`, `materials`, `communications` e `transfers`.
 
 ## Fase 1 entregue
 
@@ -33,9 +33,10 @@ validação estão na [documentação de transferências](docs/SGA-09-TRANSFEREN
 ## Relatórios e integração — Semana 5
 
 A Coordenação consulta relatórios com filtro de acompanhamento, motivos de risco,
-exportação CSV e impressão da consulta filtrada. A sinalização usa notas e frequência
-disponíveis, sem modificar o resultado acadêmico. Consulte as regras e evidências
-na [validação da Semana 5](docs/SGA-10-RELATORIOS-INTEGRACAO.md).
+exportação CSV e impressão A4 da consulta filtrada. A sinalização usa notas e
+frequência disponíveis, sem modificar o resultado acadêmico. A integração de
+relatórios e transferências foi concluída na PR #70. Consulte as regras e evidências
+na [conclusão da Semana 5](docs/SGA-10-RELATORIOS-INTEGRACAO.md).
 
 ## Documentação
 
@@ -43,7 +44,8 @@ na [validação da Semana 5](docs/SGA-10-RELATORIOS-INTEGRACAO.md).
 - [Escopo](docs/SGA-01-ESCOPO.md), [regras](docs/SGA-02-REGRAS-DE-NEGOCIO.md), [requisitos](docs/SGA-03-REQUISITOS.md) e [modelo de dados](docs/SGA-04-MODELAGEM-DADOS.md)
 - [Rastreabilidade](docs/SGA-05-RASTREABILIDADE.md), [casos de uso](docs/SGA-06-CASOS-DE-USO.md) e [roteiro de demonstração](docs/SGA-07-ROTEIRO-DEMO-E-ENTREGA.md)
 - [Preparação técnica da Fase 2](docs/SGA-08-PREPARACAO-FASE-2.md) — proposta de arquitetura e revisão do backlog, sem implementação funcional
-- [Transferências simplificadas](docs/SGA-09-TRANSFERENCIAS.md) — implementação das #49/#61, regras adotadas e contribuição para #51
+- [Transferências simplificadas](docs/SGA-09-TRANSFERENCIAS.md) — implementação das #49/#61 e integração com relatórios concluída na #51
+- [Relatórios e integração da Semana 5](docs/SGA-10-RELATORIOS-INTEGRACAO.md) — risco acadêmico, filtros, CSV, impressão e validação integrada
 
 ## Executar com Docker Compose
 
@@ -96,9 +98,24 @@ A suíte automatizada cobre autenticação, RBAC, usuários, oferta acadêmica, 
 Auto-matrícula, recuperação de senha, materiais, calendário, comunicados, documentos, transferências, financeiro, app mobile, integrações e pré-requisitos são Roadmap e não estão implementados na Fase 1.
 
 Essa delimitação se refere à Fase 1. A transferência simplificada da Fase 2 está
-descrita acima; sua entrega não conclui todas as atividades da issue #36.
+descrita acima; os módulos implementados depois do MVP estão relacionados no
+estado atual abaixo. “Fora do MVP” identifica o escopo original da Fase 1, não
+indica que todos esses módulos continuam ausentes do código.
 
 
-## Estado para apresentação — 01/10/2026
+## Estado atual para apresentação — 08/10/2026
 
-A Fase 1/MVP está concluída. A Fase 2 já possui entregas integradas em materiais/comunicados (#66), calendário/grade/conflitos (#67), relatórios (#68) e transferências (#69). Permanecem em aberto #51, #62, #35 e #37. “Fora do MVP” refere-se ao escopo original da Fase 1.
+**Fase 1/MVP:** concluída.
+
+**Fase 2:**
+
+Semanas 1, 2, 3 e 5 concluídas; Semana 4 pendente.
+
+- Materiais e comunicados — concluídos na PR #66.
+- Calendário, grade e conflitos — concluídos na PR #67.
+- Relatórios acadêmicos — entregues na PR #68; complementados e integrados com transferências na PR #70.
+- Transferências — concluídas na PR #69; integração com relatórios concluída na PR #70.
+- Recuperação segura de senha — pendente (#35; solicitação #47 e redefinição/token #59).
+- Notificações internas, leitura e testes — pendentes (#35; central #48 e leitura/testes #60).
+
+**Fase 3:** futura (#37). “Fora do MVP” significa fora do escopo original da Fase 1, não necessariamente ausente do código atual.

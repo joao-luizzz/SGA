@@ -49,9 +49,9 @@ RF16 cobre a criação da matrícula; RF35 cobre a mudança de status posterior,
 | RNF05 | Suíte automatizada e CI em SQLite e PostgreSQL 16. | Implementado |
 | RNF06 | Auditoria de Nota e Falta imutável. | Implementado |
 
-## Roadmap (não implementado)
+## Limites dos requisitos da Fase 1
 
-Auto-matrícula, recuperação de senha, materiais, horário consolidado, calendário, comunicados, documentos, transferências, financeiro, aplicativo mobile, integrações e pré-requisitos não são requisitos da Fase 1.
+Os requisitos tabelados acima descrevem a Fase 1. As extensões posteriores da Fase 2 não se tornam requisitos retroativos desta especificação. Materiais/comunicados, calendário/grade/conflitos, transferências e relatórios estão implementados; recuperação de senha e notificações permanecem pendentes. Fase 3 é futura. Consulte o estado atual abaixo.
 
 ## Referências
 
@@ -59,22 +59,15 @@ Auto-matrícula, recuperação de senha, materiais, horário consolidado, calend
 - [Matriz de rastreabilidade](SGA-05-RASTREABILIDADE.md)
 
 
-## Estado atual — 01/10/2026
+## Estado atual após a PR #70 — 08/10/2026
 
-Este documento continua sendo a referência detalhada da **Fase 1/MVP**. Para a apresentação, ele deve ser lido junto ao Documento Consolidado, que diferencia o contrato original do MVP das extensões efetivamente integradas na Fase 2.
+Este documento continua sendo a referência de requisitos da **Fase 1/MVP**. Na develop atual, as extensões da Fase 2 estão assim:
 
-### Extensões já integradas
+- Materiais e comunicados — PR #66, concluída.
+- Calendário, grade e conflitos — PR #67, concluída.
+- Relatórios — PR #68, complementada e integrada com transferências pela PR #70.
+- Transferências — PR #69; a integração com relatórios foi concluída pela PR #70.
+- Recuperação segura de senha e notificações — pendentes (#35; relacionadas #47–#48 e #59–#60). Não estão marcadas como requisitos implementados nesta especificação.
+- Fase 3 — futura (#37).
 
-- Materiais e comunicados — PR #66.
-- Calendário, grade e conflitos — PR #67.
-- Relatórios de alunos/turmas/vagas, notas/resultados e frequência, com filtros e CSV — PR #68.
-- Transferências simplificadas — PR #69.
-
-### Extensões ainda não concluídas
-
-- Integração conjunta transferências + relatórios — #51.
-- Identificação de alunos em risco de reprovação e impressão nos relatórios — #62.
-- Recuperação de senha e notificações — #35.
-- Fase 3 — #37.
-
-Assim, expressões como “fora do MVP” significam **fora do escopo original da Fase 1**, e não necessariamente “inexistente no código atual”.
+“Fora do MVP” significa fora do escopo original da Fase 1, não necessariamente ausente do código atual.

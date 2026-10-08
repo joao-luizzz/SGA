@@ -1,16 +1,15 @@
 # Semana 5 — conclusão dos relatórios e validação integrada
 
-Escopo: #62 e #51, dentro da issue mãe #36. Andrey assumiu a entrega em 24/09/2026.
-Base: `a41e42b5e467df9e6395060440c3a418c64f9ff3` (`develop`, após merge do PR #69).
+Escopo: conclusão de #62 e #51, dentro da issue mãe #36. Andrey assumiu a entrega em 24/09/2026.
+Base inicial: `a41e42b5e467df9e6395060440c3a418c64f9ff3` (`develop`, após merge do PR #69). A entrega final foi integrada pela PR #70 no merge `950d871597dea7499bd9e63ca75029639314a97a`.
 
-## Levantamento
+## Levantamento histórico anterior à PR #70
 
 - #49 e #61 encerradas; transferência administrativa integrada no PR #69.
 - #50 encerrada; notas, resultados, frequência, filtros e CSV já vieram no PR #68.
-- #62 ainda aberta: faltavam identificação explícita de risco e impressão preparada.
-- #51 ainda aberta: exige verificação conjunta de permissões, filtros e histórico.
-- A #36 afirma que entregas individuais terminaram, mas a #62 permanece aberta:
-  este documento e o novo PR explicitam essa pendência sem fechar issues antes da revisão.
+- Na revisão anterior ao complemento, #62 ainda estava aberta: faltavam identificação explícita de risco e impressão preparada.
+- Na mesma revisão, #51 ainda estava aberta e exigia verificação conjunta de permissões, filtros e histórico.
+- A #36 registrava então as entregas individuais concluídas, com integração e validação ainda por fazer. A PR #70 completou esse trabalho.
 
 ## Regra de risco adotada para revisão
 
@@ -61,12 +60,12 @@ A impressão utiliza o diálogo do navegador (papel ou salvar como PDF), sem ser
 adicional no servidor. Somente matrículas e turmas ativas compõem o relatório, conforme
 escopo que já existia; registros históricos continuam armazenados.
 
-## Validação executada em 24/09/2026
+## Registro histórico da validação local — 24/09/2026
 
 - Suíte completa local SQLite: **380 passed, 2 skipped**, cobertura **88,75%** (mínimo 85%).
 - 31 testes novos de risco, filtros, impressão HTTP e integração; testes anteriores mantidos.
 - Os dois skips são de concorrência PostgreSQL, já existentes no módulo transfers;
-  devem ser confirmados pelo job PostgreSQL 16 do novo PR.
+  nesta execução local pré-merge, a confirmação do job PostgreSQL 16 ainda estava pendente.
 - `manage.py check`, `makemigrations --check --dry-run` e `git diff --check` sem problemas.
 - Migrations existentes aplicadas em banco SQLite novo; `seed_demo` executado.
 - Revisão estática do diff: regra separada do resultado oficial, permissões, consultas,
@@ -81,8 +80,8 @@ escopo que já existia; registros históricos continuam armazenados.
 - Limitação ambiental: fontes e ícones externos indisponíveis no teste. Bootstrap
   5.3.3 original servido de cache somente no navegador de teste, mantendo URL e SRI;
   CSS local renderizado normalmente. A aplicação não teve seu mecanismo de assets alterado.
-- Impressão em impressora física não executada. Nenhum resultado de CI é presumido:
-  consultar os checks do PR para confirmar a execução no GitHub.
+- Impressão em impressora física não executada nesta revisão local. A evidência final
+  da PR #70 inclui impressão do navegador e renderização PDF; ver a validação final abaixo.
 
 ## Reproduzir
 
@@ -120,11 +119,36 @@ quatro filtros, comparar tela/CSV e imprimir; depois executar uma entrada aprova
  e uma saída recusada como Secretaria/Coordenação. Conferir relatórios/histórico
 antes e depois e tentar acessar a transferência com outro aluno e Professor.
 
-## Aceitação e encerramento
+## Registro histórico da aceitação antes do merge da PR #70
 
-O novo PR entrega o complemento da #62 e as evidências da #51. A #36 continua aberta
-até a revisão do João, confirmação da regra descritiva de risco, merge do complemento
-e validação final da Semana 5. Não confundir checklist de implementação com aprovação
-formal. #49/#61 já encerradas não precisam ser reabertas; a transferência administrativa
-aprovada pela equipe permanece igual. Andrey assumiu este complemento para evitar trabalho
-duplicado com Max; a equipe deve acompanhar a branch e o PR antes de iniciar outra solução.
+Antes do merge da PR #70, o complemento da #62 e as evidências da #51 aguardavam revisão,
+integração e validação final da Semana 5. Esse registro descreve o estado daquela revisão,
+não o estado atual da develop.
+
+## Conclusão da Semana 5 — estado atual em 08/10/2026
+
+A PR #70 (`feat: conclui relatórios e validação integrada da Semana 5`) foi integrada
+na develop pelo merge `950d871597dea7499bd9e63ca75029639314a97a`.
+
+- #62 — concluída: relatórios acadêmicos com identificação e motivos de risco, filtro,
+  CSV compatível e impressão A4.
+- #51 — concluída: integração de transferências e relatórios, RBAC, filtros combinados,
+  preservação do histórico e testes de fluxo integrado.
+- #36 — concluída: Semana 5 finalizada e validada.
+- #49 e #61 — concluídas na PR #69; a PR #70 adiciona validação integrada sem mudar
+  o caráter administrativo da transferência.
+
+### Evidência da validação da PR #70
+
+- Suíte SQLite: **380 testes aprovados, 2 skips** de concorrência PostgreSQL.
+- Cobertura: **88,75%**, com limite configurado de 85%.
+- `manage.py check`, `makemigrations --check --dry-run` e `git diff --check`: aprovados.
+- CI da PR #70: jobs SQLite e PostgreSQL aprovados; os testes de concorrência foram
+  exercitados pelo job PostgreSQL.
+- Validação de navegador realizada para filtros, CSV, impressão, aprovar/recusar
+  transferências e permissões.
+
+Os números acima são evidência desta validação específica da Semana 5, não uma promessa
+de contagem ou cobertura fixa para execuções futuras. As pendências funcionais atuais
+da Fase 2 são recuperação segura de senha e notificações (#35 e issues relacionadas);
+Fase 3 (#37) permanece futura.

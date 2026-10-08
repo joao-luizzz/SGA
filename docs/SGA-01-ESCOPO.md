@@ -56,29 +56,20 @@ Esses itens podem ser priorizados em fases futuras, mas não são requisito, ent
 - [Casos de uso](SGA-06-CASOS-DE-USO.md)
 
 
-## Atualização de estado — 01 de outubro de 2026
+## Estado atual após a PR #70 — 08 de outubro de 2026
 
-Este documento preserva a especificação da Fase 1/MVP como referência do núcleo acadêmico. O código evoluiu para a Fase 2. Materiais e comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68) e transferências simplificadas (PR #69) já possuem entregas integradas. A integração conjunta #51 e algumas pendências da #62 permanecem em validação; recuperação de senha/notificações (#35) e Fase 3 (#37) ainda são roadmap.
+Este documento preserva a especificação original da Fase 1/MVP. A develop atual também contém as entregas da Fase 2: materiais e comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68), transferências (PR #69) e conclusão dos relatórios com integração da Semana 5 (PR #70).
 
-Consulte o Documento Consolidado para o estado atual e o SGA-09 para a especificação de transferências.
+### Extensões da Fase 2
 
+- Materiais e comunicados — concluídos pela PR #66.
+- Calendário, grade e conflitos — concluídos pela PR #67.
+- Relatórios — entregues pela PR #68 e complementados pela PR #70.
+- Transferências — concluídas pela PR #69; integração com relatórios concluída pela PR #70.
+- Recuperação de senha e notificações — pendentes (#35; detalhadas nas #47–#48 e #59–#60).
 
-## Estado atual — 01/10/2026
+### Fase 3
 
-Este documento continua sendo a referência detalhada da **Fase 1/MVP**. Para a apresentação, ele deve ser lido junto ao Documento Consolidado, que diferencia o contrato original do MVP das extensões efetivamente integradas na Fase 2.
+Futura (#37), condicionada à estabilização e decisão da equipe. Este documento não amplia nem substitui o escopo original da Fase 1.
 
-### Extensões já integradas
-
-- Materiais e comunicados — PR #66.
-- Calendário, grade e conflitos — PR #67.
-- Relatórios de alunos/turmas/vagas, notas/resultados e frequência, com filtros e CSV — PR #68.
-- Transferências simplificadas — PR #69.
-
-### Extensões ainda não concluídas
-
-- Integração conjunta transferências + relatórios — #51.
-- Identificação de alunos em risco de reprovação e impressão nos relatórios — #62.
-- Recuperação de senha e notificações — #35.
-- Fase 3 — #37.
-
-Assim, expressões como “fora do MVP” significam **fora do escopo original da Fase 1**, e não necessariamente “inexistente no código atual”.
+“Fora do MVP” significa **fora do escopo original da Fase 1**, e não necessariamente “inexistente no código atual”.
