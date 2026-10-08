@@ -17,6 +17,8 @@ class MandatoryPasswordChangeMiddleware:
             exempt_urls = [
                 change_password_url,
                 logout_url,
+                reverse('accounts:password_reset'),
+                '/accounts/reset/',
             ]
 
             path = request.path
