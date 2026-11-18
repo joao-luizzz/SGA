@@ -97,3 +97,20 @@ def get_relatorio_turmas(*, curso_id=None, periodo=None, turma_id=None, risco=''
             'risco': risco,
         },
     }
+
+
+def listar_aproveitamentos(usuario, status=''):
+    """Aluno vê somente os próprios; Secretaria, Coordenação e superusuário veem todos."""
+    from accounts.models import UserRole
+    from .models import Aproveitamento
+
+    registros = Aproveitamento.objects.select_related(
+        'aluno', 'disciplina__curso', 'registrado_por', 'analisado_por',
+    )
+    if not usuario.is_superuser and usuario.role == UserRole.ALUNO:
+        registros = registros.filter(aluno=usuario)
+    elif not usuario.is_superuser and usuario.role not in (UserRole.SECRETARIA, UserRole.COORDENACAO):
+        return registros.none()
+    if status:
+        registros = registros.filter(status=status)
+    return registros

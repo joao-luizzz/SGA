@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import curriculo, views
 
 app_name = 'academics'
 
@@ -18,6 +18,14 @@ urlpatterns = [
     path('disciplinas/criar/', views.disciplina_create_view, name='disciplina_create'),
     path('disciplinas/<int:pk>/editar/', views.disciplina_update_view, name='disciplina_update'),
     path('disciplinas/<int:pk>/inativar/', views.disciplina_inactivate_view, name='disciplina_inactivate'),
+    path('disciplinas/<int:pk>/pre-requisitos/', curriculo.pre_requisitos_view, name='pre_requisitos'),
+    path('pre-requisitos/<int:pk>/remover/', curriculo.pre_requisito_remover_view, name='pre_requisito_remover'),
+
+    # Aproveitamento de disciplinas
+    path('aproveitamentos/', curriculo.aproveitamento_index_view, name='aproveitamento_index'),
+    path('aproveitamentos/novo/', curriculo.aproveitamento_criar_view, name='aproveitamento_criar'),
+    path('aproveitamentos/<int:pk>/', curriculo.aproveitamento_detalhe_view, name='aproveitamento_detalhe'),
+    path('aproveitamentos/<int:pk>/analisar/', curriculo.aproveitamento_analisar_view, name='aproveitamento_analisar'),
 
     # Turmas
     path('turmas/criar/', views.turma_create_view, name='turma_create'),

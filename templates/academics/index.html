@@ -186,6 +186,9 @@
                         <a href="{% url 'academics:disciplina_update' disciplina.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Editar' %}">
                           <i class="bi bi-pencil"></i>
                         </a>
+                        <a href="{% url 'academics:pre_requisitos' disciplina.pk %}" class="btn btn-sm btn-outline-secondary" title="{% trans 'Pré-requisitos' %}">
+                          <i class="bi bi-diagram-2"></i>
+                        </a>
                         {% if disciplina.ativo %}
                           <form action="{% url 'academics:disciplina_inactivate' disciplina.pk %}" method="post" class="d-inline"
                                 hx-post="{% url 'academics:disciplina_inactivate' disciplina.pk %}"

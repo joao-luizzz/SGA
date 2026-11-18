@@ -146,3 +146,66 @@ class HorarioTurmaForm(BaseSGAForm):
         if self.instance and self.instance.pk:
             if not self.instance.turma.ativo:
                 self.fields['turma'].queryset = Turma.objects.filter(pk=self.instance.turma.pk) | self.fields['turma'].queryset
+
+
+class PreRequisitoForm(forms.Form):
+    requisito = forms.ModelChoiceField(
+        label=_('Pré-requisito'),
+        queryset=Disciplina.objects.none(),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+
+    def __init__(self, *args, disciplina, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['requisito'].queryset = (
+            Disciplina.objects.filter(curso_id=disciplina.curso_id, ativo=True)
+            .exclude(pk=disciplina.pk)
+            .exclude(requisito_de__disciplina=disciplina)
+            .order_by('nome')
+        )
+
+
+class AproveitamentoForm(forms.Form):
+    aluno = forms.ModelChoiceField(
+        label=_('Aluno'),
+        queryset=CustomUser.objects.filter(role='ALUNO', is_active=True).order_by('full_name'),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    disciplina = forms.ModelChoiceField(
+        label=_('Disciplina a aproveitar'),
+        queryset=Disciplina.objects.filter(ativo=True).select_related('curso').order_by('nome'),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+    )
+    instituicao_origem = forms.CharField(
+        label=_('Instituição de origem'), max_length=200,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+    )
+    disciplina_origem = forms.CharField(
+        label=_('Disciplina cursada na origem'), max_length=200,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+    )
+    carga_horaria_origem = forms.IntegerField(
+        label=_('Carga horária de origem (h)'), min_value=1, max_value=2000,
+        widget=forms.NumberInput(attrs={'class': 'form-control'}),
+    )
+
+
+class AnaliseAproveitamentoForm(forms.Form):
+    decisao = forms.ChoiceField(
+        label=_('Decisão'),
+        choices=[('DEFERIDO', _('Deferir')), ('INDEFERIDO', _('Indeferir'))],
+        widget=forms.RadioSelect,
+    )
+    justificativa = forms.CharField(
+        label=_('Justificativa'), max_length=3000,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+    )
+
+
+class FiltroAproveitamentoForm(forms.Form):
+    status = forms.ChoiceField(
+        label=_('Situação'), required=False,
+        choices=[('', _('Todas')), ('PENDENTE', _('Pendente')),
+                 ('DEFERIDO', _('Deferido')), ('INDEFERIDO', _('Indeferido'))],
+        widget=forms.Select(attrs={'class': 'form-select form-select-sm'}),
+    )

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Aproveitamento #{{ registro.pk }} — SGA{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Aproveitamento #{{ registro.pk }} — {{ registro.get_status_display }}</h1>
+<div class="card card-body mb-4">
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Aluno</dt><dd class="col-sm-9">{{ registro.aluno.full_name }}</dd>
+    <dt class="col-sm-3">Disciplina</dt><dd class="col-sm-9">{{ registro.disciplina.nome }} ({{ registro.disciplina.carga_horaria }}h) — {{ registro.disciplina.curso.nome }}</dd>
+    <dt class="col-sm-3">Origem</dt><dd class="col-sm-9">{{ registro.disciplina_origem }} — {{ registro.instituicao_origem }}</dd>
+    <dt class="col-sm-3">Carga de origem</dt><dd class="col-sm-9">{{ registro.carga_horaria_origem }}h</dd>
+    <dt class="col-sm-3">Registrado por</dt><dd class="col-sm-9">{{ registro.registrado_por.full_name }} — {{ registro.registrado_em|date:'d/m/Y H:i' }}</dd>
+    {% if registro.analisado_em %}
+    <dt class="col-sm-3">Analisado por</dt><dd class="col-sm-9">{{ registro.analisado_por.full_name }} — {{ registro.analisado_em|date:'d/m/Y H:i' }}</dd>
+    <dt class="col-sm-3">Justificativa</dt><dd class="col-sm-9 text-break">{{ registro.justificativa|linebreaksbr }}</dd>
+    {% endif %}
+  </dl>
+</div>
+{% if pode_analisar %}
+<form method="post" action="{% url 'academics:aproveitamento_analisar' registro.pk %}" class="card card-body mb-3">
+  {% csrf_token %}
+  <h2 class="h5">Analisar aproveitamento</h2>
+  <p class="small text-muted">A decisão é definitiva.</p>
+  {% if form.non_field_errors %}<div class="alert alert-danger" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+  {% for campo in form %}
+  <div class="mb-3">
+    <label class="form-label">{{ campo.label }}</label>
+    {{ campo }}
+    {% for erro in campo.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+  </div>
+  {% endfor %}
+  <div><button class="btn btn-primary" type="submit">Confirmar decisão</button></div>
+</form>
+{% elif form.errors %}<div class="alert alert-danger" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+<a class="btn btn-outline-secondary" href="{% url 'academics:aproveitamento_index' %}">Voltar aos aproveitamentos</a>
+{% endblock %}
