@@ -5,7 +5,7 @@
 | Versão | **0.2 — implementação em andamento** |
 | Data | **29 de outubro de 2026** |
 | Issue | #37 — Semana 6: casos de uso, DER e rastreabilidade (João Luiz) |
-| Estado | **Pré-requisitos e aproveitamento implementados** (`feat/37-pre-requisitos`); demais módulos pendentes. |
+| Estado | **Implementados:** pré-requisitos e aproveitamento (PR #76), painel gerencial. **Pendentes:** documentos oficiais e financeiro. |
 
 ## Objetivo
 
@@ -49,7 +49,7 @@ Itens marcados **[Decisão]** precisam de confirmação da equipe antes do códi
 | **RN23** | A verificação pública de documento recebe somente o código e exibe tipo, data de emissão e nome do aluno parcialmente mascarado; não expõe notas, e-mail ou identificadores internos. |
 | **RN24** | A Secretaria lança cobranças (`Cobranca`) por aluno e competência (mês/ano), com valor positivo e vencimento; há no máximo uma cobrança não cancelada por Aluno + competência + descrição. Situações: `ABERTA`, `PAGA`, `CANCELADA`. Baixa e cancelamento exigem cobrança `ABERTA`; cancelamento exige justificativa. Atraso é derivado (`ABERTA` e vencimento < hoje), não persistido. |
 | **RN25** | O Aluno consulta somente as próprias cobranças. **[Decisão D2]** a situação financeira **não** bloqueia matrícula, notas, frequência nem documentos nesta fase. Não há integração com meio de pagamento, juros ou multa. |
-| **RN26** | O dashboard gerencial é somente leitura, restrito à Coordenação (**[Decisão D3]** e à Secretaria). Indicadores são agregados por período letivo e curso, calculados por selectors com número de consultas constante em relação à quantidade de turmas. |
+| **RN26** | O dashboard gerencial é somente leitura, restrito à Coordenação (**[Decisão D3]** e à Secretaria). Indicadores são agregados por período letivo e curso, calculados reutilizando o selector dos Relatórios Acadêmicos (`get_relatorio_turmas`), para que situação e risco sejam idênticos nas duas telas. O painel não exibe nomes de alunos. |
 | **RN27** | Criação, alteração de estado e exclusão lógica de `PreRequisito`, `Aproveitamento`, `DocumentoEmitido` e `Cobranca` registram `AuditoriaLog` via `accounts.services.registrar_auditoria`, estendendo RN15. Valores financeiros e decisões de análise entram no `valor_antigo`/`valor_novo`. |
 
 ## Requisitos funcionais propostos
@@ -219,7 +219,7 @@ Nota e Falta) deve ter o texto atualizado para refletir RN27.
 | RF42 | CU27 | RN23 | `DocumentoEmitido`, cache de limitação |
 | RF43 | CU28 | RN24, RN27 | `Cobranca`, `AuditoriaLog` |
 | RF44 | CU29 | RN24, RN25 | `Cobranca` |
-| RF45 | CU30 | RN26 | selectors agregados sobre `Matricula`, `Turma`, `SolicitacaoTransferencia`, `Aproveitamento`, `Cobranca` |
+| RF45 | CU30 | RN26 | `academics.selectors.get_indicadores_gerenciais`, `academics/painel.py`; `tests/test_academics/test_painel_gerencial.py` (agregação, filtros, pendências, RBAC, ausência de dados pessoais) |
 
 Ao implementar cada módulo, a coluna de evidência deve ser substituída pelos
 arquivos e testes reais, e as linhas migradas para SGA-05.
@@ -230,7 +230,7 @@ arquivos e testes reais, e as linhas migradas para SGA-05.
 | --- | --- | --- |
 | D1 | Critério de deferimento de aproveitamento | Carga de origem ≥ 75% da disciplina — **adotado** |
 | D2 | Financeiro bloqueia operações acadêmicas? | Não nesta fase |
-| D3 | Secretaria acessa o dashboard? | Sim, somente leitura |
+| D3 | Secretaria acessa o dashboard? | Sim, somente leitura — **adotado** |
 | D4 | Distribuição em apps | `academics` + `documents` + `finance` |
 | D5 | Escopo mínimo se o prazo não comportar tudo | Prioridade: pré-requisitos → dashboard → documentos → financeiro (entrega final em 26/11/2026) |
 
