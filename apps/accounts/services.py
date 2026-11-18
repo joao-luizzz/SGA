@@ -1,4 +1,12 @@
 from typing import Optional
+
+from django.conf import settings
+from django.contrib.auth import password_validation
+from django.contrib.auth.tokens import default_token_generator
+from django.core.cache import cache
+from django.db import transaction
+from django.utils.crypto import salted_hmac
+from django.views.decorators.debug import sensitive_variables
 from django.contrib.auth import authenticate, login, logout
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -31,6 +39,7 @@ def authenticate_and_login_user(request, email: str, password: str) -> Optional[
         return user
     return None
 
+@sensitive_variables('new_password')
 def change_user_password(user: CustomUser, new_password: str) -> CustomUser:
     """Atualiza a senha do usuário e limpa a flag must_change_password usando o hash padrão do Django."""
     user.set_password(new_password)
@@ -76,4 +85,43 @@ def toggle_user_active_status(user: CustomUser) -> CustomUser:
     """Alterna o status de ativação do usuário."""
     user.is_active = not user.is_active
     user.save(update_fields=['is_active'])
+    return user
+
+
+def solicitar_recuperacao(form, request):
+    """Mesmo resultado público para contas ausentes, inelegíveis e throttling."""
+    email = form.cleaned_data['email'].strip().lower()
+    for namespace, value, timeout in (
+        ('email', email, settings.PASSWORD_RESET_EMAIL_COOLDOWN),
+        ('ip', request.META.get('REMOTE_ADDR', ''), settings.PASSWORD_RESET_IP_COOLDOWN),
+    ):
+        key = salted_hmac('sga-recovery-' + namespace, value).hexdigest()
+        if timeout and not cache.add('recovery:' + key, True, timeout):
+            return
+    form.save(
+        request=request,
+        domain_override=settings.PASSWORD_RESET_DOMAIN,
+        use_https=settings.PASSWORD_RESET_USE_HTTPS,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        email_template_name='registration/password_reset_email.txt',
+        subject_template_name='registration/password_reset_subject.txt',
+    )
+
+
+@sensitive_variables()
+@transaction.atomic
+def redefinir_senha(*, user_id, token, password):
+    # Reavaliar o token DEPOIS do bloqueio evita dois POSTs aceitos com o mesmo token.
+    user = CustomUser.objects.select_for_update().filter(pk=user_id).first()
+    if (
+        not user or not user.is_active or not user.has_usable_password()
+        or not default_token_generator.check_token(user, token)
+    ):
+        raise ValidationError('Link inválido ou expirado. Solicite uma nova recuperação.')
+    password_validation.validate_password(password, user)
+    change_user_password(user, password)
+    registrar_auditoria(
+        usuario=user, tabela_afetada='CustomUser', registro_id=user.pk,
+        acao=AcaoAuditoria.EDITAR, valor_novo='Senha redefinida por recuperação.',
+    )
     return user

@@ -1,9 +1,16 @@
+from django.contrib.auth.views import PasswordResetCompleteView, PasswordResetDoneView
 from django.urls import path
+
 from . import views
+from .recovery import RecoveryConfirmView, RecoveryRequestView
 
 app_name = 'accounts'
 
 urlpatterns = [
+    path('password-reset/', RecoveryRequestView.as_view(), name='password_reset'),
+    path('password-reset/done/', PasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/', RecoveryConfirmView.as_view(), name='password_reset_confirm'),
+    path('reset/complete/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('change-password/', views.change_password_view, name='change_password'),

@@ -4,11 +4,11 @@
 
 | Metadado | Valor |
 | --- | --- |
-| Versão | **2.0 — Fase 1 + extensões Fase 2 integradas** |
-| Data | **01 de outubro de 2026** |
+| Versão | **2.1 — Fase 1 + Fase 2, Semana 4 em revisão** |
+| Data | **08 de outubro de 2026** |
 | SGBD | PostgreSQL 16 via Django ORM |
 
-O modelo atual possui **13 entidades persistentes** distribuídas entre o núcleo acadêmico e as extensões já integradas. Aluno e Professor continuam sendo papéis de `CustomUser`, não tabelas separadas. Relatórios não possuem entidade própria: são consultas/seletores sobre os registros existentes.
+O modelo desta entrega possui **14 entidades persistentes**, incluindo o núcleo acadêmico e as extensões da Fase 2. A Semana 4 está implementada nesta branch e aguarda revisão; as demais extensões estão integradas. Aluno e Professor continuam sendo papéis de `CustomUser`, não tabelas separadas. Relatórios não possuem entidade própria: são consultas/seletores sobre os registros existentes.
 
 ## Entidades atuais
 
@@ -28,11 +28,15 @@ O modelo atual possui **13 entidades persistentes** distribuídas entre o núcle
 | `Comunicado` | Comunicação | possui autor e escopo geral, papel, curso ou turma |
 | `SolicitacaoTransferencia` | Transferência administrativa | liga Aluno e Curso; registra tipo, instituição/curso externos, decisão e auditoria da análise |
 
+| `Notificacao` | Central pessoal | destinatário `CustomUser`, comunicado opcional, categoria, título, mensagem, criação e `lida_em` |
+
 ## MER atual
 
 ```mermaid
 erDiagram
     CUSTOM_USER ||--o{ AUDITORIA_LOG : registra
+    CUSTOM_USER ||--o{ NOTIFICACAO : destinatario
+    COMUNICADO o|--o{ NOTIFICACAO : origem
     CURSO ||--o{ DISCIPLINA : possui
     DISCIPLINA ||--o{ TURMA : oferta
     CUSTOM_USER o|--o{ TURMA : ministra
@@ -58,6 +62,7 @@ erDiagram
     CUSTOM_USER o|--o{ SOLICITACAO_TRANSFERENCIA : analisa
 
     CUSTOM_USER { bigint id PK string email UK string full_name string role boolean is_active }
+    NOTIFICACAO { bigint id PK bigint destinatario_id FK bigint comunicado_id FK string titulo string mensagem string tipo datetime criada_em datetime lida_em }
     AUDITORIA_LOG { bigint id PK bigint usuario_id FK string tabela_afetada bigint registro_id string acao datetime realizado_em }
     CURSO { bigint id PK string codigo UK string nome boolean ativo }
     DISCIPLINA { bigint id PK bigint curso_id FK string codigo UK int carga_horaria }
@@ -87,6 +92,12 @@ erDiagram
 ## Integridade e segurança
 
 As FKs históricas e as constraints devem ser interpretadas junto às regras de negócio. O backend aplica RBAC e vínculo com o recurso; esconder botões no template não é mecanismo de segurança. As restrições de unicidade relevantes incluem e-mail, matrícula ativa por Aluno+Turma, nota por Matrícula+tipo, chamada por Turma+Aluno+data e solicitação de transferência pendente equivalente.
+
+A migration `notifications/0001_initial.py` cria `Notificacao`. Há unicidade de
+Comunicado+destinatário e índice de destinatário/leitura/criação. Excluir usuário
+ou comunicado remove suas notificações por `CASCADE`. Tokens de recuperação são
+nativos Django, sem tabela própria. O ERD anterior tinha 13 entidades (estado após
+PR #70); esta entrega acrescenta a 14ª entidade, sem alterar as relações acadêmicas.
 
 ## Referências
 

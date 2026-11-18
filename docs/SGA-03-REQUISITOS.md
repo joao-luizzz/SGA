@@ -51,7 +51,7 @@ RF16 cobre a criação da matrícula; RF35 cobre a mudança de status posterior,
 
 ## Limites dos requisitos da Fase 1
 
-Os requisitos tabelados acima descrevem a Fase 1. As extensões posteriores da Fase 2 não se tornam requisitos retroativos desta especificação. Materiais/comunicados, calendário/grade/conflitos, transferências e relatórios estão implementados; recuperação de senha e notificações permanecem pendentes. Fase 3 é futura. Consulte o estado atual abaixo.
+Os requisitos tabelados acima descrevem a Fase 1. As extensões posteriores da Fase 2 não se tornam requisitos retroativos desta especificação. Materiais/comunicados, calendário/grade/conflitos, transferências e relatórios estão implementados; recuperação de senha e notificações foram implementadas nesta entrega, aguardando revisão. Fase 3 é futura. Consulte o estado atual abaixo.
 
 ## Referências
 
@@ -61,13 +61,30 @@ Os requisitos tabelados acima descrevem a Fase 1. As extensões posteriores da F
 
 ## Estado atual após a PR #70 — 08/10/2026
 
-Este documento continua sendo a referência de requisitos da **Fase 1/MVP**. Na develop atual, as extensões da Fase 2 estão assim:
+Este documento continua sendo a referência de requisitos da **Fase 1/MVP**. As extensões integradas e a Semana 4 nesta branch estão assim:
 
 - Materiais e comunicados — PR #66, concluída.
 - Calendário, grade e conflitos — PR #67, concluída.
 - Relatórios — PR #68, complementada e integrada com transferências pela PR #70.
 - Transferências — PR #69; a integração com relatórios foi concluída pela PR #70.
-- Recuperação segura de senha e notificações — pendentes (#35; relacionadas #47–#48 e #59–#60). Não estão marcadas como requisitos implementados nesta especificação.
+- Recuperação segura de senha e notificações — implementadas nesta entrega (#35; relacionadas #47–#48 e #59–#60), fora do contrato RF/RNF original da Fase 1.
 - Fase 3 — futura (#37).
 
 “Fora do MVP” significa fora do escopo original da Fase 1, não necessariamente ausente do código atual.
+
+## Entrega da Semana 4 — Issue #35 (08/10/2026)
+
+**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
+aguardando revisão e integração. Isso não declara merge na develop nem fechamento
+das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
+e Fase 3 permanece futura.
+
+Recuperação usa tokens nativos Django com expiração configurável, validação de
+senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
+paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
+Comunicados, notas e frequência geram notificações conforme as regras existentes.
+Detalhes, configuração e evidências: [Semana 4](SGA-11-RECUPERACAO-NOTIFICACOES.md).
+
+**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
+e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
+o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.

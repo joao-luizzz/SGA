@@ -31,7 +31,7 @@ As regras abaixo descrevem somente comportamentos implementados na Fase 1. Os ID
 
 ## Limites do contrato da Fase 1
 
-As regras acima descrevem somente o contrato da Fase 1. Os módulos posteriores da Fase 2 não alteram retroativamente estas regras. Transferências e relatórios foram implementados; recuperação segura de senha e notificações internas continuam pendentes. A Fase 3 é futura. Consulte o estado atual abaixo e o Documento Consolidado.
+As regras acima descrevem somente o contrato da Fase 1. Os módulos posteriores da Fase 2 não alteram retroativamente estas regras. Transferências e relatórios foram implementados; recuperação segura de senha e notificações internas foram implementadas nesta entrega, aguardando revisão. A Fase 3 é futura. Consulte o estado atual abaixo e o Documento Consolidado.
 
 ## Referências
 
@@ -42,13 +42,30 @@ As regras acima descrevem somente o contrato da Fase 1. Os módulos posteriores 
 
 ## Estado atual após a PR #70 — 08/10/2026
 
-Este documento continua sendo a referência detalhada das regras da **Fase 1/MVP**. A develop atual também contém extensões da Fase 2:
+Este documento continua sendo a referência detalhada das regras da **Fase 1/MVP**. O estado abaixo distingue extensões integradas e a Semana 4 implementada nesta branch:
 
 - Materiais e comunicados — PR #66, concluída.
 - Calendário, grade e conflitos — PR #67, concluída.
 - Relatórios — PR #68, complementada e integrada com transferências pela PR #70.
 - Transferências — PR #69, com integração conjunta de relatórios concluída pela PR #70. As operações não alteram automaticamente o histórico acadêmico.
-- Recuperação segura de senha e notificações — pendentes (#35; issues relacionadas #47–#48 e #59–#60).
+- Recuperação segura de senha e notificações — implementadas nesta entrega (#35; issues relacionadas #47–#48 e #59–#60).
 - Fase 3 — futura (#37).
 
 “Fora do MVP” significa fora do escopo original da Fase 1, e não que todos os módulos relacionados estejam ausentes do código atual.
+
+## Entrega da Semana 4 — Issue #35 (08/10/2026)
+
+**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
+aguardando revisão e integração. Isso não declara merge na develop nem fechamento
+das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
+e Fase 3 permanece futura.
+
+Recuperação usa tokens nativos Django com expiração configurável, validação de
+senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
+paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
+Comunicados, notas e frequência geram notificações conforme as regras existentes.
+Detalhes, configuração e evidências: [Semana 4](SGA-11-RECUPERACAO-NOTIFICACOES.md).
+
+**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
+e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
+o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.

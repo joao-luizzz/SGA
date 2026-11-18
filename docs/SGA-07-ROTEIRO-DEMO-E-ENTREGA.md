@@ -69,10 +69,38 @@ A Fase 1/MVP continua sendo o núcleo documental. Na develop atual também estã
 4. Aluno: materiais e comunicados pertinentes, calendário, boletim, situação e frequência próprias.
 5. Coordenação: relatórios acadêmicos com filtros combinados; demonstrar motivos de risco, exportação CSV e impressão A4.
 6. Secretaria e Coordenação: completar o fluxo de transferência (registro e decisão) e conferir que o histórico acadêmico e os relatórios permanecem preservados.
-7. Encerrar com arquitetura, PostgreSQL, testes/CI e estado das fases. Recuperação de senha/notificações estão pendentes; Fase 3 é futura.
+7. Encerrar com arquitetura, PostgreSQL, testes/CI e estado das fases. Recuperação de senha/notificações estão implementadas nesta entrega; Fase 3 é futura.
 
 Use dados de demonstração e um banco descartável. A validação da PR #70 inclui roteiro de navegador com filtros, CSV, impressão, decisões de transferência e permissões; ela não substitui a preparação específica do ambiente da apresentação.
 
-**Estado:** Fase 1/MVP concluída; Semana 1 concluída; Semana 2 concluída (PR #66); Semana 3 concluída (PR #67); Semana 4 pendente (#35); Semana 5 concluída (#36, #49, #51 e #62; PRs #68–#70); Fase 3 futura (#37).
+**Estado:** Fase 1/MVP concluída; Semana 1 concluída; Semana 2 concluída (PR #66); Semana 3 concluída (PR #67); Semana 4 implementada nesta entrega (#35), aguardando revisão; Semana 5 concluída (#36, #49, #51 e #62; PRs #68–#70); Fase 3 futura (#37).
 
-Não apresentar recuperação de senha ou notificações como implementadas. “Fora do MVP” nos documentos da Fase 1 significa fora do escopo original, não necessariamente ausente do código atual.
+Apresentar recuperação de senha e notificações conforme o roteiro da Semana 4 no SGA-11; envio real depende de SMTP configurado. “Fora do MVP” nos documentos da Fase 1 significa fora do escopo original, não necessariamente ausente do código atual.
+
+## Entrega da Semana 4 — Issue #35 (08/10/2026)
+
+**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
+aguardando revisão e integração. Isso não declara merge na develop nem fechamento
+das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
+e Fase 3 permanece futura.
+
+Recuperação usa tokens nativos Django com expiração configurável, validação de
+senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
+paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
+Comunicados, notas e frequência geram notificações conforme as regras existentes.
+Detalhes, configuração e evidências: [Semana 4](SGA-11-RECUPERACAO-NOTIFICACOES.md).
+
+**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
+e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
+o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.
+
+### Demonstração da Semana 4 nesta entrega
+
+1. No login, solicitar recuperação com conta existente e inexistente; confirmar a
+   mesma mensagem. Para receber e-mail real, configurar SMTP no ambiente.
+2. Com backend de teste, usar o link da caixa em memória; confirmar senha válida,
+   rejeição de link expirado/reutilizado e login apenas com a nova senha.
+3. Publicar comunicado vigente; lançar/alterar nota e frequência como Professor.
+4. Entrar como destinatário; conferir contador, central paginada, detalhe e links.
+5. Marcar uma e todas como lidas; entrar com outro usuário e verificar isolamento.
+6. Conferir que agendados ainda não publicados e expirados/inativos não aparecem.

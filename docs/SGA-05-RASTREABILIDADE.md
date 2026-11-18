@@ -51,9 +51,9 @@ Não há RF, RN ou CU do Roadmap nesta matriz: recursos futuros não têm implem
 
 ## Estado atual e rastreabilidade das extensões — 08/10/2026
 
-As matrizes RF/CU/RN acima preservam a rastreabilidade da **Fase 1/MVP**. A tabela abaixo registra o estado das entregas da Fase 2 na develop após o merge da PR #70; não cria requisitos novos nem altera o contrato da Fase 1.
+As matrizes RF/CU/RN acima preservam a rastreabilidade da **Fase 1/MVP**. A tabela abaixo distingue as entregas integradas na develop da implementação da Semana 4 nesta branch; não cria requisitos novos nem altera o contrato da Fase 1.
 
-| Issue / entrega | Estado na develop | Evidência principal |
+| Issue / entrega | Estado integrado ou nesta entrega | Evidência principal |
 | --- | --- | --- |
 | #36 — Semana 5 | Concluída | PR #69 implementa transferências; PR #70 conclui integração, relatórios e validação da Semana 5. |
 | #49 — Solicitação de transferência | Concluída | PR #69; `apps/transfers/` e `tests/test_transfers/`. |
@@ -61,9 +61,26 @@ As matrizes RF/CU/RN acima preservam a rastreabilidade da **Fase 1/MVP**. A tabe
 | #51 — Integração transferências + relatórios | Concluída | PR #70; `tests/test_integration/test_semana5_flow.py`. |
 | #61 — Análise da transferência | Concluída | PR #69; services, permissões e testes em `apps/transfers/` e `tests/test_transfers/`. |
 | #62 — Relatórios, risco e impressão | Concluída | PR #70; `identificar_risco_academico`, filtros, CSV, impressão e testes em `tests/test_academics/`. |
-| #35 — Recuperação de senha e notificações | Pendente | Fluxos e testes correspondentes ainda não existem na develop. Ver issues #47–#48 e #59–#60. |
-| #47 e #59 — Recuperação de senha | Pendentes | Solicitação segura, redefinição e testes de token ainda não existem na develop. |
-| #48 e #60 — Notificações | Pendentes | Central, leitura/marcação, isolamento e testes de notificações ainda não existem na develop; #60 permanece dedicada a notificações. |
+| #35 — Recuperação de senha e notificações | Concluída nesta implementação; revisão pendente | `accounts/recovery.py`, `accounts/services.py`, `notifications/`; testes HTTP e PostgreSQL. |
+| #47 e #59 — Recuperação de senha | Concluídas nesta implementação; revisão pendente | `PasswordResetTokenGenerator` nativo; confirmação serializada; `tests/test_accounts/test_recovery.py`. |
+| #48 e #60 — Notificações | Concluídas nesta implementação; revisão pendente | `apps/notifications/`, integração dos três eventos e `tests/test_notifications/`; #60 permanece dedicada a notificações. |
 | #37 — Fase 3 | Futura | Planejada para etapa posterior; não faz parte das entregas integradas da Fase 2. |
 
 PR #66 (materiais/comunicados), PR #67 (calendário/grade/conflitos), PR #68 (relatórios), PR #69 (transferências) e PR #70 (conclusão dos relatórios e integração da Semana 5) estão integradas na develop. “Fora do MVP” continua significando fora do escopo original da Fase 1, não necessariamente ausente do código atual.
+
+## Entrega da Semana 4 — Issue #35 (08/10/2026)
+
+**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
+aguardando revisão e integração. Isso não declara merge na develop nem fechamento
+das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
+e Fase 3 permanece futura.
+
+Recuperação usa tokens nativos Django com expiração configurável, validação de
+senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
+paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
+Comunicados, notas e frequência geram notificações conforme as regras existentes.
+Detalhes, configuração e evidências: [Semana 4](SGA-11-RECUPERACAO-NOTIFICACOES.md).
+
+**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
+e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
+o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.

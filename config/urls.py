@@ -18,6 +18,7 @@ urlpatterns = [
     path('transfers/', include('transfers.urls', namespace='transfers')),
     path('materials/', include('materials.urls', namespace='materials')),
     path('communications/', include('communications.urls', namespace='communications')),
+    path('notifications/', include('notifications.urls', namespace='notifications')),
 ]
 
 if settings.DEBUG:

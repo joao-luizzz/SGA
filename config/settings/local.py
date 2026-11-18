@@ -37,5 +37,36 @@ else:
         }
     }
 
-# Email backend for development
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Padrão seguro: não registrar mensagens/links de recuperação no console.
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.locmem.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() == 'true'
+EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '10'))
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'SGA <nao-responda@sga.local>')
+PASSWORD_RESET_TIMEOUT = int(os.getenv('PASSWORD_RESET_TIMEOUT', '3600'))
+PASSWORD_RESET_DOMAIN = os.getenv('PASSWORD_RESET_DOMAIN', 'localhost:8000')
+PASSWORD_RESET_USE_HTTPS = os.getenv('PASSWORD_RESET_USE_HTTPS', 'False').lower() == 'true'
+PASSWORD_RESET_EMAIL_COOLDOWN = int(os.getenv('PASSWORD_RESET_EMAIL_COOLDOWN', '60'))
+PASSWORD_RESET_IP_COOLDOWN = int(os.getenv('PASSWORD_RESET_IP_COOLDOWN', '10'))
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {'recovery_secrets': {'()': 'accounts.logging.RecoveryLogFilter'}},
+    'formatters': {
+        'server': {'()': 'django.utils.log.ServerFormatter',
+                   'format': '[{server_time}] {message}', 'style': '{'},
+    },
+    'handlers': {
+        'server': {'class': 'logging.StreamHandler', 'formatter': 'server'},
+    },
+    'loggers': {
+        'django.server': {'handlers': ['server'], 'level': 'INFO',
+                          'propagate': False, 'filters': ['recovery_secrets']},
+        'django.request': {'filters': ['recovery_secrets']},
+    },
+}
