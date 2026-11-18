@@ -1,5 +1,8 @@
+import json
+from decimal import Decimal
+
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils.translation import gettext_lazy as _
 from academics.models import HorarioTurma, Turma
 
@@ -196,3 +199,200 @@ def identificar_risco_academico(*, notas, resultado):
         'motivos': motivos,
         'dados_incompletos': incompletos,
     }
+
+
+# ---------------------------------------------------------------------------
+# Pré-requisitos e aproveitamento de disciplinas (Fase 3 — RN18 a RN20, RN27)
+# ---------------------------------------------------------------------------
+
+CARGA_MINIMA_APROVEITAMENTO = Decimal('0.75')
+
+
+def _exigir_papel(usuario, *papeis):
+    from django.core.exceptions import PermissionDenied
+
+    if not getattr(usuario, 'is_authenticated', False) or not usuario.is_active:
+        raise PermissionDenied(_("Autentique-se para executar esta operação."))
+    if not usuario.is_superuser and usuario.role not in papeis:
+        raise PermissionDenied(_("Seu perfil não pode executar esta operação."))
+    return usuario
+
+
+def _estado_pre_requisito(pre_requisito):
+    return json.dumps({
+        'disciplina_id': pre_requisito.disciplina_id,
+        'requisito_id': pre_requisito.requisito_id,
+    }, sort_keys=True)
+
+
+def _estado_aproveitamento(aproveitamento):
+    return json.dumps({
+        'aluno_id': aproveitamento.aluno_id,
+        'disciplina_id': aproveitamento.disciplina_id,
+        'instituicao_origem': aproveitamento.instituicao_origem,
+        'disciplina_origem': aproveitamento.disciplina_origem,
+        'carga_horaria_origem': aproveitamento.carga_horaria_origem,
+        'status': aproveitamento.status,
+        'analisado_por_id': aproveitamento.analisado_por_id,
+        'justificativa': aproveitamento.justificativa,
+    }, ensure_ascii=False, sort_keys=True)
+
+
+def _gera_ciclo(disciplina_id, requisito_id):
+    """True se `requisito` já depende (direta ou indiretamente) de `disciplina`."""
+    from academics.models import PreRequisito
+
+    visitados = set()
+    fronteira = {requisito_id}
+    while fronteira:
+        if disciplina_id in fronteira:
+            return True
+        visitados |= fronteira
+        fronteira = set(
+            PreRequisito.objects.filter(disciplina_id__in=fronteira)
+            .values_list('requisito_id', flat=True)
+        ) - visitados
+    return False
+
+
+@transaction.atomic
+def adicionar_pre_requisito(*, usuario, disciplina, requisito):
+    from academics.models import Curso, Disciplina, PreRequisito
+    from accounts.models import AcaoAuditoria, UserRole
+    from accounts.services import registrar_auditoria
+
+    _exigir_papel(usuario, UserRole.COORDENACAO)
+    # Serializa alterações do grafo de um mesmo curso para que dois pedidos
+    # concorrentes não criem um ciclo que nenhum deles enxergaria sozinho.
+    Curso.objects.select_for_update().get(pk=disciplina.curso_id)
+    disciplina = Disciplina.objects.get(pk=disciplina.pk)
+    requisito = Disciplina.objects.get(pk=requisito.pk)
+
+    if disciplina.pk == requisito.pk:
+        raise ValidationError(_("Uma disciplina não pode ser pré-requisito de si mesma."))
+    if disciplina.curso_id != requisito.curso_id:
+        raise ValidationError(_("O pré-requisito deve pertencer ao mesmo curso da disciplina."))
+    if not disciplina.ativo or not requisito.ativo:
+        raise ValidationError(_("Somente disciplinas ativas podem receber ou ser pré-requisito."))
+    if PreRequisito.objects.filter(disciplina=disciplina, requisito=requisito).exists():
+        raise ValidationError(_("Este pré-requisito já está cadastrado."))
+    if _gera_ciclo(disciplina.pk, requisito.pk):
+        raise ValidationError(
+            _("%(requisito)s já depende de %(disciplina)s; o cadastro criaria um ciclo.") % {
+                'requisito': requisito.nome, 'disciplina': disciplina.nome,
+            }
+        )
+
+    pre_requisito = PreRequisito.objects.create(disciplina=disciplina, requisito=requisito)
+    registrar_auditoria(
+        usuario=usuario, tabela_afetada='PreRequisito', registro_id=pre_requisito.pk,
+        acao=AcaoAuditoria.CRIAR, valor_novo=_estado_pre_requisito(pre_requisito),
+    )
+    return pre_requisito
+
+
+@transaction.atomic
+def remover_pre_requisito(*, usuario, pre_requisito_id):
+    from academics.models import PreRequisito
+    from accounts.models import AcaoAuditoria, UserRole
+    from accounts.services import registrar_auditoria
+
+    _exigir_papel(usuario, UserRole.COORDENACAO)
+    pre_requisito = PreRequisito.objects.select_for_update().get(pk=pre_requisito_id)
+    anterior = _estado_pre_requisito(pre_requisito)
+    registro_id = pre_requisito.pk
+    pre_requisito.delete()
+    registrar_auditoria(
+        usuario=usuario, tabela_afetada='PreRequisito', registro_id=registro_id,
+        acao=AcaoAuditoria.EXCLUIR, valor_antigo=anterior,
+    )
+
+
+@transaction.atomic
+def registrar_aproveitamento(*, usuario, aluno, disciplina, instituicao_origem,
+                             disciplina_origem, carga_horaria_origem):
+    from academics.models import Aproveitamento, Disciplina, StatusAproveitamento
+    from accounts.models import AcaoAuditoria, CustomUser, UserRole
+    from accounts.services import registrar_auditoria
+
+    _exigir_papel(usuario, UserRole.SECRETARIA)
+    # Bloqueia o aluno para serializar registros equivalentes; a constraint
+    # condicional continua como última barreira.
+    aluno = CustomUser.objects.select_for_update().get(pk=aluno.pk)
+    disciplina = Disciplina.objects.get(pk=disciplina.pk)
+    if aluno.role != UserRole.ALUNO or not aluno.is_active:
+        raise ValidationError({'aluno': _("Selecione um aluno ativo.")})
+    if not disciplina.ativo:
+        raise ValidationError({'disciplina': _("Selecione uma disciplina ativa.")})
+    if Aproveitamento.objects.filter(
+        aluno=aluno, disciplina=disciplina,
+        status__in=[StatusAproveitamento.PENDENTE, StatusAproveitamento.DEFERIDO],
+    ).exists():
+        raise ValidationError(
+            _("Já existe aproveitamento pendente ou deferido deste aluno para esta disciplina.")
+        )
+
+    aproveitamento = Aproveitamento(
+        aluno=aluno, disciplina=disciplina,
+        instituicao_origem=(instituicao_origem or '').strip(),
+        disciplina_origem=(disciplina_origem or '').strip(),
+        carga_horaria_origem=carga_horaria_origem,
+        registrado_por=usuario,
+    )
+    aproveitamento.full_clean()
+    try:
+        with transaction.atomic():
+            aproveitamento.save()
+    except IntegrityError as exc:
+        raise ValidationError(
+            _("Já existe aproveitamento pendente ou deferido deste aluno para esta disciplina.")
+        ) from exc
+    registrar_auditoria(
+        usuario=usuario, tabela_afetada='Aproveitamento', registro_id=aproveitamento.pk,
+        acao=AcaoAuditoria.CRIAR, valor_novo=_estado_aproveitamento(aproveitamento),
+    )
+    return aproveitamento
+
+
+@transaction.atomic
+def analisar_aproveitamento(*, usuario, aproveitamento_id, decisao, justificativa):
+    from django.utils import timezone
+
+    from academics.models import Aproveitamento, StatusAproveitamento
+    from accounts.models import AcaoAuditoria, UserRole
+    from accounts.services import registrar_auditoria
+
+    _exigir_papel(usuario, UserRole.COORDENACAO)
+    if decisao not in (StatusAproveitamento.DEFERIDO, StatusAproveitamento.INDEFERIDO):
+        raise ValidationError(_("Selecione deferimento ou indeferimento."))
+    justificativa = (justificativa or '').strip()
+    if not justificativa or len(justificativa) > 3000:
+        raise ValidationError({'justificativa': _("Informe uma justificativa entre 1 e 3000 caracteres.")})
+
+    aproveitamento = (
+        Aproveitamento.objects.select_for_update().select_related('disciplina')
+        .get(pk=aproveitamento_id)
+    )
+    if aproveitamento.status != StatusAproveitamento.PENDENTE:
+        raise ValidationError(_("Este aproveitamento já foi analisado e não pode receber outra decisão."))
+    carga_minima = aproveitamento.disciplina.carga_horaria * CARGA_MINIMA_APROVEITAMENTO
+    if decisao == StatusAproveitamento.DEFERIDO and aproveitamento.carga_horaria_origem < carga_minima:
+        raise ValidationError(
+            _("Carga horária de origem insuficiente: o deferimento exige ao menos 75%% da carga "
+              "da disciplina (%(minimo)s h).") % {'minimo': carga_minima.normalize()}
+        )
+
+    anterior = _estado_aproveitamento(aproveitamento)
+    alterados = Aproveitamento.objects.filter(
+        pk=aproveitamento.pk, status=StatusAproveitamento.PENDENTE,
+    ).update(status=decisao, justificativa=justificativa,
+             analisado_por=usuario, analisado_em=timezone.now())
+    if alterados != 1:
+        raise ValidationError(_("Este aproveitamento já foi analisado por outro usuário."))
+    aproveitamento.refresh_from_db()
+    registrar_auditoria(
+        usuario=usuario, tabela_afetada='Aproveitamento', registro_id=aproveitamento.pk,
+        acao=AcaoAuditoria.EDITAR, valor_antigo=anterior,
+        valor_novo=_estado_aproveitamento(aproveitamento),
+    )
+    return aproveitamento

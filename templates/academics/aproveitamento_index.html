@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Aproveitamentos — SGA{% endblock %}
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+  <h1 class="h3 mb-0">Aproveitamento de disciplinas</h1>
+  {% if pode_criar %}<a class="btn btn-primary btn-sm" href="{% url 'academics:aproveitamento_criar' %}">Registrar aproveitamento</a>{% endif %}
+</div>
+<form method="get" class="row g-2 align-items-end mb-3">
+  <div class="col-auto">
+    <label class="form-label small" for="{{ filtros.status.id_for_label }}">{{ filtros.status.label }}</label>
+    {{ filtros.status }}
+  </div>
+  <div class="col-auto"><button class="btn btn-outline-secondary btn-sm" type="submit">Filtrar</button></div>
+</form>
+{% if filtros.errors %}<div class="alert alert-danger" role="alert">Filtro inválido. <a href="{% url 'academics:aproveitamento_index' %}">Limpar filtro</a></div>{% endif %}
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead><tr><th>Aluno</th><th>Disciplina</th><th>Origem</th><th>Carga</th><th>Situação</th><th></th></tr></thead>
+    <tbody>
+      {% for registro in page_obj %}
+      <tr>
+        <td>{{ registro.aluno.full_name }}</td>
+        <td>{{ registro.disciplina.nome }} <small class="text-muted d-block">{{ registro.disciplina.curso.nome }}</small></td>
+        <td>{{ registro.disciplina_origem }} <small class="text-muted d-block">{{ registro.instituicao_origem }}</small></td>
+        <td>{{ registro.carga_horaria_origem }}h / {{ registro.disciplina.carga_horaria }}h</td>
+        <td><span class="badge {% if registro.status == 'DEFERIDO' %}bg-success{% elif registro.status == 'INDEFERIDO' %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{ registro.get_status_display }}</span></td>
+        <td><a class="btn btn-sm btn-outline-primary" href="{% url 'academics:aproveitamento_detalhe' registro.pk %}">Detalhes</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-muted">Nenhum aproveitamento encontrado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<nav class="d-flex gap-2 align-items-center" aria-label="Paginação de aproveitamentos">
+  {% if page_obj.has_previous %}<a class="btn btn-outline-secondary btn-sm" href="?status={{ status }}&page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
+  <span class="small">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="btn btn-outline-secondary btn-sm" href="?status={{ status }}&page={{ page_obj.next_page_number }}">Próxima</a>{% endif %}
+</nav>
+{% endblock %}

@@ -45,3 +45,34 @@ def aluno_ja_matriculado(aluno, turma):
         turma=turma,
         status=StatusMatricula.ATIVA,
     ).exists()
+
+
+def get_pre_requisitos_pendentes(aluno, disciplina):
+    """Disciplinas exigidas por `disciplina` que o aluno ainda não cumpriu (RN19).
+
+    Cumpre o pré-requisito um aproveitamento deferido ou uma matrícula não
+    cancelada com resultado calculado de aprovação (direta ou após exame).
+    """
+    from academics.models import Aproveitamento, Disciplina, StatusAproveitamento
+    from assessments.selectors import SituacaoAcademica, calcular_resultado_academico
+
+    aprovadas = {SituacaoAcademica.APROVADO_DIRETO, SituacaoAcademica.APROVADO_EXAME}
+    requisitos = Disciplina.objects.filter(requisito_de__disciplina=disciplina).order_by('nome')
+    aproveitadas = set(
+        Aproveitamento.objects.filter(
+            aluno=aluno, disciplina__in=requisitos, status=StatusAproveitamento.DEFERIDO,
+        ).values_list('disciplina_id', flat=True)
+    )
+
+    pendentes = []
+    for requisito in requisitos:
+        if requisito.pk in aproveitadas:
+            continue
+        matriculas = (
+            Matricula.objects.filter(aluno=aluno, turma__disciplina=requisito)
+            .exclude(status=StatusMatricula.CANCELADA)
+            .select_related('aluno', 'turma')
+        )
+        if not any(calcular_resultado_academico(m)['situacao'] in aprovadas for m in matriculas):
+            pendentes.append(requisito)
+    return pendentes

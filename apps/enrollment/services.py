@@ -6,6 +6,7 @@ from academics.models import Turma
 from accounts.models import CustomUser, UserRole
 
 from .models import Matricula, StatusMatricula
+from .selectors import get_pre_requisitos_pendentes
 
 
 @transaction.atomic
@@ -55,6 +56,14 @@ def matricular_aluno_administrativo(
     if not turma_bloqueada.pode_receber_matricula():
         raise ValidationError(
             _("A turma deve estar ativa e possuir professor, horário, sala e vagas configurados.")
+        )
+
+    pendentes = get_pre_requisitos_pendentes(aluno, turma_bloqueada.disciplina)
+    if pendentes:
+        raise ValidationError(
+            _("O aluno não cumpriu os pré-requisitos da disciplina: %(lista)s.") % {
+                'lista': ', '.join(d.nome for d in pendentes),
+            }
         )
 
     matriculas_na_mesma_turma = Matricula.objects.filter(

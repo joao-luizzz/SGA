@@ -339,3 +339,119 @@ class EventoCalendario(models.Model):
                 'inicio': _("A data/hora de início deve ser anterior à de término.")
             })
 
+
+
+class PreRequisito(models.Model):
+    """Disciplina exigida antes da matrícula em outra do mesmo curso (RN18)."""
+
+    disciplina = models.ForeignKey(
+        Disciplina,
+        on_delete=models.PROTECT,
+        related_name='pre_requisitos',
+        verbose_name=_('disciplina'),
+    )
+    requisito = models.ForeignKey(
+        Disciplina,
+        on_delete=models.PROTECT,
+        related_name='requisito_de',
+        verbose_name=_('pré-requisito'),
+    )
+    criado_em = models.DateTimeField(_('criado em'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('pré-requisito')
+        verbose_name_plural = _('pré-requisitos')
+        ordering = ['requisito__nome']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['disciplina', 'requisito'],
+                name='prerequisito_unico',
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(disciplina=models.F('requisito')),
+                name='prerequisito_sem_autorreferencia',
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.requisito.nome} → {self.disciplina.nome}"
+
+
+class StatusAproveitamento(models.TextChoices):
+    PENDENTE = 'PENDENTE', _('Pendente')
+    DEFERIDO = 'DEFERIDO', _('Deferido')
+    INDEFERIDO = 'INDEFERIDO', _('Indeferido')
+
+
+class Aproveitamento(models.Model):
+    """Equivalência de disciplina cursada em outra instituição (RN20)."""
+
+    aluno = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.PROTECT,
+        limit_choices_to={'role': 'ALUNO'},
+        related_name='aproveitamentos',
+        verbose_name=_('aluno'),
+    )
+    disciplina = models.ForeignKey(
+        Disciplina,
+        on_delete=models.PROTECT,
+        related_name='aproveitamentos',
+        verbose_name=_('disciplina'),
+    )
+    instituicao_origem = models.CharField(_('instituição de origem'), max_length=200)
+    disciplina_origem = models.CharField(_('disciplina de origem'), max_length=200)
+    carga_horaria_origem = models.PositiveIntegerField(_('carga horária de origem'))
+    status = models.CharField(
+        _('situação'),
+        max_length=10,
+        choices=StatusAproveitamento.choices,
+        default=StatusAproveitamento.PENDENTE,
+    )
+    registrado_por = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.PROTECT,
+        related_name='+',
+        verbose_name=_('registrado por'),
+    )
+    registrado_em = models.DateTimeField(_('registrado em'), auto_now_add=True)
+    analisado_por = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        editable=False,
+        related_name='+',
+        verbose_name=_('analisado por'),
+    )
+    analisado_em = models.DateTimeField(_('analisado em'), null=True, blank=True, editable=False)
+    justificativa = models.TextField(_('justificativa'), max_length=3000, blank=True, editable=False)
+
+    class Meta:
+        verbose_name = _('aproveitamento')
+        verbose_name_plural = _('aproveitamentos')
+        ordering = ['-registrado_em', '-pk']
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(carga_horaria_origem__gt=0),
+                name='aproveitamento_carga_positiva',
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(status='PENDENTE', analisado_em__isnull=True,
+                             analisado_por__isnull=True, justificativa='')
+                    | (models.Q(status__in=['DEFERIDO', 'INDEFERIDO'],
+                                analisado_em__isnull=False, analisado_por__isnull=False)
+                       & ~models.Q(justificativa=''))
+                ),
+                name='aproveitamento_analise_coerente',
+            ),
+            models.UniqueConstraint(
+                fields=['aluno', 'disciplina'],
+                condition=models.Q(status__in=['PENDENTE', 'DEFERIDO']),
+                name='aproveitamento_ativo_unico',
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.aluno.full_name} — {self.disciplina.nome} [{self.get_status_display()}]"
