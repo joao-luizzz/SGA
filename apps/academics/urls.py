@@ -1,5 +1,5 @@
 from django.urls import path
-from . import curriculo, views
+from . import curriculo, painel, views
 
 app_name = 'academics'
 
@@ -8,6 +8,7 @@ urlpatterns = [
     path('', views.index_view, name='index'),
     path('relatorios/', views.relatorios_view, name='relatorios'),
     path('relatorios/exportar.csv', views.relatorios_csv_view, name='relatorios_csv'),
+    path('painel/', painel.painel_gerencial_view, name='painel_gerencial'),
     
     # Cursos
     path('cursos/criar/', views.curso_create_view, name='curso_create'),

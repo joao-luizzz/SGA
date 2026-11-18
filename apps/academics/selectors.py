@@ -114,3 +114,78 @@ def listar_aproveitamentos(usuario, status=''):
     if status:
         registros = registros.filter(status=status)
     return registros
+
+
+def get_indicadores_gerenciais(*, curso_id=None, periodo=None):
+    """Indicadores agregados do painel gerencial (RN26); somente leitura.
+
+    Reutiliza o relatório consolidado para que situação acadêmica e risco
+    sejam idênticos aos exibidos nos Relatórios Acadêmicos.
+    """
+    from collections import Counter
+
+    from assessments.selectors import SituacaoAcademica
+    from transfers.models import SolicitacaoTransferencia, StatusTransferencia
+
+    from .models import Aproveitamento, StatusAproveitamento
+
+    relatorio = get_relatorio_turmas(curso_id=curso_id, periodo=periodo)
+    turmas = relatorio['turmas']
+    linhas = relatorio['linhas']
+
+    ocupacao = []
+    matriculas_por_curso = Counter()
+    for turma in turmas:
+        vagas = turma.vagas_maximas or 0
+        ocupacao.append({
+            'turma': turma,
+            'matriculados': turma.matriculas_ativas,
+            'vagas': vagas,
+            'percentual': round(turma.matriculas_ativas * 100 / vagas) if vagas else 0,
+        })
+        matriculas_por_curso[turma.disciplina.curso.nome] += turma.matriculas_ativas
+
+    situacoes = Counter(linha['resultado']['situacao'] for linha in linhas)
+    ordem = [
+        SituacaoAcademica.APROVADO_DIRETO, SituacaoAcademica.APROVADO_EXAME,
+        SituacaoAcademica.ELEGIVEL_EXAME, SituacaoAcademica.REPROVADO_NOTA,
+        SituacaoAcademica.REPROVADO_FALTA, SituacaoAcademica.EM_ANDAMENTO,
+    ]
+    total = len(linhas)
+    distribuicao = [
+        {'situacao': s, 'quantidade': situacoes[s],
+         'percentual': round(situacoes[s] * 100 / total) if total else 0}
+        for s in ordem
+    ]
+    aprovados = situacoes[SituacaoAcademica.APROVADO_DIRETO] + situacoes[SituacaoAcademica.APROVADO_EXAME]
+    reprovados = situacoes[SituacaoAcademica.REPROVADO_NOTA] + situacoes[SituacaoAcademica.REPROVADO_FALTA]
+    concluidos = aprovados + reprovados
+
+    transferencias = SolicitacaoTransferencia.objects.filter(status=StatusTransferencia.PENDENTE)
+    aproveitamentos = Aproveitamento.objects.filter(status=StatusAproveitamento.PENDENTE)
+    if curso_id:
+        transferencias = transferencias.filter(curso_id=curso_id)
+        aproveitamentos = aproveitamentos.filter(disciplina__curso_id=curso_id)
+
+    vagas_totais = sum(item['vagas'] for item in ocupacao)
+    matriculas_totais = sum(item['matriculados'] for item in ocupacao)
+    return {
+        'totais': {
+            'turmas': len(turmas),
+            'matriculas': matriculas_totais,
+            'vagas': vagas_totais,
+            'ocupacao': round(matriculas_totais * 100 / vagas_totais) if vagas_totais else 0,
+            'em_risco': sum(1 for linha in linhas if linha['risco']['em_risco']),
+            'taxa_aprovacao': round(aprovados * 100 / concluidos) if concluidos else None,
+            'concluidos': concluidos,
+        },
+        'matriculas_por_curso': sorted(matriculas_por_curso.items()),
+        'ocupacao': sorted(ocupacao, key=lambda item: -item['percentual']),
+        'distribuicao': distribuicao,
+        'pendencias': {
+            'transferencias': transferencias.count(),
+            'aproveitamentos': aproveitamentos.count(),
+        },
+        'cursos': relatorio['cursos'],
+        'periodos': relatorio['periodos'],
+    }
