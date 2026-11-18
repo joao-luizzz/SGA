@@ -1,12 +1,5 @@
 import os
-from pathlib import Path
-from dotenv import load_dotenv
 from .base import *
-
-# Load environment variables from .env if present
-env_path = BASE_DIR / ".env"
-if env_path.exists():
-    load_dotenv(dotenv_path=env_path)
 
 DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "t")
 
@@ -36,22 +29,6 @@ else:
             "PORT": DB_PORT,
         }
     }
-
-# Padrão seguro: não registrar mensagens/links de recuperação no console.
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.locmem.EmailBackend')
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'localhost')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
-EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False').lower() == 'true'
-EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '10'))
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'SGA <nao-responda@sga.local>')
-PASSWORD_RESET_TIMEOUT = int(os.getenv('PASSWORD_RESET_TIMEOUT', '3600'))
-PASSWORD_RESET_DOMAIN = os.getenv('PASSWORD_RESET_DOMAIN', 'localhost:8000')
-PASSWORD_RESET_USE_HTTPS = os.getenv('PASSWORD_RESET_USE_HTTPS', 'False').lower() == 'true'
-PASSWORD_RESET_EMAIL_COOLDOWN = int(os.getenv('PASSWORD_RESET_EMAIL_COOLDOWN', '60'))
-PASSWORD_RESET_IP_COOLDOWN = int(os.getenv('PASSWORD_RESET_IP_COOLDOWN', '10'))
 
 LOGGING = {
     'version': 1,

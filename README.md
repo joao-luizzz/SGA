@@ -53,6 +53,9 @@ Consulte [configuração, segurança e demonstração](docs/SGA-11-RECUPERACAO-N
 - [Preparação técnica da Fase 2](docs/SGA-08-PREPARACAO-FASE-2.md) — proposta de arquitetura e revisão do backlog, sem implementação funcional
 - [Transferências simplificadas](docs/SGA-09-TRANSFERENCIAS.md) — implementação das #49/#61 e integração com relatórios concluída na #51
 - [Relatórios e integração da Semana 5](docs/SGA-10-RELATORIOS-INTEGRACAO.md) — risco acadêmico, filtros, CSV, impressão e validação integrada
+- [Recuperação de senha e notificações](docs/SGA-11-RECUPERACAO-NOTIFICACOES.md) — Semana 4, integrada na PR #73
+- [Especificação da Fase 3](docs/SGA-12-ESPECIFICACAO-FASE-3.md) — casos de uso, regras, DER e rastreabilidade de pré-requisitos, documentos, financeiro e dashboard
+- [Estudo de API pública e integrações](docs/SGA-13-ESTUDO-API-INTEGRACOES.md) — opções avaliadas e recomendação
 
 ## Executar com Docker Compose
 
