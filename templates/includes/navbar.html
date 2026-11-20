@@ -8,6 +8,11 @@
       <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle ms-2 px-2 py-1" style="font-size: 0.7rem; font-weight: 500;">v3.0</span>
     </a>
 
+    {% if user.is_authenticated %}
+    <button class="btn btn-outline-light btn-sm d-md-none ms-auto me-2" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Abrir menu de navegação">
+      <i class="bi bi-list" aria-hidden="true"></i> Menu
+    </button>
+    {% endif %}
     <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>

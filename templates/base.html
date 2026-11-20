@@ -31,7 +31,7 @@
   <div class="container-fluid flex-grow-1">
     <div class="row">
       {% if user.is_authenticated %}
-        <div class="col-md-3 col-lg-2 p-0">
+        <div class="col-md-3 col-lg-2 p-0 collapse d-md-block" id="sidebarMenu">
           {% include "includes/sidebar.html" %}
         </div>
       {% endif %}

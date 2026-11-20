@@ -14,6 +14,7 @@
   {% if consultado %}
     {% if resultado %}
     <div class="alert alert-success" role="status">
+      <div class="w-100">
       <strong>Documento autêntico.</strong>
       <dl class="row mb-0 mt-2">
         <dt class="col-5">Documento</dt><dd class="col-7">{{ resultado.tipo }}</dd>
@@ -21,6 +22,7 @@
         <dt class="col-5">Emitido em</dt><dd class="col-7">{{ resultado.emitido_em|date:'d/m/Y H:i' }}</dd>
         <dt class="col-5">Código</dt><dd class="col-7"><code>{{ resultado.codigo }}</code></dd>
       </dl>
+      </div>
     </div>
     {% else %}
     <div class="alert alert-warning" role="status">Não foi possível confirmar este código. Confira a digitação ou tente novamente mais tarde.</div>

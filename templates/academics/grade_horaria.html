@@ -123,12 +123,12 @@
                       {% elif role == 'PROFESSOR' %}
                         <div class="small text-muted">
                           <i class="bi bi-hash me-1"></i>
-                          {% translate "Turma:" %} {{ h.turma.codigo }}
+                          {% translate "Sala:" %} {{ h.turma.sala|default:"--" }}
                         </div>
                       {% else %}
                         <div class="small text-muted mb-1">
                           <div><i class="bi bi-person-video3 me-1"></i><strong>Prof:</strong> {{ h.turma.professor.full_name|default:"--" }}</div>
-                          <div><i class="bi bi-hash me-1"></i><strong>Turma:</strong> {{ h.turma.codigo }}</div>
+                          <div><i class="bi bi-hash me-1"></i><strong>Sala:</strong> {{ h.turma.sala|default:"--" }}</div>
                         </div>
                       {% endif %}
                     </div>
