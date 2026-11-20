@@ -98,10 +98,10 @@ def test_pendencias_contam_transferencias_e_aproveitamentos(cenario, user_secret
         instituicao_origem='UFX', disciplina_origem='Programação', carga_horaria_origem=80,
     )
 
-    assert get_indicadores_gerenciais()['pendencias'] == {'transferencias': 1, 'aproveitamentos': 1}
-    assert get_indicadores_gerenciais(curso_id=cenario['direito'].pk)['pendencias'] == {
-        'transferencias': 0, 'aproveitamentos': 0,
-    }
+    pendencias = get_indicadores_gerenciais()['pendencias']
+    assert (pendencias['transferencias'], pendencias['aproveitamentos']) == (1, 1)
+    filtradas = get_indicadores_gerenciais(curso_id=cenario['direito'].pk)['pendencias']
+    assert (filtradas['transferencias'], filtradas['aproveitamentos']) == (0, 0)
 
 
 @pytest.mark.django_db

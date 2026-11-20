@@ -85,6 +85,11 @@
           <a href="{% url 'academics:aproveitamento_index' %}?status=PENDENTE">Aproveitamentos pendentes</a>
           <span class="badge {% if pendencias.aproveitamentos %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ pendencias.aproveitamentos }}</span>
         </li>
+        <li class="list-group-item d-flex justify-content-between px-0">
+          <span>{% if user.is_superuser or user.role == 'SECRETARIA' %}<a href="{% url 'finance:index' %}?status=ATRASO">Cobranças em atraso</a>{% else %}Cobranças em atraso{% endif %}
+            <small class="text-muted d-block">R$ {{ pendencias.valor_atraso|floatformat:2 }}</small></span>
+          <span class="badge {% if pendencias.cobrancas_atraso %}bg-danger{% else %}bg-secondary{% endif %}">{{ pendencias.cobrancas_atraso }}</span>
+        </li>
       </ul>
     </div>
     <div class="card card-body">

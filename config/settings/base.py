@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "transfers.apps.TransfersConfig",
     "notifications.apps.NotificationsConfig",
     "documents.apps.DocumentsConfig",
+    "finance.apps.FinanceConfig",
 ]
 
 MIDDLEWARE = [

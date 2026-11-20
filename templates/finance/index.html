@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Financeiro — SGA{% endblock %}
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+  <h1 class="h3 mb-0">{% if e_secretaria %}Cobranças{% else %}Meu extrato financeiro{% endif %}</h1>
+  {% if e_secretaria %}<a class="btn btn-primary btn-sm" href="{% url 'finance:criar' %}">Lançar cobrança</a>{% endif %}
+</div>
+<p class="small text-muted">Registro administrativo de cobranças. A situação financeira não bloqueia matrícula, notas, frequência ou documentos.</p>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4"><div class="card card-body">
+    <div class="text-muted small">Em aberto</div>
+    <div class="fs-4 fw-bold">R$ {{ resumo.total_aberto|floatformat:2 }}</div>
+  </div></div>
+  <div class="col-6 col-md-4"><div class="card card-body">
+    <div class="text-muted small">Em atraso</div>
+    <div class="fs-4 fw-bold {% if resumo.quantidade_atraso %}text-danger{% endif %}">R$ {{ resumo.total_atraso|floatformat:2 }}</div>
+    <div class="small text-muted">{{ resumo.quantidade_atraso }} cobrança{{ resumo.quantidade_atraso|pluralize }}</div>
+  </div></div>
+</div>
+
+<form method="get" class="row g-2 align-items-end mb-3">
+  <div class="col-auto">
+    <label class="form-label small" for="{{ filtros.status.id_for_label }}">{{ filtros.status.label }}</label>
+    {{ filtros.status }}
+  </div>
+  <div class="col-auto"><button class="btn btn-outline-secondary btn-sm" type="submit">Filtrar</button></div>
+</form>
+{% if filtros.errors %}<div class="alert alert-danger" role="alert">Filtro inválido. <a href="{% url 'finance:index' %}">Limpar filtro</a></div>{% endif %}
+
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead><tr>{% if e_secretaria %}<th>Aluno</th>{% endif %}<th>Descrição</th><th>Competência</th><th>Vencimento</th><th class="text-end">Valor</th><th>Situação</th><th></th></tr></thead>
+    <tbody>
+      {% for cobranca in page_obj %}
+      <tr>
+        {% if e_secretaria %}<td>{{ cobranca.aluno.full_name }}</td>{% endif %}
+        <td>{{ cobranca.descricao }}</td>
+        <td>{{ cobranca.competencia }}</td>
+        <td>{{ cobranca.vencimento|date:'d/m/Y' }}</td>
+        <td class="text-end">R$ {{ cobranca.valor|floatformat:2 }}</td>
+        <td>
+          {% if cobranca.em_atraso %}<span class="badge bg-danger">Em atraso</span>
+          {% elif cobranca.status == 'PAGA' %}<span class="badge bg-success">Paga</span>
+          {% elif cobranca.status == 'CANCELADA' %}<span class="badge bg-secondary">Cancelada</span>
+          {% else %}<span class="badge bg-warning text-dark">Aberta</span>{% endif %}
+        </td>
+        <td><a class="btn btn-sm btn-outline-primary" href="{% url 'finance:detalhe' cobranca.pk %}">Detalhes</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="text-muted">Nenhuma cobrança encontrada.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<nav class="d-flex gap-2 align-items-center" aria-label="Paginação de cobranças">
+  {% if page_obj.has_previous %}<a class="btn btn-outline-secondary btn-sm" href="?status={{ status }}&page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
+  <span class="small">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="btn btn-outline-secondary btn-sm" href="?status={{ status }}&page={{ page_obj.next_page_number }}">Próxima</a>{% endif %}
+</nav>
+{% endblock %}
