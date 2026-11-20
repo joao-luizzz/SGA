@@ -1,0 +1,20 @@
+<div class="card mt-4">
+  <div class="card-body p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="fw-bold mb-0"><i class="bi bi-megaphone me-1 text-primary"></i> Comunicados recentes</h6>
+      <a href="{% url 'communications:mural' %}" class="small">Ver mural</a>
+    </div>
+    {% if comunicados_recentes %}
+    <ul class="list-group list-group-flush">
+      {% for comunicado in comunicados_recentes %}
+      <li class="list-group-item px-0">
+        <a href="{% url 'communications:detail' comunicado.pk %}" class="fw-semibold">{{ comunicado.titulo }}</a>
+        <small class="text-muted d-block">{{ comunicado.get_escopo_display }} · {{ comunicado.publicar_em|date:'d/m/Y H:i' }}</small>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted small mb-0">Nenhum comunicado vigente para você.</p>
+    {% endif %}
+  </div>
+</div>

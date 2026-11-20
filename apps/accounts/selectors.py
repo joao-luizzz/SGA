@@ -21,3 +21,10 @@ def get_dashboard_url_by_role(role: str) -> str:
 def list_manageable_users():
     """Retorna a lista de alunos e professores ordenados por nome."""
     return CustomUser.objects.filter(role__in=[UserRole.ALUNO, UserRole.PROFESSOR]).order_by('full_name')
+
+
+def get_comunicados_recentes(usuario, limite=3):
+    """Comunicados vigentes do público do usuário, para o painel inicial (#43)."""
+    from communications.selectors import listar_comunicados_para_usuario
+
+    return list(listar_comunicados_para_usuario(usuario).order_by('-publicar_em', '-pk')[:limite])

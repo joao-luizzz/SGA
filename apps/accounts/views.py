@@ -18,7 +18,7 @@ from .forms import (
 )
 from .models import CustomUser, UserRole
 from .decorators import role_required
-from .selectors import get_dashboard_url_by_role
+from .selectors import get_comunicados_recentes, get_dashboard_url_by_role
 from .services import change_user_password
 
 def login_view(request):
@@ -83,6 +83,7 @@ def aluno_dashboard_view(request):
     context = {
         'title': 'Painel do Aluno',
         'role_label': 'Aluno',
+        'comunicados_recentes': get_comunicados_recentes(request.user),
     }
     return render(request, 'dashboards/aluno.html', context)
 
@@ -91,6 +92,7 @@ def professor_dashboard_view(request):
     context = {
         'title': 'Painel do Professor',
         'role_label': 'Professor',
+        'comunicados_recentes': get_comunicados_recentes(request.user),
     }
     return render(request, 'dashboards/professor.html', context)
 
@@ -99,6 +101,7 @@ def secretaria_dashboard_view(request):
     context = {
         'title': 'Painel da Secretaria',
         'role_label': 'Secretaria',
+        'comunicados_recentes': get_comunicados_recentes(request.user),
     }
     return render(request, 'dashboards/secretaria.html', context)
 
@@ -107,6 +110,7 @@ def coordenacao_dashboard_view(request):
     context = {
         'title': 'Painel da Coordenação',
         'role_label': 'Coordenação',
+        'comunicados_recentes': get_comunicados_recentes(request.user),
     }
     return render(request, 'dashboards/coordenacao.html', context)
 
