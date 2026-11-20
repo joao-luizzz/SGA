@@ -4,11 +4,11 @@
 
 | Metadado | Valor |
 | --- | --- |
-| Versão | **2.1 — Fase 1 + Fase 2, Semana 4 em revisão** |
-| Data | **08 de outubro de 2026** |
+| Versão | **3.0 — Fases 1, 2 e 3** |
+| Data | **20 de novembro de 2026** |
 | SGBD | PostgreSQL 16 via Django ORM |
 
-O modelo desta entrega possui **14 entidades persistentes**, incluindo o núcleo acadêmico e as extensões da Fase 2. A Semana 4 está implementada nesta branch e aguarda revisão; as demais extensões estão integradas. Aluno e Professor continuam sendo papéis de `CustomUser`, não tabelas separadas. Relatórios não possuem entidade própria: são consultas/seletores sobre os registros existentes.
+O modelo atual possui **18 entidades persistentes**: o núcleo acadêmico, as extensões da Fase 2 e as quatro entidades da Fase 3 (`PreRequisito`, `Aproveitamento`, `DocumentoEmitido` e `Cobranca`). Aluno e Professor continuam sendo papéis de `CustomUser`, não tabelas separadas. Relatórios e o painel gerencial não possuem entidade própria: são consultas/selectors sobre os registros existentes.
 
 ## Entidades atuais
 
@@ -27,8 +27,11 @@ O modelo desta entrega possui **14 entidades persistentes**, incluindo o núcleo
 | `MaterialAcademico` | Material | pertence a Turma e possui autor; arquivo ou link |
 | `Comunicado` | Comunicação | possui autor e escopo geral, papel, curso ou turma |
 | `SolicitacaoTransferencia` | Transferência administrativa | liga Aluno e Curso; registra tipo, instituição/curso externos, decisão e auditoria da análise |
-
 | `Notificacao` | Central pessoal | destinatário `CustomUser`, comunicado opcional, categoria, título, mensagem, criação e `lida_em` |
+| `PreRequisito` | Pré-requisito curricular | liga duas `Disciplina` do mesmo curso (disciplina → requisito) |
+| `Aproveitamento` | Equivalência de disciplina externa | liga Aluno e Disciplina; registra origem, carga, análise e justificativa |
+| `DocumentoEmitido` | Documento oficial imutável | liga Aluno e emissor; guarda tipo, código de verificação e conteúdo congelado (JSON) |
+| `Cobranca` | Financeiro básico | liga Aluno e quem lançou; competência, valor, vencimento, situação, pagamento e cancelamento |
 
 ## MER atual
 
@@ -60,6 +63,12 @@ erDiagram
     CURSO ||--o{ SOLICITACAO_TRANSFERENCIA : curso
     CUSTOM_USER ||--o{ SOLICITACAO_TRANSFERENCIA : registra
     CUSTOM_USER o|--o{ SOLICITACAO_TRANSFERENCIA : analisa
+    DISCIPLINA ||--o{ PRE_REQUISITO : exige
+    DISCIPLINA ||--o{ PRE_REQUISITO : requisito
+    CUSTOM_USER ||--o{ APROVEITAMENTO : aluno
+    DISCIPLINA ||--o{ APROVEITAMENTO : equivale
+    CUSTOM_USER ||--o{ DOCUMENTO_EMITIDO : aluno
+    CUSTOM_USER ||--o{ COBRANCA : aluno
 
     CUSTOM_USER { bigint id PK string email UK string full_name string role boolean is_active }
     NOTIFICACAO { bigint id PK bigint destinatario_id FK bigint comunicado_id FK string titulo string mensagem string tipo datetime criada_em datetime lida_em }
@@ -75,6 +84,10 @@ erDiagram
     MATERIAL_ACADEMICO { bigint id PK bigint turma_id FK bigint autor_id FK string titulo string arquivo_or_link datetime criado_em }
     COMUNICADO { bigint id PK bigint autor_id FK bigint curso_id FK bigint turma_id FK string titulo string escopo datetime publicar_em }
     SOLICITACAO_TRANSFERENCIA { bigint id PK bigint aluno_id FK bigint curso_id FK bigint solicitada_por_id FK bigint analisada_por_id FK string tipo string status date data_referencia }
+    PRE_REQUISITO { bigint id PK bigint disciplina_id FK bigint requisito_id FK datetime criado_em }
+    APROVEITAMENTO { bigint id PK bigint aluno_id FK bigint disciplina_id FK string instituicao_origem string disciplina_origem int carga_horaria_origem string status bigint analisado_por_id FK }
+    DOCUMENTO_EMITIDO { bigint id PK bigint aluno_id FK string tipo string codigo_verificacao UK json conteudo bigint emitido_por_id FK datetime emitido_em }
+    COBRANCA { bigint id PK bigint aluno_id FK string competencia string descricao decimal valor date vencimento string status datetime pago_em }
 ```
 
 ### Decisões importantes do modelo
@@ -87,17 +100,24 @@ erDiagram
 - `MaterialAcademico` exige exatamente um arquivo ou link e aplica limite de 20 MB para arquivo.
 - `Comunicado` possui escopo explícito e valida que somente o alvo correspondente seja preenchido.
 - `SolicitacaoTransferencia` é administrativa. Aprovação/recusa não altera automaticamente matrícula, notas ou frequência.
-- Relatórios não têm tabela própria; usam selectors/consultas para evitar duplicação de dados e N+1.
+- Relatórios e painel gerencial não têm tabela própria; usam selectors/consultas para evitar duplicação de dados.
+- `PreRequisito` usa `PROTECT` nas duas FKs e proíbe autorreferência por constraint; ciclos e mesmo curso são validados no service, com o `Curso` bloqueado durante a alteração.
+- `Aproveitamento` segue o padrão de `SolicitacaoTransferencia`: constraint de coerência entre situação e análise e unicidade condicional (pendente/deferido).
+- `DocumentoEmitido` guarda o conteúdo congelado em JSON; `save`, `delete` e `update`/`delete` em queryset são bloqueados, como no `AuditoriaLog`.
+- `Cobranca` tem valor positivo, coerência de estado (paga ⇔ data de pagamento; cancelada exige justificativa) e unicidade condicional por Aluno + competência + descrição; atraso é derivado, não persistido.
 
 ## Integridade e segurança
 
 As FKs históricas e as constraints devem ser interpretadas junto às regras de negócio. O backend aplica RBAC e vínculo com o recurso; esconder botões no template não é mecanismo de segurança. As restrições de unicidade relevantes incluem e-mail, matrícula ativa por Aluno+Turma, nota por Matrícula+tipo, chamada por Turma+Aluno+data e solicitação de transferência pendente equivalente.
 
-A migration `notifications/0001_initial.py` cria `Notificacao`. Há unicidade de
-Comunicado+destinatário e índice de destinatário/leitura/criação. Excluir usuário
+`Notificacao` (migration `notifications/0001_initial.py`) tem unicidade de
+Comunicado+destinatário e índice de destinatário/leitura/criação; excluir usuário
 ou comunicado remove suas notificações por `CASCADE`. Tokens de recuperação são
-nativos Django, sem tabela própria. O ERD anterior tinha 13 entidades (estado após
-PR #70); esta entrega acrescenta a 14ª entidade, sem alterar as relações acadêmicas.
+nativos Django, sem tabela própria.
+
+A Fase 3 acrescenta as migrations `academics/0004_prerequisito_aproveitamento.py`,
+`documents/0001_initial.py` e `finance/0001_initial.py`, sem alterar as relações
+acadêmicas existentes.
 
 ## Referências
 

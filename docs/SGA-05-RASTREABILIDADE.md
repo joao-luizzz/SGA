@@ -40,7 +40,7 @@
 
 RN17 é evidenciada por testes unitários, de integração e de permissões, além da CI que executa `python manage.py check`, `python manage.py makemigrations --check --dry-run` e `pytest` nos jobs SQLite e PostgreSQL 16.
 
-Não há RF, RN ou CU do Roadmap nesta matriz: recursos futuros não têm implementação a rastrear na Fase 1.
+A matriz acima cobre a Fase 1. A rastreabilidade das Fases 2 e 3 está nas seções abaixo.
 
 ## Referências
 
@@ -49,38 +49,42 @@ Não há RF, RN ou CU do Roadmap nesta matriz: recursos futuros não têm implem
 - [Casos de uso](SGA-06-CASOS-DE-USO.md)
 
 
-## Estado atual e rastreabilidade das extensões — 08/10/2026
+## Estado atual — 20/11/2026
 
-As matrizes RF/CU/RN acima preservam a rastreabilidade da **Fase 1/MVP**. A tabela abaixo distingue as entregas integradas na develop da implementação da Semana 4 nesta branch; não cria requisitos novos nem altera o contrato da Fase 1.
-
-| Issue / entrega | Estado integrado ou nesta entrega | Evidência principal |
+| Fase | Estado | Entregas |
 | --- | --- | --- |
-| #36 — Semana 5 | Concluída | PR #69 implementa transferências; PR #70 conclui integração, relatórios e validação da Semana 5. |
-| #49 — Solicitação de transferência | Concluída | PR #69; `apps/transfers/` e `tests/test_transfers/`. |
-| #50 — Relatórios acadêmicos | Concluída | PR #68; consultas e testes de relatórios em `apps/academics/` e `tests/test_academics/`. |
+| Fase 1/MVP | Concluída | Núcleo acadêmico descrito neste documento. |
+| Fase 2 | Concluída | Materiais e comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68, #70), transferências (PR #69, #70), recuperação de senha e notificações (PR #73, ajustes na #75). |
+| Fase 3 | Implementada | Pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais (PR #78) e financeiro básico (PR #79), conforme a [especificação da Fase 3](SGA-12-ESPECIFICACAO-FASE-3.md). |
+| Estudos | Somente estudo | API pública e integrações ([SGA-13](SGA-13-ESTUDO-API-INTEGRACOES.md)): recomendação de não expor API nesta evolução. App mobile e IA não foram implementados. |
+
+“Fora do MVP” nos trechos da Fase 1 significa fora do escopo **original**, não ausente do código atual. As seções de estado de 08/10/2026 foram substituídas por esta; o histórico permanece no Git.
+
+## Rastreabilidade das extensões da Fase 2
+
+| Issue / entrega | Estado | Evidência principal |
+| --- | --- | --- |
+| #34 — Materiais e comunicados | Concluída | PR #66; `apps/materials/`, `apps/communications/` e testes. |
+| #33 — Calendário, grade e conflitos | Concluída | PR #67; `HorarioTurma`, `EventoCalendario` e testes de conflito. |
+| #36, #49, #61 — Transferências | Concluídas | PR #69; `apps/transfers/` e `tests/test_transfers/`. |
+| #50, #62 — Relatórios, risco e impressão | Concluídas | PR #68 e #70; `get_relatorio_turmas`, `identificar_risco_academico`, CSV e impressão. |
 | #51 — Integração transferências + relatórios | Concluída | PR #70; `tests/test_integration/test_semana5_flow.py`. |
-| #61 — Análise da transferência | Concluída | PR #69; services, permissões e testes em `apps/transfers/` e `tests/test_transfers/`. |
-| #62 — Relatórios, risco e impressão | Concluída | PR #70; `identificar_risco_academico`, filtros, CSV, impressão e testes em `tests/test_academics/`. |
-| #35 — Recuperação de senha e notificações | Concluída nesta implementação; revisão pendente | `accounts/recovery.py`, `accounts/services.py`, `notifications/`; testes HTTP e PostgreSQL. |
-| #47 e #59 — Recuperação de senha | Concluídas nesta implementação; revisão pendente | `PasswordResetTokenGenerator` nativo; confirmação serializada; `tests/test_accounts/test_recovery.py`. |
-| #48 e #60 — Notificações | Concluídas nesta implementação; revisão pendente | `apps/notifications/`, integração dos três eventos e `tests/test_notifications/`; #60 permanece dedicada a notificações. |
-| #37 — Fase 3 | Futura | Planejada para etapa posterior; não faz parte das entregas integradas da Fase 2. |
+| #35, #47, #59 — Recuperação de senha | Concluídas | PR #73 e #75; `accounts/recovery.py`, `tests/test_accounts/test_recovery.py`. |
+| #48, #60 — Notificações | Concluídas | PR #73; `apps/notifications/` e `tests/test_notifications/`. |
 
-PR #66 (materiais/comunicados), PR #67 (calendário/grade/conflitos), PR #68 (relatórios), PR #69 (transferências) e PR #70 (conclusão dos relatórios e integração da Semana 5) estão integradas na develop. “Fora do MVP” continua significando fora do escopo original da Fase 1, não necessariamente ausente do código atual.
+## Rastreabilidade da Fase 3 (#37)
 
-## Entrega da Semana 4 — Issue #35 (08/10/2026)
+| RF | CU | RN | Implementação | Testes |
+| --- | --- | --- | --- | --- |
+| RF36 | CU20 | RN18, RN27 | `PreRequisito`, `adicionar_pre_requisito`, `remover_pre_requisito` (PR #76) | `tests/test_academics/test_prerequisitos.py` |
+| RF37 | CU21 | RN05–RN08, RN19 | `get_pre_requisitos_pendentes` em `matricular_aluno_administrativo` (PR #76) | idem |
+| RF38 | CU22 | RN20, RN27 | `Aproveitamento`, `registrar_aproveitamento` (PR #76) | idem |
+| RF39 | CU23 | RN20, RN27 | `analisar_aproveitamento` (PR #76) | idem |
+| RF40 | CU25 | RN21, RN22, RN27 | `DocumentoEmitido`, `emitir_documento` (PR #78) | `tests/test_documents/` |
+| RF41 | CU26 | RN11–RN14, RN21, RN22 | histórico com snapshot de resultados (PR #78) | idem |
+| RF42 | CU27 | RN23 | `documents:verificar`, `verificar_documento` (PR #78) | idem |
+| RF43 | CU28 | RN24, RN27 | `Cobranca`, `lancar_cobranca`, `registrar_pagamento`, `cancelar_cobranca` (PR #79) | `tests/test_finance/` |
+| RF44 | CU29 | RN24, RN25 | `listar_cobrancas`, `resumir_cobrancas` (PR #79) | idem |
+| RF45 | CU30 | RN26 | `get_indicadores_gerenciais`, `academics/painel.py` (PR #77, #79) | `tests/test_academics/test_painel_gerencial.py` |
 
-**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
-aguardando revisão e integração. Isso não declara merge na develop nem fechamento
-das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
-e Fase 3 permanece futura.
-
-Recuperação usa tokens nativos Django com expiração configurável, validação de
-senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
-paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
-Comunicados, notas e frequência geram notificações conforme as regras existentes.
-Detalhes, configuração e evidências: [Semana 4](SGA-11-RECUPERACAO-NOTIFICACOES.md).
-
-**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
-e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
-o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.
+RNF07–RNF10 são cobertos pelos testes de permissão, paginação e limite de tentativas dos mesmos módulos e pela CI em SQLite e PostgreSQL 16.

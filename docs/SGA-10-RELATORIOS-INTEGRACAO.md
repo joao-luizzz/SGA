@@ -153,5 +153,5 @@ de contagem ou cobertura fixa para execuções futuras. **Registro histórico ap
 da Fase 2 eram recuperação segura de senha e notificações (#35 e issues relacionadas);
 Fase 3 (#37) permanece futura.
 
-A Semana 4 foi implementada posteriormente nesta branch e aguarda revisão/integração.
+A Semana 4 foi integrada depois pela PR #73, e a Fase 3 pelas PRs #76–#79.
 Consulte [Recuperação e notificações](SGA-11-RECUPERACAO-NOTIFICACOES.md).

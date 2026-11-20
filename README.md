@@ -1,6 +1,6 @@
 # SGA — Sistema de Gestão Acadêmica
 
-**Versão 1.0 — MVP Fase 1 concluído (31 de agosto de 2026)**
+**Versão 3.0 — Fases 1, 2 e 3 (20 de novembro de 2026)**
 
 O SGA é um monólito Django para ensino superior. Centraliza a oferta acadêmica, matrícula administrativa, frequência, avaliações e consulta acadêmica pelo aluno, com acesso isolado por papel.
 
@@ -8,7 +8,7 @@ O SGA é um monólito Django para ensino superior. Centraliza a oferta acadêmic
 
 - Python 3.12+, Django 5+, Django Templates, HTMX e Bootstrap 5.
 - PostgreSQL 16, Docker Compose, pytest e pytest-django.
-- Módulos: `accounts`, `academics`, `enrollment`, `attendance`, `assessments`, `materials`, `communications`, `transfers` e `notifications`.
+- Módulos: `accounts`, `academics`, `enrollment`, `attendance`, `assessments`, `materials`, `communications`, `transfers`, `notifications`, `documents` e `finance`.
 
 ## Fase 1 entregue
 
@@ -18,6 +18,22 @@ O SGA é um monólito Django para ensino superior. Centraliza a oferta acadêmic
 | Professor | Registra chamada completa e notas nas próprias turmas ativas; lança Exame somente a elegíveis. |
 | Secretaria | Cria, edita, lista, ativa/inativa Alunos e Professores; efetiva matrículas e altera seus status. |
 | Coordenação | Gerencia cursos, disciplinas, turmas e alocação docente. |
+
+## Fases 2 e 3
+
+| Módulo | Quem usa | Onde |
+| --- | --- | --- |
+| Materiais e comunicados | Professor, Secretaria, Coordenação, Aluno | **Materiais**, **Mural de Avisos** |
+| Calendário e grade horária | Todos | **Grade Horária** |
+| Transferências | Secretaria registra, Coordenação analisa, Aluno consulta | **Transferências** |
+| Relatórios acadêmicos (risco, CSV, impressão) | Coordenação | **Relatórios Acadêmicos** |
+| Recuperação de senha | Todos | **Esqueci minha senha** no login |
+| Notificações | Todos | sino **Notificações** na barra superior |
+| Pré-requisitos | Coordenação | botão de pré-requisitos no catálogo de disciplinas |
+| Aproveitamento de disciplinas | Secretaria registra, Coordenação analisa, Aluno consulta | **Aproveitamentos** |
+| Painel gerencial | Coordenação, Secretaria | **Painel Gerencial** |
+| Documentos oficiais | Aluno (próprios), Secretaria | **Meus Documentos** / **Documentos Oficiais**; verificação pública no login |
+| Financeiro básico | Secretaria opera, Aluno consulta | **Financeiro** / **Meu Financeiro** |
 
 O sistema calcula MP, MF, frequência, situação e vagas. `Nota` pertence a `Matricula`; `Falta` pertence a Aluno, Turma e data; alterações desses registros são auditadas de forma imutável.
 
@@ -75,7 +91,7 @@ A aplicação fica em `http://localhost:8000`.
 docker compose exec web python manage.py seed_demo
 ```
 
-O seed é idempotente e cria contas de demonstração para os quatro papéis e cenários de aprovação direta, exame e reprovação por falta. Use apenas essas contas em apresentações e configure uma senha de demonstração com `--password`; não use senha real.
+O seed é idempotente e cria contas de demonstração para os quatro papéis, cenários de aprovação direta, exame e reprovação por falta, e os cenários da Fase 3 (pré-requisito, aproveitamento pendente e mensalidades, uma em atraso). O roteiro está em [SGA-07](docs/SGA-07-ROTEIRO-DEMO-E-ENTREGA.md). Use apenas essas contas em apresentações e configure uma senha de demonstração com `--password`; não use senha real.
 
 ### Primeiro usuário de Secretaria
 
@@ -101,48 +117,20 @@ USE_SQLITE=True pytest
 
 Esse comando mede a cobertura do código relevante em `apps/`, mostra no terminal as linhas não cobertas e gera `coverage.xml` na raiz para consulta por ferramentas. O CI aplica essa medição no job SQLite; o job PostgreSQL executa a mesma suíte sem gerar o relatório novamente.
 
-A suíte automatizada cobre autenticação, RBAC, usuários, oferta acadêmica, matrícula, vagas, chamada, frequência, notas, exame, auditoria, seed e fluxo ponta a ponta. A CI executa `python manage.py check`, `python manage.py makemigrations --check --dry-run` e `pytest` nos bancos **SQLite** e **PostgreSQL 16**. Não há uma contagem fixa de testes nesta documentação.
+A suíte automatizada cobre autenticação, RBAC, usuários, oferta acadêmica, matrícula, vagas, chamada, frequência, notas, exame, auditoria, seed, fluxos ponta a ponta e todos os módulos das Fases 2 e 3. A CI executa `python manage.py check`, `python manage.py makemigrations --check --dry-run` e `pytest` nos bancos **SQLite** e **PostgreSQL 16**. Não há uma contagem fixa de testes nesta documentação.
 
-## Fora do MVP
+## Fora do escopo
 
-Auto-matrícula, recuperação de senha, materiais, calendário, comunicados, documentos, transferências, financeiro, app mobile, integrações e pré-requisitos são Roadmap e não estão implementados na Fase 1.
-
-Essa delimitação se refere à Fase 1. A transferência simplificada da Fase 2 está
-descrita acima; os módulos implementados depois do MVP estão relacionados no
-estado atual abaixo. “Fora do MVP” identifica o escopo original da Fase 1, não
-indica que todos esses módulos continuam ausentes do código.
+API pública, integrações externas, aplicativo mobile, IA, auto-matrícula e meios de pagamento não estão implementados. API e integrações foram avaliadas no [estudo técnico](docs/SGA-13-ESTUDO-API-INTEGRACOES.md).
 
 
-## Estado atual para apresentação — 08/10/2026
+## Estado atual — 20/11/2026
 
-**Fase 1/MVP:** concluída.
+| Fase | Estado | Entregas |
+| --- | --- | --- |
+| Fase 1/MVP | Concluída | Núcleo acadêmico descrito neste documento. |
+| Fase 2 | Concluída | Materiais e comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68, #70), transferências (PR #69, #70), recuperação de senha e notificações (PR #73, ajustes na #75). |
+| Fase 3 | Implementada | Pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais (PR #78) e financeiro básico (PR #79), conforme a [especificação da Fase 3](docs/SGA-12-ESPECIFICACAO-FASE-3.md). |
+| Estudos | Somente estudo | API pública e integrações ([SGA-13](docs/SGA-13-ESTUDO-API-INTEGRACOES.md)): recomendação de não expor API nesta evolução. App mobile e IA não foram implementados. |
 
-**Fase 2:**
-
-Semanas 1, 2, 3 e 5 integradas; Semana 4 implementada nesta entrega, aguardando revisão.
-
-- Materiais e comunicados — concluídos na PR #66.
-- Calendário, grade e conflitos — concluídos na PR #67.
-- Relatórios acadêmicos — entregues na PR #68; complementados e integrados com transferências na PR #70.
-- Transferências — concluídas na PR #69; integração com relatórios concluída na PR #70.
-- Recuperação segura de senha — implementada nesta entrega (#35; solicitação #47 e redefinição/token #59).
-- Notificações internas, leitura e testes — implementados nesta entrega (#35; central #48 e leitura/testes #60).
-
-**Fase 3:** futura (#37). “Fora do MVP” significa fora do escopo original da Fase 1, não necessariamente ausente do código atual.
-
-## Entrega da Semana 4 — Issue #35 (08/10/2026)
-
-**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
-aguardando revisão e integração. Isso não declara merge na develop nem fechamento
-das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
-e Fase 3 permanece futura.
-
-Recuperação usa tokens nativos Django com expiração configurável, validação de
-senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
-paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
-Comunicados, notas e frequência geram notificações conforme as regras existentes.
-Detalhes, configuração e evidências: [Semana 4](docs/SGA-11-RECUPERACAO-NOTIFICACOES.md).
-
-**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
-e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
-o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.
+“Fora do MVP” nos trechos da Fase 1 significa fora do escopo **original**, não ausente do código atual. As seções de estado de 08/10/2026 foram substituídas por esta; o histórico permanece no Git.

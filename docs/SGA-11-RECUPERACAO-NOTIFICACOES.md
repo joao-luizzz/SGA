@@ -2,13 +2,13 @@
 
 ## Estado e rastreabilidade
 
-Entrega implementada na branch `feat/35-recuperacao-senha-notificacoes`, baseada em
-`08d440795a643a8ed541f9044e79ef273084eb98`. Aguarda revisão de João Luiz e integração;
-não declara merge, fechamento de issues ou CI remoto desta branch.
+Entrega integrada na `develop` pela PR #73 (17/11/2026), com ajustes de configuração na
+PR #75 (variáveis de e-mail e recuperação definidas em `config/settings/base.py`). As
+issues #35, #47, #48, #59 e #60 foram fechadas.
 
-| Issue | Entrega nesta implementação | Evidência |
+| Issue | Entrega | Evidência |
 | --- | --- | --- |
-| #35 | Concluída no código; revisão pendente | Fluxos abaixo e testes HTTP/integrados |
+| #35 | Concluída e integrada (PR #73) | Fluxos abaixo e testes HTTP/integrados |
 | #47 | Solicitação de recuperação concluída | `accounts.forms.RecoveryForm`, `accounts.services.solicitar_recuperacao` |
 | #59 | Redefinição/token concluídos | `accounts.services.redefinir_senha`, `accounts.recovery.RecoveryConfirmView` |
 | #48 | Central pessoal concluída | App `notifications`, navbar e templates |

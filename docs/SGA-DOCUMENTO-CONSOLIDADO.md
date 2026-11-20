@@ -4,12 +4,19 @@
 
 | Metadado | Valor |
 | --- | --- |
-| Versão | **2.1 — Fase 2 com Semana 4 em revisão** |
-| Data | **08 de outubro de 2026** |
+| Versão | **3.0 — entrega final (Fases 1, 2 e 3)** |
+| Data | **20 de novembro de 2026** |
 
 ## Resumo
 
-O SGA é um monólito Django para ensino superior. A Fase 1/MVP entrega RBAC, usuários, oferta acadêmica, matrícula administrativa, frequência, notas, cálculos e consulta individual do aluno. A Fase 2 adiciona materiais/comunicados, calendário/grade/conflitos, transferências e relatórios acadêmicos. A recuperação segura de senha e as notificações internas estão implementadas nesta entrega, aguardando revisão; a Fase 3 é futura. A documentação individual é a referência detalhada; este documento diferencia as entregas integradas na develop da Semana 4 nesta branch de revisão.
+O SGA é um monólito Django para ensino superior, com acesso isolado por papel (Aluno, Professor, Secretaria e Coordenação).
+
+- **Fase 1/MVP:** RBAC, usuários, oferta acadêmica, matrícula administrativa, frequência, notas, cálculos, auditoria e consulta individual do aluno.
+- **Fase 2:** materiais e comunicados, calendário/grade/conflitos, transferências, relatórios acadêmicos com risco, recuperação segura de senha e notificações internas.
+- **Fase 3:** pré-requisitos e aproveitamento de disciplinas, painel gerencial, documentos oficiais com verificação pública e financeiro básico.
+- **Estudos:** API pública e integrações foram estudadas ([SGA-13](SGA-13-ESTUDO-API-INTEGRACOES.md)) e não implementadas, por recomendação. App mobile e IA ficaram fora desta evolução.
+
+Os documentos individuais (SGA-01 a SGA-13) são a referência detalhada.
 
 ## Escopo e arquitetura
 
@@ -25,25 +32,24 @@ flowchart TB
     APP --> COM[communications]
     APP --> TRN[transfers]
     APP --> NTF[notifications]
+    APP --> DOC[documents]
+    APP --> FIN[finance]
     APP --> DB[(PostgreSQL 16)]
 ```
 
-Os apps atuais são `accounts`, `academics`, `enrollment`, `attendance`, `assessments`, `materials`, `communications`, `transfers` e `notifications`. Eles cobrem autenticação/recuperação/auditoria e notificações pessoais, oferta e grade acadêmica, matrícula, frequência, avaliações, materiais, comunicados e transferências. Regras de negócio ficam em services, consultas reutilizáveis em selectors e permissões em decorators/mixins. Relatórios são consultas/selectors, sem entidade persistente própria. A aplicação usa Docker Compose e Pytest.
+Regras de negócio ficam em `services.py`, consultas reutilizáveis em `selectors.py` e permissões em decorators/mixins, revalidadas nos services. Operações críticas usam `select_for_update` e compare-and-set; alterações sensíveis geram `AuditoriaLog` imutável. Relatórios e o painel gerencial são consultas, sem entidade própria. A aplicação roda em Docker Compose e é testada com Pytest.
 
 ## Perfis
 
-| Papel | Entrega |
+| Papel | Funcionalidades |
 | --- | --- |
-| `ALUNO` | Boletim, situação e frequência próprios. |
-| `PROFESSOR` | Turmas próprias, chamada completa, notas parciais e exame elegível. |
-| `SECRETARIA` | Usuários Aluno/Professor, matrícula e status. |
-| `COORDENACAO` | Cursos, disciplinas, turmas e alocação docente. |
+| `ALUNO` | Boletim, situação e frequência próprios; materiais e comunicados; notificações; aproveitamentos e transferências próprios; **Meus Documentos** (declaração e histórico); **Meu Financeiro** (extrato). |
+| `PROFESSOR` | Turmas próprias, chamada completa, notas parciais e exame elegível; materiais das próprias turmas. |
+| `SECRETARIA` | Usuários Aluno/Professor; matrícula e status (com verificação de pré-requisitos); comunicados; transferências; registro de aproveitamentos; emissão de documentos; cobranças; painel gerencial. |
+| `COORDENACAO` | Cursos, disciplinas, turmas, grade e alocação docente; **pré-requisitos**; análise de transferências e aproveitamentos; relatórios acadêmicos; comunicados; painel gerencial. |
+| Visitante | Login, recuperação de senha e verificação pública de documento. |
 
-Na Fase 2, Professor gerencia materiais das próprias turmas; Secretaria e Coordenação participam do fluxo administrativo de transferências conforme permissões; a Coordenação consulta relatórios acadêmicos. Os detalhes estão nos documentos de cada entrega.
-
-## Requisitos e regras centrais
-
-Os requisitos implementados são RF01–RF04, RF06–RF07, RF10–RF11, RF13–RF17, RF20–RF23 e RF27–RF35; detalhes e estado estão em [SGA-03](SGA-03-REQUISITOS.md). A matriz completa é [SGA-05](SGA-05-RASTREABILIDADE.md).
+## Regras centrais
 
 ```text
 MP = (P1 + P2 + Trabalho) / 3
@@ -54,11 +60,15 @@ MF = (MP + Exame) / 2; MF >= 6 => aprovado após exame
 Frequência < 75%   => reprovado por falta e exame bloqueado
 ```
 
-Somente a Secretaria efetiva matrícula. A matrícula ativa pode ser trancada, cancelada ou concluída. Nova tentativa não é permitida na mesma turma; é criada em outra turma/período, para manter notas e frequência históricas isoladas. Alterações de Nota e Falta são auditadas em log imutável.
+Somente a Secretaria efetiva matrícula, e só se cada pré-requisito da disciplina estiver cumprido por aprovação (direta ou após exame) ou aproveitamento deferido. Nova tentativa é feita em outra turma/período, preservando o histórico. Aproveitamento exige carga de origem ≥ 75%. Documentos têm conteúdo congelado e código verificável. A situação financeira não bloqueia operações acadêmicas. Regras completas: RN01–RN17 em [SGA-02](SGA-02-REGRAS-DE-NEGOCIO.md) e RN18–RN27 na mesma página e em [SGA-12](SGA-12-ESPECIFICACAO-FASE-3.md).
 
-## Modelo de dados e MER atual
+## Requisitos e rastreabilidade
 
-O modelo persistente atual possui as 14 entidades listadas em [SGA-04 — Modelagem de dados](SGA-04-MODELAGEM-DADOS.md): `CustomUser`, `AuditoriaLog`, `Curso`, `Disciplina`, `Turma`, `HorarioTurma`, `EventoCalendario`, `Matricula`, `Falta`, `Nota`, `MaterialAcademico`, `Comunicado`, `SolicitacaoTransferencia` e `Notificacao`. Aluno e Professor são papéis de `CustomUser`, não tabelas separadas. Relatórios são consultas e não possuem entidade `Relatorio`.
+Fase 1: RF01–RF04, RF06–RF07, RF10–RF11, RF13–RF17, RF20–RF23 e RF27–RF35. Fase 3: RF36–RF45 e RNF07–RNF10. Detalhes em [SGA-03](SGA-03-REQUISITOS.md); matrizes RF ↔ CU ↔ RN ↔ evidência em [SGA-05](SGA-05-RASTREABILIDADE.md).
+
+## Modelo de dados e MER
+
+O modelo persistente possui **18 entidades** ([SGA-04](SGA-04-MODELAGEM-DADOS.md)): `CustomUser`, `AuditoriaLog`, `Curso`, `Disciplina`, `Turma`, `HorarioTurma`, `EventoCalendario`, `Matricula`, `Falta`, `Nota`, `MaterialAcademico`, `Comunicado`, `SolicitacaoTransferencia`, `Notificacao`, `PreRequisito`, `Aproveitamento`, `DocumentoEmitido` e `Cobranca`. Aluno e Professor são papéis de `CustomUser`. Média, situação, frequência, risco, vagas e atraso financeiro são calculados, não persistidos.
 
 ```mermaid
 erDiagram
@@ -88,6 +98,12 @@ erDiagram
     CURSO ||--o{ SOLICITACAO_TRANSFERENCIA : curso
     CUSTOM_USER ||--o{ SOLICITACAO_TRANSFERENCIA : registra
     CUSTOM_USER o|--o{ SOLICITACAO_TRANSFERENCIA : analisa
+    DISCIPLINA ||--o{ PRE_REQUISITO : exige
+    DISCIPLINA ||--o{ PRE_REQUISITO : requisito
+    CUSTOM_USER ||--o{ APROVEITAMENTO : aluno
+    DISCIPLINA ||--o{ APROVEITAMENTO : equivale
+    CUSTOM_USER ||--o{ DOCUMENTO_EMITIDO : aluno
+    CUSTOM_USER ||--o{ COBRANCA : aluno
 
     CUSTOM_USER { bigint id PK string email UK string full_name string role boolean is_active }
     NOTIFICACAO { bigint id PK bigint destinatario_id FK bigint comunicado_id FK string titulo string mensagem string tipo datetime criada_em datetime lida_em }
@@ -103,48 +119,32 @@ erDiagram
     MATERIAL_ACADEMICO { bigint id PK bigint turma_id FK bigint autor_id FK string titulo string arquivo_or_link datetime criado_em }
     COMUNICADO { bigint id PK bigint autor_id FK bigint curso_id FK bigint turma_id FK string titulo string escopo datetime publicar_em }
     SOLICITACAO_TRANSFERENCIA { bigint id PK bigint aluno_id FK bigint curso_id FK bigint solicitada_por_id FK bigint analisada_por_id FK string tipo string status date data_referencia }
+    PRE_REQUISITO { bigint id PK bigint disciplina_id FK bigint requisito_id FK datetime criado_em }
+    APROVEITAMENTO { bigint id PK bigint aluno_id FK bigint disciplina_id FK string instituicao_origem string disciplina_origem int carga_horaria_origem string status bigint analisado_por_id FK }
+    DOCUMENTO_EMITIDO { bigint id PK bigint aluno_id FK string tipo string codigo_verificacao UK json conteudo bigint emitido_por_id FK datetime emitido_em }
+    COBRANCA { bigint id PK bigint aluno_id FK string competencia string descricao decimal valor date vencimento string status datetime pago_em }
 ```
-
-`Disciplina` pertence diretamente a `Curso`; `HorarioTurma` estrutura a grade e `Turma.horarios` permanece como campo textual legado/compatibilidade; `Nota` pertence a `Matricula`; `Falta` liga Aluno, Turma e data. `MaterialAcademico`, `Comunicado` e `SolicitacaoTransferencia` persistem as extensões da Fase 2. E-mail, matrícula ativa, nota por tipo, chamada por data e solicitação pendente equivalente possuem as restrições descritas em [SGA-04](SGA-04-MODELAGEM-DADOS.md). Média, situação, frequência, risco acadêmico e vagas são calculados, não tabelas.
 
 ## Casos de uso
 
-Os 19 casos de uso abrangem autenticação (CU01–CU03), Aluno (CU04–CU05), Professor (CU06–CU08 e CU17), Secretaria (CU09–CU12, CU18–CU19) e Coordenação (CU13–CU16). Pré-condições, fluxos, exceções e RN estão em [SGA-06](SGA-06-CASOS-DE-USO.md).
+CU01–CU19 (Fase 1) em [SGA-06](SGA-06-CASOS-DE-USO.md); fluxos da Fase 2 em SGA-09 a SGA-11; CU20–CU30 (Fase 3) resumidos em SGA-06 e detalhados em [SGA-12](SGA-12-ESPECIFICACAO-FASE-3.md).
 
 ## Testes, CI e demonstração
 
-O projeto possui suíte automatizada para regras acadêmicas, permissões, modelos, services, views, seed e fluxos integrados da Fase 2. A CI executa `check`, verificação de migrations e `pytest` em SQLite e PostgreSQL 16. Na validação específica da PR #70 foram registrados **380 testes aprovados, 2 skips de concorrência PostgreSQL e cobertura de 88,75%**; os dois jobs do CI (SQLite e PostgreSQL) passaram. Essa evidência descreve aquela execução da Semana 5, não fixa a contagem/cobertura futura. Para preparar a demonstração, use `docker compose exec web python manage.py seed_demo`; o roteiro e checklist estão em [SGA-07](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
+A suíte automatizada cobre regras acadêmicas, permissões (403/404), modelos e constraints, services, views, seed e fluxos integrados de todas as fases. A CI executa `check`, `makemigrations --check --dry-run` e `pytest` em SQLite e PostgreSQL 16, com cobertura mínima de 85%. Na validação final da Fase 3 (20/11/2026) a suíte local registrou **532 testes aprovados e cobertura de 90,46%**.
 
-Na validação desta implementação da Semana 4 (08/10/2026), a suíte completa no
-Docker/Python 3.12 registrou **424 aprovações, 3 skips SQLite e cobertura 89.67%**
-(threshold mantido em 85%). A suíte completa PostgreSQL 16 registrou **427
-aprovações sem skips**; os 45 testes novos também passaram no Docker/Python 3.12
-com PostgreSQL. Checks e migrations passaram nos dois bancos. CI remoto desta
-branch aguarda publicação/revisão e não é declarado verde. Os números registram
-esta execução; detalhes em [SGA-11](SGA-11-RECUPERACAO-NOTIFICACOES.md).
+Para a demonstração, use `docker compose exec web python manage.py seed_demo`; o roteiro final, com os cenários da Fase 3, está em [SGA-07](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
 
-## Fases e estado atual
+## Fases e estado atual — 20/11/2026
 
-### Fase 1/MVP — concluída
+| Fase | Estado | Entregas |
+| --- | --- | --- |
+| Fase 1/MVP | Concluída | Núcleo acadêmico (PRs até #31). |
+| Fase 2 | Concluída | Materiais e comunicados (#66), calendário/grade/conflitos (#67), relatórios (#68, #70), transferências (#69, #70), recuperação de senha e notificações (#73, #75). |
+| Fase 3 | Implementada | Pré-requisitos e aproveitamento (#76), painel gerencial (#77), documentos oficiais (#78), financeiro básico (#79); especificação em SGA-12. |
+| Estudos | Somente estudo | API pública e integrações (SGA-13); app mobile e IA não implementados. |
 
-Autenticação e quatro papéis, usuários, cursos, disciplinas, turmas, matrícula administrativa, vagas, frequência, notas, exame, boletim, cálculos e auditoria compõem o núcleo original.
-
-### Fase 2 — entregas integradas e implementação da Semana 4
-
-Semanas 1, 2, 3 e 5 integradas; Semana 4 implementada nesta entrega, aguardando revisão.
-
-- Materiais e comunicados — concluídos (PR #66).
-- Calendário, grade e conflitos — concluídos (PR #67).
-- Relatórios acadêmicos — entregues na PR #68 e complementados na PR #70.
-- Transferências — concluídas na PR #69; integração com relatórios concluída na PR #70.
-- Recuperação segura de senha — implementada nesta entrega (#35; solicitação #47 e redefinição/token #59).
-- Notificações internas, leitura e testes — implementados nesta entrega (#35; central #48 e leitura/testes #60).
-
-### Fase 3 — futura
-
-Planejada para etapa posterior (#37), após estabilização e decisão da equipe. Pré-requisitos/equivalência de créditos, documentos acadêmicos oficiais, financeiro acadêmico, dashboard gerencial e estudos de API pública, integrações, aplicativo mobile e IA não são declarados como entregues neste estado.
-
-“Fora do MVP” identifica o escopo original da Fase 1; não significa que os módulos posteriores implementados na Fase 2 estejam ausentes do código.
+“Fora do MVP” nos documentos da Fase 1 identifica o escopo original, não ausência no código atual.
 
 ## Documentos individuais
 
@@ -154,28 +154,10 @@ Planejada para etapa posterior (#37), após estabilização e decisão da equipe
 - [SGA-04 — Modelagem de dados](SGA-04-MODELAGEM-DADOS.md)
 - [SGA-05 — Rastreabilidade](SGA-05-RASTREABILIDADE.md)
 - [SGA-06 — Casos de uso](SGA-06-CASOS-DE-USO.md)
-- [SGA-07 — Roteiro de demonstração](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md)
-
-
-## Estado atual — 08 de outubro de 2026
-
-**Fase 1/MVP:** concluída. **Fase 2:** materiais/comunicados, calendário/grade/conflitos, relatórios e transferências integrados; Semana 5 concluída pela PR #70 (`950d871597dea7499bd9e63ca75029639314a97a`). A Semana 4 (#35 e issues relacionadas) está implementada nesta branch, aguardando revisão e integração. **Fase 3:** futura (#37).
-
-Este documento é a visão consolidada para apresentação. Os documentos SGA-01 a SGA-06 permanecem como especificação detalhada do MVP e não devem ser interpretados como inventário exaustivo das extensões posteriores.
-
-## Entrega da Semana 4 — Issue #35 (08/10/2026)
-
-**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
-aguardando revisão e integração. Isso não declara merge na develop nem fechamento
-das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
-e Fase 3 permanece futura.
-
-Recuperação usa tokens nativos Django com expiração configurável, validação de
-senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
-paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
-Comunicados, notas e frequência geram notificações conforme as regras existentes.
-Detalhes, configuração e evidências: [Semana 4](SGA-11-RECUPERACAO-NOTIFICACOES.md).
-
-**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
-e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
-o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.
+- [SGA-07 — Roteiro de demonstração e entrega](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md)
+- [SGA-08 — Preparação da Fase 2](SGA-08-PREPARACAO-FASE-2.md)
+- [SGA-09 — Transferências](SGA-09-TRANSFERENCIAS.md)
+- [SGA-10 — Relatórios e integração](SGA-10-RELATORIOS-INTEGRACAO.md)
+- [SGA-11 — Recuperação de senha e notificações](SGA-11-RECUPERACAO-NOTIFICACOES.md)
+- [SGA-12 — Especificação da Fase 3](SGA-12-ESPECIFICACAO-FASE-3.md)
+- [SGA-13 — Estudo de API pública e integrações](SGA-13-ESTUDO-API-INTEGRACOES.md)

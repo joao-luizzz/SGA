@@ -31,7 +31,7 @@ As regras abaixo descrevem somente comportamentos implementados na Fase 1. Os ID
 
 ## Limites do contrato da Fase 1
 
-As regras acima descrevem somente o contrato da Fase 1. Os módulos posteriores da Fase 2 não alteram retroativamente estas regras. Transferências e relatórios foram implementados; recuperação segura de senha e notificações internas foram implementadas nesta entrega, aguardando revisão. A Fase 3 é futura. Consulte o estado atual abaixo e o Documento Consolidado.
+As regras acima descrevem somente o contrato da Fase 1. Os módulos posteriores não alteram retroativamente estas regras. As regras da Fase 3 (RN18–RN27) estão na seção abaixo; o estado de cada fase está no Documento Consolidado.
 
 ## Referências
 
@@ -40,32 +40,30 @@ As regras acima descrevem somente o contrato da Fase 1. Os módulos posteriores 
 - [Rastreabilidade](SGA-05-RASTREABILIDADE.md)
 
 
-## Estado atual após a PR #70 — 08/10/2026
+## Estado atual — 20/11/2026
 
-Este documento continua sendo a referência detalhada das regras da **Fase 1/MVP**. O estado abaixo distingue extensões integradas e a Semana 4 implementada nesta branch:
+| Fase | Estado | Entregas |
+| --- | --- | --- |
+| Fase 1/MVP | Concluída | Núcleo acadêmico descrito neste documento. |
+| Fase 2 | Concluída | Materiais e comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68, #70), transferências (PR #69, #70), recuperação de senha e notificações (PR #73, ajustes na #75). |
+| Fase 3 | Implementada | Pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais (PR #78) e financeiro básico (PR #79), conforme a [especificação da Fase 3](SGA-12-ESPECIFICACAO-FASE-3.md). |
+| Estudos | Somente estudo | API pública e integrações ([SGA-13](SGA-13-ESTUDO-API-INTEGRACOES.md)): recomendação de não expor API nesta evolução. App mobile e IA não foram implementados. |
 
-- Materiais e comunicados — PR #66, concluída.
-- Calendário, grade e conflitos — PR #67, concluída.
-- Relatórios — PR #68, complementada e integrada com transferências pela PR #70.
-- Transferências — PR #69, com integração conjunta de relatórios concluída pela PR #70. As operações não alteram automaticamente o histórico acadêmico.
-- Recuperação segura de senha e notificações — implementadas nesta entrega (#35; issues relacionadas #47–#48 e #59–#60).
-- Fase 3 — futura (#37).
+“Fora do MVP” nos trechos da Fase 1 significa fora do escopo **original**, não ausente do código atual. As seções de estado de 08/10/2026 foram substituídas por esta; o histórico permanece no Git.
 
-“Fora do MVP” significa fora do escopo original da Fase 1, e não que todos os módulos relacionados estejam ausentes do código atual.
+## Regras da Fase 3
 
-## Entrega da Semana 4 — Issue #35 (08/10/2026)
+Detalhamento, decisões D1–D5 e evidências em [SGA-12](SGA-12-ESPECIFICACAO-FASE-3.md).
 
-**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
-aguardando revisão e integração. Isso não declara merge na develop nem fechamento
-das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
-e Fase 3 permanece futura.
-
-Recuperação usa tokens nativos Django com expiração configurável, validação de
-senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
-paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
-Comunicados, notas e frequência geram notificações conforme as regras existentes.
-Detalhes, configuração e evidências: [Semana 4](SGA-11-RECUPERACAO-NOTIFICACOES.md).
-
-**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
-e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
-o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.
+| ID | Regra |
+| --- | --- |
+| **RN18** | Uma `Disciplina` pode exigir outras disciplinas ativas **do mesmo curso** como pré-requisito. Autorreferência e ciclos (diretos ou indiretos) são recusados. Somente a Coordenação mantém pré-requisitos. |
+| **RN19** | A matrícula exige, para cada pré-requisito, uma matrícula anterior não cancelada com resultado `Aprovado Direto` ou `Aprovado após Exame`, ou um aproveitamento `DEFERIDO`. Em andamento, reprovação por nota e por falta não cumprem o pré-requisito. |
+| **RN20** | Aproveitamento é registrado pela Secretaria e analisado pela Coordenação com justificativa obrigatória. O deferimento exige carga horária de origem ≥ 75% da disciplina (D1). Há no máximo um aproveitamento pendente ou deferido por Aluno + Disciplina. |
+| **RN21** | Declaração de matrícula e histórico escolar são registrados em `DocumentoEmitido` com código de verificação único; o conteúdo é congelado na emissão e o registro é imutável. |
+| **RN22** | O Aluno emite somente os próprios documentos; a Secretaria emite para qualquer aluno. O histórico lista apenas resultados finais e aproveitamentos deferidos; a declaração exige matrícula ativa. |
+| **RN23** | A verificação pública recebe só o código e exibe tipo, data e nome mascarado, sem notas ou e-mail, com limite de tentativas por IP e mensagem neutra para código inválido. |
+| **RN24** | A Secretaria lança cobranças por aluno e competência (`AAAA-MM`) com valor positivo e vencimento; não há duplicidade não cancelada por Aluno + competência + descrição. Baixa e cancelamento só a partir de `ABERTA`; cancelamento exige justificativa; atraso é derivado. |
+| **RN25** | O Aluno consulta só as próprias cobranças. A situação financeira não bloqueia matrícula, notas, frequência nem documentos (D2). Não há meio de pagamento, juros ou multa. |
+| **RN26** | O painel gerencial é somente leitura, para Coordenação e Secretaria (D3), com indicadores agregados por curso e período, sem nomes de alunos, reutilizando o selector dos Relatórios Acadêmicos. |
+| **RN27** | Criação e mudanças de estado de `PreRequisito`, `Aproveitamento`, `DocumentoEmitido` e `Cobranca` registram `AuditoriaLog`, estendendo RN15. |

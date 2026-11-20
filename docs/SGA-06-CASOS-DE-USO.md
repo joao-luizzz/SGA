@@ -80,27 +80,51 @@ flowchart LR
 - [Rastreabilidade](SGA-05-RASTREABILIDADE.md)
 
 
-## Estado atual após a PR #70 — 08/10/2026
+## Estado atual — 20/11/2026
 
-Os casos CU01–CU19 acima permanecem a referência dos fluxos da **Fase 1/MVP**. As extensões da Fase 2 implementadas na develop incluem materiais/comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68) e transferências (PR #69). A integração entre relatórios e transferências foi concluída pela PR #70.
+| Fase | Estado | Entregas |
+| --- | --- | --- |
+| Fase 1/MVP | Concluída | Núcleo acadêmico descrito neste documento. |
+| Fase 2 | Concluída | Materiais e comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68, #70), transferências (PR #69, #70), recuperação de senha e notificações (PR #73, ajustes na #75). |
+| Fase 3 | Implementada | Pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais (PR #78) e financeiro básico (PR #79), conforme a [especificação da Fase 3](SGA-12-ESPECIFICACAO-FASE-3.md). |
+| Estudos | Somente estudo | API pública e integrações ([SGA-13](SGA-13-ESTUDO-API-INTEGRACOES.md)): recomendação de não expor API nesta evolução. App mobile e IA não foram implementados. |
 
-Relatórios da Coordenação incluem acompanhamento de risco, motivos, filtros combinados, CSV e impressão A4. O fluxo de transferência é administrativo: Secretaria registra, Coordenação analisa e o Aluno consulta suas solicitações, sem alteração automática do histórico acadêmico. As PRs #66–#70 e os testes correspondentes são a referência dessas extensões; elas não alteram retroativamente os casos de uso da Fase 1.
+“Fora do MVP” nos trechos da Fase 1 significa fora do escopo **original**, não ausente do código atual. As seções de estado de 08/10/2026 foram substituídas por esta; o histórico permanece no Git.
 
-Recuperação de senha e notificações estão implementadas nesta entrega (#35; #47–#48 e #59–#60); seus fluxos estão descritos no SGA-11, sem renumerar os casos de uso originais da Fase 1. A Fase 3 (#37) é futura. “Fora do MVP” significa fora do escopo original da Fase 1, não necessariamente ausente do código atual.
+Os casos CU01–CU19 acima continuam sendo a referência da Fase 1. Os fluxos da Fase 2 estão nos documentos de cada entrega (SGA-09 a SGA-11).
 
-## Entrega da Semana 4 — Issue #35 (08/10/2026)
+## Casos de uso da Fase 3
 
-**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
-aguardando revisão e integração. Isso não declara merge na develop nem fechamento
-das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
-e Fase 3 permanece futura.
+Fluxos completos, exceções e pós-condições em [SGA-12](SGA-12-ESPECIFICACAO-FASE-3.md#casos-de-uso).
 
-Recuperação usa tokens nativos Django com expiração configurável, validação de
-senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
-paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
-Comunicados, notas e frequência geram notificações conforme as regras existentes.
-Detalhes, configuração e evidências: [Semana 4](SGA-11-RECUPERACAO-NOTIFICACOES.md).
+```mermaid
+flowchart LR
+    A[Aluno] --- CU25((CU25 Declaração))
+    A --- CU26((CU26 Histórico))
+    A --- CU29((CU29 Extrato))
+    S[Secretaria] --- CU21((CU21 Matrícula com pré-requisito))
+    S --- CU22((CU22 Registrar aproveitamento))
+    S --- CU25
+    S --- CU26
+    S --- CU28((CU28 Cobranças))
+    S --- CU30((CU30 Painel gerencial))
+    C[Coordenação] --- CU20((CU20 Pré-requisitos))
+    C --- CU23((CU23 Analisar aproveitamento))
+    C --- CU30
+    V[Visitante] --- CU27((CU27 Verificar documento))
+```
 
-**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
-e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
-o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.
+| Caso | Ator | Resumo | RN |
+| --- | --- | --- | --- |
+| **CU20 — Manter pré-requisitos** | Coordenação | Adiciona/remove pré-requisitos do mesmo curso; ciclos e autorreferência recusados. | RN18, RN27 |
+| **CU21 — Matricular com pré-requisito** | Secretaria | Extensão do CU11: a matrícula é bloqueada e lista as disciplinas pendentes. | RN05–RN08, RN19 |
+| **CU22 — Registrar aproveitamento** | Secretaria | Registra disciplina interna, instituição, disciplina e carga de origem; fica pendente. | RN20, RN27 |
+| **CU23 — Analisar aproveitamento** | Coordenação | Defere (carga ≥ 75%) ou indefere com justificativa; decisão definitiva. | RN20, RN27 |
+| **CU25 — Emitir declaração de matrícula** | Aluno (própria), Secretaria | Gera documento imprimível com matrículas ativas e código de verificação. | RN21, RN22, RN27 |
+| **CU26 — Emitir histórico escolar** | Aluno (próprio), Secretaria | Lista resultados finais, aproveitamentos e carga integralizada. | RN11–RN14, RN21, RN22 |
+| **CU27 — Verificar documento** | Visitante | Informa o código; vê tipo, data e nome mascarado. | RN23 |
+| **CU28 — Gerenciar cobranças** | Secretaria | Lança, registra pagamento ou cancela com justificativa. | RN24, RN27 |
+| **CU29 — Consultar extrato** | Aluno | Vê as próprias cobranças, total em aberto e em atraso. | RN24, RN25 |
+| **CU30 — Consultar painel gerencial** | Coordenação, Secretaria | Filtra por curso/período e vê indicadores agregados. | RN26 |
+
+CU24 permanece reservado para uma eventual consulta dedicada de aproveitamentos pelo Aluno; hoje o Aluno consulta os próprios aproveitamentos na lista geral, filtrada por usuário.

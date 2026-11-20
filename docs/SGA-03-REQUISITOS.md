@@ -51,7 +51,7 @@ RF16 cobre a criação da matrícula; RF35 cobre a mudança de status posterior,
 
 ## Limites dos requisitos da Fase 1
 
-Os requisitos tabelados acima descrevem a Fase 1. As extensões posteriores da Fase 2 não se tornam requisitos retroativos desta especificação. Materiais/comunicados, calendário/grade/conflitos, transferências e relatórios estão implementados; recuperação de senha e notificações foram implementadas nesta entrega, aguardando revisão. Fase 3 é futura. Consulte o estado atual abaixo.
+Os requisitos tabelados acima descrevem a Fase 1. As extensões posteriores não se tornam requisitos retroativos desta especificação. Os requisitos da Fase 3 (RF36–RF45, RNF07–RNF10) estão na seção abaixo.
 
 ## Referências
 
@@ -59,32 +59,37 @@ Os requisitos tabelados acima descrevem a Fase 1. As extensões posteriores da F
 - [Matriz de rastreabilidade](SGA-05-RASTREABILIDADE.md)
 
 
-## Estado atual após a PR #70 — 08/10/2026
+## Estado atual — 20/11/2026
 
-Este documento continua sendo a referência de requisitos da **Fase 1/MVP**. As extensões integradas e a Semana 4 nesta branch estão assim:
+| Fase | Estado | Entregas |
+| --- | --- | --- |
+| Fase 1/MVP | Concluída | Núcleo acadêmico descrito neste documento. |
+| Fase 2 | Concluída | Materiais e comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68, #70), transferências (PR #69, #70), recuperação de senha e notificações (PR #73, ajustes na #75). |
+| Fase 3 | Implementada | Pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais (PR #78) e financeiro básico (PR #79), conforme a [especificação da Fase 3](SGA-12-ESPECIFICACAO-FASE-3.md). |
+| Estudos | Somente estudo | API pública e integrações ([SGA-13](SGA-13-ESTUDO-API-INTEGRACOES.md)): recomendação de não expor API nesta evolução. App mobile e IA não foram implementados. |
 
-- Materiais e comunicados — PR #66, concluída.
-- Calendário, grade e conflitos — PR #67, concluída.
-- Relatórios — PR #68, complementada e integrada com transferências pela PR #70.
-- Transferências — PR #69; a integração com relatórios foi concluída pela PR #70.
-- Recuperação segura de senha e notificações — implementadas nesta entrega (#35; relacionadas #47–#48 e #59–#60), fora do contrato RF/RNF original da Fase 1.
-- Fase 3 — futura (#37).
+“Fora do MVP” nos trechos da Fase 1 significa fora do escopo **original**, não ausente do código atual. As seções de estado de 08/10/2026 foram substituídas por esta; o histórico permanece no Git.
 
-“Fora do MVP” significa fora do escopo original da Fase 1, não necessariamente ausente do código atual.
+## Requisitos da Fase 3
 
-## Entrega da Semana 4 — Issue #35 (08/10/2026)
+Evidências de implementação e testes em [SGA-12](SGA-12-ESPECIFICACAO-FASE-3.md#rastreabilidade).
 
-**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
-aguardando revisão e integração. Isso não declara merge na develop nem fechamento
-das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
-e Fase 3 permanece futura.
+| ID | Requisito | Ator | Estado |
+| --- | --- | --- | --- |
+| RF36 | Manter pré-requisitos de disciplina com validação de ciclo | Coordenação | Implementado (PR #76) |
+| RF37 | Bloquear matrícula sem pré-requisito cumprido, informando quais faltam | Secretaria | Implementado (PR #76) |
+| RF38 | Registrar aproveitamento de disciplina | Secretaria | Implementado (PR #76) |
+| RF39 | Analisar aproveitamento (deferir/indeferir) | Coordenação | Implementado (PR #76) |
+| RF40 | Emitir declaração de matrícula | Aluno, Secretaria | Implementado (PR #78) |
+| RF41 | Emitir histórico escolar | Aluno, Secretaria | Implementado (PR #78) |
+| RF42 | Verificar autenticidade de documento por código | Público | Implementado (PR #78) |
+| RF43 | Lançar, baixar e cancelar cobrança | Secretaria | Implementado (PR #79) |
+| RF44 | Consultar extrato financeiro próprio | Aluno | Implementado (PR #79) |
+| RF45 | Consultar painel gerencial | Coordenação, Secretaria | Implementado (PR #77) |
 
-Recuperação usa tokens nativos Django com expiração configurável, validação de
-senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
-paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
-Comunicados, notas e frequência geram notificações conforme as regras existentes.
-Detalhes, configuração e evidências: [Semana 4](SGA-11-RECUPERACAO-NOTIFICACOES.md).
-
-**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
-e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
-o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.
+| ID | Requisito não funcional | Evidência |
+| --- | --- | --- |
+| RNF07 | Novas telas respeitam RBAC e retornam 403/404 conforme o padrão atual | testes de permissão em cada módulo |
+| RNF08 | Listagens paginadas (20 itens) e consultas com `select_related` | views de aproveitamentos, documentos e cobranças |
+| RNF09 | Constraints condicionais testadas em SQLite e PostgreSQL 16 | CI nos dois bancos |
+| RNF10 | Verificação pública com limite de tentativas por IP | `documents.services.verificar_documento` |
