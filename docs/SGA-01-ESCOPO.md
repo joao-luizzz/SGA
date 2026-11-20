@@ -56,37 +56,22 @@ Esses itens podem ser priorizados em fases futuras, mas não são requisito, ent
 - [Casos de uso](SGA-06-CASOS-DE-USO.md)
 
 
-## Estado atual após a PR #70 — 08 de outubro de 2026
+## Estado atual — 20/11/2026
 
-Este documento preserva a especificação original da Fase 1/MVP. A develop atual também contém as entregas da Fase 2: materiais e comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68), transferências (PR #69) e conclusão dos relatórios com integração da Semana 5 (PR #70).
+| Fase | Estado | Entregas |
+| --- | --- | --- |
+| Fase 1/MVP | Concluída | Núcleo acadêmico descrito neste documento. |
+| Fase 2 | Concluída | Materiais e comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68, #70), transferências (PR #69, #70), recuperação de senha e notificações (PR #73, ajustes na #75). |
+| Fase 3 | Implementada | Pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais (PR #78) e financeiro básico (PR #79), conforme a [especificação da Fase 3](SGA-12-ESPECIFICACAO-FASE-3.md). |
+| Estudos | Somente estudo | API pública e integrações ([SGA-13](SGA-13-ESTUDO-API-INTEGRACOES.md)): recomendação de não expor API nesta evolução. App mobile e IA não foram implementados. |
 
-### Extensões da Fase 2
+“Fora do MVP” nos trechos da Fase 1 significa fora do escopo **original**, não ausente do código atual. As seções de estado de 08/10/2026 foram substituídas por esta; o histórico permanece no Git.
 
-- Materiais e comunicados — concluídos pela PR #66.
-- Calendário, grade e conflitos — concluídos pela PR #67.
-- Relatórios — entregues pela PR #68 e complementados pela PR #70.
-- Transferências — concluídas pela PR #69; integração com relatórios concluída pela PR #70.
-- Recuperação de senha e notificações — implementadas nesta entrega (#35; detalhadas nas #47–#48 e #59–#60).
+### Escopo acrescentado pela Fase 3
 
-### Fase 3
+- **Pré-requisitos e aproveitamento:** Coordenação mantém pré-requisitos por disciplina; a matrícula exige aprovação ou aproveitamento deferido; Secretaria registra e Coordenação analisa aproveitamentos.
+- **Painel gerencial:** indicadores agregados, somente leitura, para Coordenação e Secretaria.
+- **Documentos oficiais:** declaração de matrícula e histórico escolar com código de verificação e conferência pública.
+- **Financeiro básico:** cobranças lançadas pela Secretaria e extrato do aluno, sem meio de pagamento e sem bloqueio acadêmico.
 
-Futura (#37), condicionada à estabilização e decisão da equipe. Este documento não amplia nem substitui o escopo original da Fase 1.
-
-“Fora do MVP” significa **fora do escopo original da Fase 1**, e não necessariamente “inexistente no código atual”.
-
-## Entrega da Semana 4 — Issue #35 (08/10/2026)
-
-**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
-aguardando revisão e integração. Isso não declara merge na develop nem fechamento
-das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
-e Fase 3 permanece futura.
-
-Recuperação usa tokens nativos Django com expiração configurável, validação de
-senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
-paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
-Comunicados, notas e frequência geram notificações conforme as regras existentes.
-Detalhes, configuração e evidências: [Semana 4](SGA-11-RECUPERACAO-NOTIFICACOES.md).
-
-**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
-e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
-o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.
+Permanecem fora do escopo: API pública, integrações externas, aplicativo mobile, IA, auto-matrícula e meios de pagamento.

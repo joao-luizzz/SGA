@@ -4,13 +4,18 @@ from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from django.utils import timezone
+
 from accounts.models import CustomUser, UserRole
-from academics.models import Curso, Disciplina, Turma
+from academics.models import (
+    Aproveitamento, Curso, Disciplina, PreRequisito, StatusAproveitamento, Turma,
+)
 from assessments.models import TipoAvaliacao
 from assessments.services import lancar_notas_em_lote
 from attendance.models import Falta
 from attendance.services import registrar_chamada
 from enrollment.models import Matricula, StatusMatricula
+from finance.models import Cobranca, StatusCobranca
 
 
 DEMO_PASSWORD = 'SgaDemo2026!'
@@ -121,8 +126,59 @@ class Command(BaseCommand):
                     usuarios['professor'], turma, data_aula, presencas_esperadas
                 )
 
+        self._dados_fase_3(curso, disciplina, usuarios)
+
         self.stdout.write(self.style.SUCCESS('Dados de demonstração do MVP prontos.'))
         self.stdout.write(f'Senha das contas demo: {password}')
+
+    @staticmethod
+    def _dados_fase_3(curso, engenharia, usuarios):
+        """Cenários da Fase 3: pré-requisito, aproveitamento pendente e cobranças."""
+        banco, _ = Disciplina.objects.update_or_create(
+            codigo='BD-DEMO',
+            defaults={'nome': 'Banco de Dados — Demo', 'carga_horaria': 60, 'curso': curso, 'ativo': True},
+        )
+        PreRequisito.objects.get_or_create(disciplina=banco, requisito=engenharia)
+        Turma.objects.update_or_create(
+            disciplina=banco,
+            periodo_letivo='2027/1',
+            defaults={
+                'horarios': 'TER 19:00-21:00',
+                'sala': 'Laboratório 02',
+                'vagas_maximas': 30,
+                'professor': usuarios['professor'],
+                'ativo': True,
+            },
+        )
+
+        logica, _ = Disciplina.objects.update_or_create(
+            codigo='LOG-DEMO',
+            defaults={'nome': 'Lógica — Demo', 'carga_horaria': 40, 'curso': curso, 'ativo': True},
+        )
+        if not Aproveitamento.objects.filter(
+            aluno=usuarios['exame'], disciplina=logica,
+            status__in=[StatusAproveitamento.PENDENTE, StatusAproveitamento.DEFERIDO],
+        ).exists():
+            Aproveitamento.objects.create(
+                aluno=usuarios['exame'], disciplina=logica,
+                instituicao_origem='Universidade Exemplo', disciplina_origem='Lógica Matemática',
+                carga_horaria_origem=40, registrado_por=usuarios['secretaria'],
+            )
+
+        hoje = timezone.localdate()
+        mes_anterior = hoje.replace(day=1) - timedelta(days=1)
+        for competencia, vencimento in (
+            (mes_anterior.strftime('%Y-%m'), mes_anterior.replace(day=10)),
+            (hoje.strftime('%Y-%m'), hoje + timedelta(days=10)),
+        ):
+            if not Cobranca.objects.filter(
+                aluno=usuarios['aprovado'], competencia=competencia, descricao='Mensalidade',
+            ).exclude(status=StatusCobranca.CANCELADA).exists():
+                Cobranca.objects.create(
+                    aluno=usuarios['aprovado'], competencia=competencia, descricao='Mensalidade',
+                    valor=Decimal('450.00'), vencimento=vencimento,
+                    registrado_por=usuarios['secretaria'],
+                )
 
     @staticmethod
     def _usuario(email, full_name, role, password):

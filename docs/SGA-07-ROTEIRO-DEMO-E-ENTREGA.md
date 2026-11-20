@@ -2,8 +2,8 @@
 
 | Metadado | Valor |
 | --- | --- |
-| Versão | **1.0 — MVP Fase 1 concluído** |
-| Data | **31 de agosto de 2026** |
+| Versão | **3.0 — entrega final (Fases 1, 2 e 3)** |
+| Data | **20 de novembro de 2026** |
 
 ## Preparação
 
@@ -13,7 +13,7 @@ docker compose exec web python manage.py migrate
 docker compose exec web python manage.py seed_demo --password 'SgaDemo2026!'
 ```
 
-`seed_demo` é idempotente e prepara os quatro papéis, uma turma completa e cenários de aprovação direta, exame e reprovação por falta. Todas as contas abaixo usam a senha `SgaDemo2026!`, definida explicitamente no comando. Para usar outra senha, altere o valor de `--password`; não reutilize uma senha real.
+`seed_demo` é idempotente e prepara os quatro papéis, uma turma completa e cenários de aprovação direta, exame e reprovação por falta. Para a Fase 3 também cria: `Banco de Dados — Demo` (turma 2027/1) com pré-requisito `Engenharia de Software — Demo`, um aproveitamento pendente de `Lógica — Demo` para o aluno do exame e duas mensalidades do aluno aprovado, uma delas em atraso. Todas as contas abaixo usam a senha `SgaDemo2026!`, definida explicitamente no comando. Para usar outra senha, altere o valor de `--password`; não reutilize uma senha real.
 
 | Papel/cenário | E-mail |
 | --- | --- |
@@ -24,7 +24,7 @@ docker compose exec web python manage.py seed_demo --password 'SgaDemo2026!'
 | Aluno elegível ao exame | `aluno.exame@sga.edu.br` |
 | Aluno reprovado por falta | `aluno.falta@sga.edu.br` |
 
-## Sequência de demonstração
+## Sequência de demonstração da Fase 1
 
 1. **Coordenação:** entrar com a conta demo de Coordenação, criar/mostrar Curso e Disciplina, abrir ou editar Turma com período, horários textuais validados, sala, vagas e Professor responsável.
 2. **Secretaria — usuários:** listar Alunos e Professores, criar ou editar uma conta e mostrar ativação/inativação sem expor credenciais reais.
@@ -57,50 +57,46 @@ Além da execução local em Docker/PostgreSQL, a CI executa, nessa ordem, `pyth
 - [ ] Sem senha real, dado pessoal real ou credencial de produção em tela.
 - [ ] Validações locais e CI verdes.
 
-## Estado atual e demonstração da Fase 2 — 08/10/2026
+## Estado atual — 20/11/2026
 
-A Fase 1/MVP continua sendo o núcleo documental. Na develop atual também estão integradas as entregas de materiais/comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68), transferências (PR #69) e conclusão dos relatórios com integração da Semana 5 (PR #70).
+| Fase | Estado | Entregas |
+| --- | --- | --- |
+| Fase 1/MVP | Concluída | Núcleo acadêmico descrito neste documento. |
+| Fase 2 | Concluída | Materiais e comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68, #70), transferências (PR #69, #70), recuperação de senha e notificações (PR #73, ajustes na #75). |
+| Fase 3 | Implementada | Pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais (PR #78) e financeiro básico (PR #79), conforme a [especificação da Fase 3](SGA-12-ESPECIFICACAO-FASE-3.md). |
+| Estudos | Somente estudo | API pública e integrações ([SGA-13](SGA-13-ESTUDO-API-INTEGRACOES.md)): recomendação de não expor API nesta evolução. App mobile e IA não foram implementados. |
 
-### Sequência de demonstração
+“Fora do MVP” nos trechos da Fase 1 significa fora do escopo **original**, não ausente do código atual. As seções de estado de 08/10/2026 foram substituídas por esta; o histórico permanece no Git.
 
-1. Coordenação: curso, disciplina, turma, grade/horários e calendário; mostrar conflitos e filtros por perfil.
-2. Secretaria: pessoas, matrícula/status e registro de solicitação de transferência.
-3. Professor: materiais nas próprias turmas, chamada e notas; Exame apenas para aluno elegível.
-4. Aluno: materiais e comunicados pertinentes, calendário, boletim, situação e frequência próprias.
-5. Coordenação: relatórios acadêmicos com filtros combinados; demonstrar motivos de risco, exportação CSV e impressão A4.
-6. Secretaria e Coordenação: completar o fluxo de transferência (registro e decisão) e conferir que o histórico acadêmico e os relatórios permanecem preservados.
-7. Encerrar com arquitetura, PostgreSQL, testes/CI e estado das fases. Recuperação de senha/notificações estão implementadas nesta entrega; Fase 3 é futura.
+## Roteiro da apresentação final (Fases 1, 2 e 3)
 
-Use dados de demonstração e um banco descartável. A validação da PR #70 inclui roteiro de navegador com filtros, CSV, impressão, decisões de transferência e permissões; ela não substitui a preparação específica do ambiente da apresentação.
+Preparação: banco descartável, `migrate` e `seed_demo` como acima. Todas as contas usam a senha definida em `--password`.
 
-**Estado:** Fase 1/MVP concluída; Semana 1 concluída; Semana 2 concluída (PR #66); Semana 3 concluída (PR #67); Semana 4 implementada nesta entrega (#35), aguardando revisão; Semana 5 concluída (#36, #49, #51 e #62; PRs #68–#70); Fase 3 futura (#37).
+| # | Papel (conta demo) | O que mostrar | Regra em destaque |
+| --- | --- | --- | --- |
+| 1 | Coordenação | Catálogo: curso, disciplina, turma; grade horária e conflito de horário. | RN04, RN05 |
+| 2 | Coordenação | Botão **Pré-requisitos** em `Banco de Dados — Demo`: mostrar o pré-requisito e tentar criar um ciclo (é recusado). | RN18 |
+| 3 | Secretaria | Matricular `aluno.aprovado` na turma 2027/1 de Banco de Dados (aceito) e `aluno.falta` (bloqueado, lista o pré-requisito pendente). | RN19 |
+| 4 | Professor | Chamada e notas na turma própria; exame só para o aluno elegível. | RN09–RN14 |
+| 5 | Aluno (`aluno.exame`) | Boletim, frequência, notificações de nota/frequência e o aproveitamento pendente. | RN11–RN14 |
+| 6 | Coordenação | **Aproveitamentos**: deferir o pendente com justificativa; mostrar a regra dos 75%. | RN20 |
+| 7 | Aluno (`aluno.aprovado`) | **Meus Documentos**: emitir histórico, imprimir (A4) e copiar o código. | RN21, RN22 |
+| 8 | Visitante (sem login) | No login, **Verificar autenticidade de documento**: colar o código; ver nome mascarado e nenhuma nota. | RN23 |
+| 9 | Secretaria | **Financeiro**: mensalidade em atraso, registrar pagamento e cancelar outra com justificativa. | RN24 |
+| 10 | Aluno (`aluno.aprovado`) | **Meu Financeiro**: extrato próprio; tentar abrir cobrança de outro aluno (404). | RN25 |
+| 11 | Coordenação / Secretaria | **Painel Gerencial**: ocupação, situações, risco e pendências; filtro por curso/período. | RN26 |
+| 12 | Coordenação | Relatórios acadêmicos com risco, CSV e impressão; transferência registrada e analisada. | Fase 2 |
+| 13 | Todos | Acessos indevidos retornam 403/404; encerrar com arquitetura, testes e CI. | RN01 |
 
-Apresentar recuperação de senha e notificações conforme o roteiro da Semana 4 no SGA-11; envio real depende de SMTP configurado. “Fora do MVP” nos documentos da Fase 1 significa fora do escopo original, não necessariamente ausente do código atual.
+**Recuperação de senha na demo:** por segurança, os backends de console e arquivo são bloqueados e o padrão em memória não exibe o link. Para demonstrar o e-mail real, configure SMTP no `.env` (`EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend` e credenciais de uma conta de teste). Sem SMTP, mostre a mensagem neutra no formulário e cite os testes de token válido, expirado e reutilizado em `tests/test_accounts/test_recovery.py`. Detalhes em [SGA-11](SGA-11-RECUPERACAO-NOTIFICACOES.md).
 
-## Entrega da Semana 4 — Issue #35 (08/10/2026)
+## Checklist final de entrega
 
-**Estado desta branch:** #35, #47, #48, #59 e #60 concluídas na implementação,
-aguardando revisão e integração. Isso não declara merge na develop nem fechamento
-das issues no GitHub. A base é `08d4407`; Semanas 1, 2, 3 e 5 permanecem entregues
-e Fase 3 permanece futura.
-
-Recuperação usa tokens nativos Django com expiração configurável, validação de
-senha, uso único e confirmação serializada no PostgreSQL. A central pessoal tem
-paginação, detalhe, leitura individual/todas via POST + CSRF e contador na navbar.
-Comunicados, notas e frequência geram notificações conforme as regras existentes.
-Detalhes, configuração e evidências: [Semana 4](SGA-11-RECUPERACAO-NOTIFICACOES.md).
-
-**Registro histórico da revisão após PR #70:** naquele ponto, recuperação de senha
-e notificações ainda estavam pendentes. A implementação desta entrega é posterior;
-o escopo original da Fase 1 e as evidências das PRs anteriores são preservados.
-
-### Demonstração da Semana 4 nesta entrega
-
-1. No login, solicitar recuperação com conta existente e inexistente; confirmar a
-   mesma mensagem. Para receber e-mail real, configurar SMTP no ambiente.
-2. Com backend de teste, usar o link da caixa em memória; confirmar senha válida,
-   rejeição de link expirado/reutilizado e login apenas com a nova senha.
-3. Publicar comunicado vigente; lançar/alterar nota e frequência como Professor.
-4. Entrar como destinatário; conferir contador, central paginada, detalhe e links.
-5. Marcar uma e todas como lidas; entrar com outro usuário e verificar isolamento.
-6. Conferir que agendados ainda não publicados e expirados/inativos não aparecem.
+- [ ] `docker compose exec web python manage.py check`
+- [ ] `docker compose exec web python manage.py makemigrations --check --dry-run`
+- [ ] `docker compose exec web pytest` (cobertura mínima de 85%)
+- [ ] `git diff --check`
+- [ ] CI verde em SQLite e PostgreSQL 16 na `develop`
+- [ ] Instalação limpa seguindo o README em máquina ou volume novo
+- [ ] Roteiro acima executado com os quatro papéis
+- [ ] Tag/release da versão entregue
