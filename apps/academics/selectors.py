@@ -167,6 +167,15 @@ def get_indicadores_gerenciais(*, curso_id=None, periodo=None):
         transferencias = transferencias.filter(curso_id=curso_id)
         aproveitamentos = aproveitamentos.filter(disciplina__curso_id=curso_id)
 
+    from finance.models import Cobranca
+    from finance.selectors import resumir_cobrancas
+
+    cobrancas = Cobranca.objects.all()
+    if curso_id:
+        # Sem vínculo Aluno–Curso próprio: considera alunos com matrícula no curso.
+        cobrancas = cobrancas.filter(aluno__matriculas__turma__disciplina__curso_id=curso_id).distinct()
+    resumo_financeiro = resumir_cobrancas(Cobranca.objects.filter(pk__in=cobrancas.values('pk')))
+
     vagas_totais = sum(item['vagas'] for item in ocupacao)
     matriculas_totais = sum(item['matriculados'] for item in ocupacao)
     return {
@@ -185,6 +194,8 @@ def get_indicadores_gerenciais(*, curso_id=None, periodo=None):
         'pendencias': {
             'transferencias': transferencias.count(),
             'aproveitamentos': aproveitamentos.count(),
+            'cobrancas_atraso': resumo_financeiro['quantidade_atraso'],
+            'valor_atraso': resumo_financeiro['total_atraso'],
         },
         'cursos': relatorio['cursos'],
         'periodos': relatorio['periodos'],

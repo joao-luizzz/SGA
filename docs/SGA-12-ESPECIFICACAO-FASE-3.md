@@ -2,10 +2,10 @@
 
 | Metadado | Valor |
 | --- | --- |
-| Versão | **0.2 — implementação em andamento** |
+| Versão | **1.0 — Fase 3 implementada** |
 | Data | **29 de outubro de 2026** |
 | Issue | #37 — Semana 6: casos de uso, DER e rastreabilidade (João Luiz) |
-| Estado | **Implementados:** pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais. **Pendente:** financeiro. |
+| Estado | **Implementados na `develop`:** pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais (PR #78) e financeiro básico. |
 
 ## Objetivo
 
@@ -117,7 +117,7 @@ CU24 fica reservado para uma eventual consulta de aproveitamentos pelo Aluno.
 | Alunos em risco | `academics.selectors.get_relatorio_turmas(risco=...)` |
 | Transferências pendentes | `SolicitacaoTransferencia` (`PENDENTE`) |
 | Aproveitamentos pendentes | `Aproveitamento` (`PENDENTE`) |
-| Cobranças em atraso (quantidade e total) | `Cobranca` (`ABERTA`, vencimento < hoje) |
+| Cobranças em atraso (quantidade e total) | `Cobranca` (`ABERTA`, vencimento < hoje); com filtro de curso, alunos com matrícula no curso |
 
 ## DER proposto
 
@@ -217,8 +217,8 @@ Nota e Falta) deve ter o texto atualizado para refletir RN27.
 | RF40 | CU25 | RN21, RN22, RN27 | app `documents`: `DocumentoEmitido` imutável, `emitir_documento`; `tests/test_documents/` |
 | RF41 | CU26 | RN11–RN14, RN21, RN22 | snapshot com `calcular_resultado_academico` e aproveitamentos deferidos; impressão A4 (`static/css/documentos.css`) |
 | RF42 | CU27 | RN23 | `documents:verificar` público; `verificar_documento` com limite de 10 tentativas/min por IP e nome mascarado |
-| RF43 | CU28 | RN24, RN27 | `Cobranca`, `AuditoriaLog` |
-| RF44 | CU29 | RN24, RN25 | `Cobranca` |
+| RF43 | CU28 | RN24, RN27 | app `finance`: `Cobranca`, `lancar_cobranca`/`registrar_pagamento`/`cancelar_cobranca` (lock + compare-and-set); `tests/test_finance/` |
+| RF44 | CU29 | RN24, RN25 | `finance.selectors.listar_cobrancas`/`resumir_cobrancas`; extrato do aluno com atraso derivado |
 | RF45 | CU30 | RN26 | `academics.selectors.get_indicadores_gerenciais`, `academics/painel.py`; `tests/test_academics/test_painel_gerencial.py` (agregação, filtros, pendências, RBAC, ausência de dados pessoais) |
 
 Ao implementar cada módulo, a coluna de evidência deve ser substituída pelos
@@ -229,7 +229,7 @@ arquivos e testes reais, e as linhas migradas para SGA-05.
 | ID | Decisão | Proposta |
 | --- | --- | --- |
 | D1 | Critério de deferimento de aproveitamento | Carga de origem ≥ 75% da disciplina — **adotado** |
-| D2 | Financeiro bloqueia operações acadêmicas? | Não nesta fase |
+| D2 | Financeiro bloqueia operações acadêmicas? | Não nesta fase — **adotado** (coberto por teste) |
 | D3 | Secretaria acessa o dashboard? | Sim, somente leitura — **adotado** |
 | D4 | Distribuição em apps | `academics` + `documents` + `finance` — **adotado** |
 | D5 | Escopo mínimo se o prazo não comportar tudo | Prioridade: pré-requisitos → dashboard → documentos → financeiro (entrega final em 26/11/2026) |

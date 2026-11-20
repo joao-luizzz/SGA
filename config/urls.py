@@ -20,6 +20,7 @@ urlpatterns = [
     path('communications/', include('communications.urls', namespace='communications')),
     path('notifications/', include('notifications.urls', namespace='notifications')),
     path('documentos/', include('documents.urls', namespace='documents')),
+    path('financeiro/', include('finance.urls', namespace='finance')),
 ]
 
 if settings.DEBUG:

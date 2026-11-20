@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Cobrança #{{ cobranca.pk }} — SGA{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Cobrança #{{ cobranca.pk }} — {% if cobranca.em_atraso %}Em atraso{% else %}{{ cobranca.get_status_display }}{% endif %}</h1>
+<div class="card card-body mb-4">
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Aluno</dt><dd class="col-sm-9">{{ cobranca.aluno.full_name }}</dd>
+    <dt class="col-sm-3">Descrição</dt><dd class="col-sm-9">{{ cobranca.descricao }}</dd>
+    <dt class="col-sm-3">Competência</dt><dd class="col-sm-9">{{ cobranca.competencia }}</dd>
+    <dt class="col-sm-3">Valor</dt><dd class="col-sm-9">R$ {{ cobranca.valor|floatformat:2 }}</dd>
+    <dt class="col-sm-3">Vencimento</dt><dd class="col-sm-9">{{ cobranca.vencimento|date:'d/m/Y' }}</dd>
+    <dt class="col-sm-3">Lançada por</dt><dd class="col-sm-9">{{ cobranca.registrado_por.full_name }} — {{ cobranca.registrado_em|date:'d/m/Y H:i' }}</dd>
+    {% if cobranca.pago_em %}<dt class="col-sm-3">Pagamento registrado</dt><dd class="col-sm-9">{{ cobranca.pago_em|date:'d/m/Y H:i' }}</dd>{% endif %}
+    {% if cobranca.justificativa %}<dt class="col-sm-3">Motivo do cancelamento</dt><dd class="col-sm-9 text-break">{{ cobranca.justificativa|linebreaksbr }}</dd>{% endif %}
+  </dl>
+</div>
+{% if pode_operar %}
+<div class="row g-3 mb-3">
+  <div class="col-12 col-md-5">
+    <form method="post" action="{% url 'finance:pagar' cobranca.pk %}" class="card card-body h-100" onsubmit="return confirm('Registrar o pagamento desta cobrança?');">
+      {% csrf_token %}
+      <h2 class="h6">Registrar pagamento</h2>
+      <p class="small text-muted">A baixa é definitiva.</p>
+      <div><button class="btn btn-success" type="submit">Registrar pagamento</button></div>
+    </form>
+  </div>
+  <div class="col-12 col-md-7">
+    <form method="post" action="{% url 'finance:cancelar' cobranca.pk %}" class="card card-body h-100">
+      {% csrf_token %}
+      <h2 class="h6">Cancelar cobrança</h2>
+      {% if form.non_field_errors %}<div class="alert alert-danger" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+      <label class="form-label small" for="{{ form.justificativa.id_for_label }}">{{ form.justificativa.label }}</label>
+      {{ form.justificativa }}
+      {% for erro in form.justificativa.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+      <div class="mt-2"><button class="btn btn-outline-danger" type="submit">Cancelar cobrança</button></div>
+    </form>
+  </div>
+</div>
+{% endif %}
+<a class="btn btn-outline-secondary" href="{% url 'finance:index' %}">Voltar</a>
+{% endblock %}

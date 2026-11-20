@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Lançar cobrança — SGA{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Lançar cobrança</h1>
+<form method="post" class="card card-body">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert-danger" role="alert">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+  {% for campo in form %}
+  <div class="mb-3">
+    <label class="form-label" for="{{ campo.id_for_label }}">{{ campo.label }}</label>
+    {{ campo }}
+    {% for erro in campo.errors %}<div class="text-danger small">{{ erro }}</div>{% endfor %}
+  </div>
+  {% endfor %}
+  <div class="d-flex gap-2">
+    <button class="btn btn-primary" type="submit">Lançar</button>
+    <a class="btn btn-outline-secondary" href="{% url 'finance:index' %}">Voltar</a>
+  </div>
+</form>
+{% endblock %}
