@@ -5,7 +5,7 @@
 | Versão | **0.2 — implementação em andamento** |
 | Data | **29 de outubro de 2026** |
 | Issue | #37 — Semana 6: casos de uso, DER e rastreabilidade (João Luiz) |
-| Estado | **Implementados:** pré-requisitos e aproveitamento (PR #76), painel gerencial. **Pendentes:** documentos oficiais e financeiro. |
+| Estado | **Implementados:** pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais. **Pendente:** financeiro. |
 
 ## Objetivo
 
@@ -214,9 +214,9 @@ Nota e Falta) deve ter o texto atualizado para refletir RN27.
 | RF37 | CU21 | RN05–RN08, RN19 | `enrollment.selectors.get_pre_requisitos_pendentes` chamado em `matricular_aluno_administrativo`; testes de aprovação direta/exame, em andamento, reprovação por nota/falta, matrícula cancelada e aproveitamento |
 | RF38 | CU22 | RN20, RN27 | `academics.Aproveitamento`, `registrar_aproveitamento`, `AuditoriaLog`; testes de duplicidade e papéis |
 | RF39 | CU23 | RN20, RN27 | `analisar_aproveitamento` (lock + compare-and-set), `AuditoriaLog`; testes de 75%, justificativa e decisão repetida |
-| RF40 | CU25 | RN21, RN22, RN27 | `DocumentoEmitido`, `Matricula` |
-| RF41 | CU26 | RN11–RN14, RN21, RN22 | `DocumentoEmitido`, `Nota`, `Falta`, `Aproveitamento` |
-| RF42 | CU27 | RN23 | `DocumentoEmitido`, cache de limitação |
+| RF40 | CU25 | RN21, RN22, RN27 | app `documents`: `DocumentoEmitido` imutável, `emitir_documento`; `tests/test_documents/` |
+| RF41 | CU26 | RN11–RN14, RN21, RN22 | snapshot com `calcular_resultado_academico` e aproveitamentos deferidos; impressão A4 (`static/css/documentos.css`) |
+| RF42 | CU27 | RN23 | `documents:verificar` público; `verificar_documento` com limite de 10 tentativas/min por IP e nome mascarado |
 | RF43 | CU28 | RN24, RN27 | `Cobranca`, `AuditoriaLog` |
 | RF44 | CU29 | RN24, RN25 | `Cobranca` |
 | RF45 | CU30 | RN26 | `academics.selectors.get_indicadores_gerenciais`, `academics/painel.py`; `tests/test_academics/test_painel_gerencial.py` (agregação, filtros, pendências, RBAC, ausência de dados pessoais) |
@@ -231,7 +231,7 @@ arquivos e testes reais, e as linhas migradas para SGA-05.
 | D1 | Critério de deferimento de aproveitamento | Carga de origem ≥ 75% da disciplina — **adotado** |
 | D2 | Financeiro bloqueia operações acadêmicas? | Não nesta fase |
 | D3 | Secretaria acessa o dashboard? | Sim, somente leitura — **adotado** |
-| D4 | Distribuição em apps | `academics` + `documents` + `finance` |
+| D4 | Distribuição em apps | `academics` + `documents` + `finance` — **adotado** |
 | D5 | Escopo mínimo se o prazo não comportar tudo | Prioridade: pré-requisitos → dashboard → documentos → financeiro (entrega final em 26/11/2026) |
 
 ## Referências

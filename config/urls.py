@@ -19,6 +19,7 @@ urlpatterns = [
     path('materials/', include('materials.urls', namespace='materials')),
     path('communications/', include('communications.urls', namespace='communications')),
     path('notifications/', include('notifications.urls', namespace='notifications')),
+    path('documentos/', include('documents.urls', namespace='documents')),
 ]
 
 if settings.DEBUG:

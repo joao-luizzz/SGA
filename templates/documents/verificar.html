@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Verificar documento — SGA{% endblock %}
+{% block content %}
+<div class="mx-auto" style="max-width: 560px;">
+  <h1 class="h3 mb-1">Verificar documento</h1>
+  <p class="text-muted">Informe o código impresso no rodapé de uma declaração ou histórico emitido pelo SGA.</p>
+  <form method="get" class="card card-body mb-3">
+    <label class="form-label" for="{{ form.codigo.id_for_label }}">{{ form.codigo.label }}</label>
+    <div class="input-group">
+      {{ form.codigo }}
+      <button class="btn btn-primary" type="submit">Verificar</button>
+    </div>
+  </form>
+  {% if consultado %}
+    {% if resultado %}
+    <div class="alert alert-success" role="status">
+      <strong>Documento autêntico.</strong>
+      <dl class="row mb-0 mt-2">
+        <dt class="col-5">Documento</dt><dd class="col-7">{{ resultado.tipo }}</dd>
+        <dt class="col-5">Aluno(a)</dt><dd class="col-7">{{ resultado.aluno }}</dd>
+        <dt class="col-5">Emitido em</dt><dd class="col-7">{{ resultado.emitido_em|date:'d/m/Y H:i' }}</dd>
+        <dt class="col-5">Código</dt><dd class="col-7"><code>{{ resultado.codigo }}</code></dd>
+      </dl>
+    </div>
+    {% else %}
+    <div class="alert alert-warning" role="status">Não foi possível confirmar este código. Confira a digitação ou tente novamente mais tarde.</div>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

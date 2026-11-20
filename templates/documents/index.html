@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Documentos acadêmicos — SGA{% endblock %}
+{% block content %}
+<h1 class="h3 mb-1">Documentos acadêmicos</h1>
+<p class="text-muted">Cada emissão gera um código de verificação e congela o conteúdo do documento. Terceiros podem conferir a autenticidade em <a href="{% url 'documents:verificar' %}">Verificar documento</a>.</p>
+
+<form method="post" action="{% url 'documents:emitir' %}" class="card card-body mb-4">
+  {% csrf_token %}
+  <h2 class="h5">Emitir documento</h2>
+  <div class="row g-2 align-items-end">
+    {% if e_secretaria %}
+    <div class="col-12 col-md-5">
+      <label class="form-label" for="{{ form.aluno.id_for_label }}">{{ form.aluno.label }}</label>
+      {{ form.aluno }}
+    </div>
+    {% endif %}
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="{{ form.tipo.id_for_label }}">{{ form.tipo.label }}</label>
+      {{ form.tipo }}
+    </div>
+    <div class="col-auto"><button class="btn btn-primary" type="submit">Emitir</button></div>
+  </div>
+</form>
+
+<h2 class="h5">{% if e_secretaria %}Documentos emitidos{% else %}Meus documentos{% endif %}</h2>
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead><tr><th>Documento</th>{% if e_secretaria %}<th>Aluno</th>{% endif %}<th>Emitido em</th><th>Código</th><th></th></tr></thead>
+    <tbody>
+      {% for documento in page_obj %}
+      <tr>
+        <td>{{ documento.get_tipo_display }}</td>
+        {% if e_secretaria %}<td>{{ documento.aluno.full_name }}</td>{% endif %}
+        <td>{{ documento.emitido_em|date:'d/m/Y H:i' }}</td>
+        <td><code>{{ documento.codigo_formatado }}</code></td>
+        <td><a class="btn btn-sm btn-outline-primary" href="{% url 'documents:detalhe' documento.pk %}">Abrir</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-muted">Nenhum documento emitido.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<nav class="d-flex gap-2 align-items-center" aria-label="Paginação de documentos">
+  {% if page_obj.has_previous %}<a class="btn btn-outline-secondary btn-sm" href="?page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
+  <span class="small">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="btn btn-outline-secondary btn-sm" href="?page={{ page_obj.next_page_number }}">Próxima</a>{% endif %}
+</nav>
+{% endblock %}
