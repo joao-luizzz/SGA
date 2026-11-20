@@ -37,6 +37,10 @@
         <i class="bi bi-folder2-open text-primary"></i>
         <span>Materiais de Aula</span>
       </a>
+      <a href="{% url 'documents:index' %}" class="sidebar-link">
+        <i class="bi bi-file-earmark-text text-primary"></i>
+        <span>Meus Documentos</span>
+      </a>
     {% endif %}
 
     {% if user.role == 'PROFESSOR' %}
@@ -66,6 +70,10 @@
       <a href="{% url 'communications:gestao' %}" class="sidebar-link">
         <i class="bi bi-sliders text-info"></i>
         <span>Gestão de Comunicados</span>
+      </a>
+      <a href="{% url 'documents:index' %}" class="sidebar-link">
+        <i class="bi bi-file-earmark-text text-primary"></i>
+        <span>Documentos Oficiais</span>
       </a>
     {% endif %}
 
