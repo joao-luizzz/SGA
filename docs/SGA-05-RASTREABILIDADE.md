@@ -57,6 +57,7 @@ A matriz acima cobre a Fase 1. A rastreabilidade das Fases 2 e 3 está nas seç�
 | Fase 2 | Concluída | Materiais e comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68, #70), transferências (PR #69, #70), recuperação de senha e notificações (PR #73, ajustes na #75). |
 | Fase 3 | Implementada | Pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais (PR #78) e financeiro básico (PR #79), conforme a [especificação da Fase 3](SGA-12-ESPECIFICACAO-FASE-3.md). |
 | Estudos | Somente estudo | API pública e integrações ([SGA-13](SGA-13-ESTUDO-API-INTEGRACOES.md)): recomendação de não expor API nesta evolução. App mobile e IA ([SGA-14](SGA-14-ESTUDO-MOBILE-IA.md)): recomendação de não implementar nesta evolução. |
+| Fechamento | Em andamento | Documentação final (PR #80), validação com instalação limpa (PR #81) e lacunas da auditoria das issues: comunicados no painel, filtro por turma na grade, testes de vínculo curricular e `CONTRIBUTING.md` (PR #82). Pré-release `v3.0.0-rc1`. Pendentes: conferência visual (#63), ensaio da apresentação (#53), merge em `main` e `v3.0.0`. |
 
 “Fora do MVP” nos trechos da Fase 1 significa fora do escopo **original**, não ausente do código atual. As seções de estado de 08/10/2026 foram substituídas por esta; o histórico permanece no Git.
 
@@ -71,6 +72,7 @@ A matriz acima cobre a Fase 1. A rastreabilidade das Fases 2 e 3 está nas seç�
 | #51 — Integração transferências + relatórios | Concluída | PR #70; `tests/test_integration/test_semana5_flow.py`. |
 | #35, #47, #59 — Recuperação de senha | Concluídas | PR #73 e #75; `accounts/recovery.py`, `tests/test_accounts/test_recovery.py`. |
 | #48, #60 — Notificações | Concluídas | PR #73; `apps/notifications/` e `tests/test_notifications/`. |
+| #43, #46, #57, #16 — Lacunas da auditoria das issues | Concluídas | PR #82: comunicados no painel, filtro por turma na grade, testes de vínculo curricular e `CONTRIBUTING.md`; `tests/test_academics/test_lacunas_auditoria.py`. |
 
 ## Rastreabilidade da Fase 3 (#37)
 

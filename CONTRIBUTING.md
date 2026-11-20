@@ -16,8 +16,7 @@ A aplicação fica em `http://localhost:8000`. As contas de demonstração estã
 ## Fluxo de trabalho
 
 1. Parta sempre da `develop` atualizada: `git switch develop && git pull`.
-2. Crie uma branch por issue. Prefixos usados no repositório: `feat/`, `fix/`, `docs/`, `chore/`, `ci/`.
-   Enquanto existirem as branches remotas `feature` e `fix`, o Git recusa nomes `feature/...` e `fix/...`; use `feat/` e `chore/`.
+2. Crie uma branch por issue: `feature/<nome>` ou `fix/<nome>` (AGENTS.md). Também são usados `docs/`, `chore/` e `ci/`.
 3. Nunca trabalhe direto em `develop` ou `main`.
 4. Abra a PR para `develop`, referencie a issue (`Refs #NN`) e descreva o que mudou e como foi validado.
 5. A PR só é integrada com o CI verde (SQLite e PostgreSQL 16).
