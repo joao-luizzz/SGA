@@ -14,9 +14,9 @@ O SGA é um monólito Django para ensino superior, com acesso isolado por papel 
 - **Fase 1/MVP:** RBAC, usuários, oferta acadêmica, matrícula administrativa, frequência, notas, cálculos, auditoria e consulta individual do aluno.
 - **Fase 2:** materiais e comunicados, calendário/grade/conflitos, transferências, relatórios acadêmicos com risco, recuperação segura de senha e notificações internas.
 - **Fase 3:** pré-requisitos e aproveitamento de disciplinas, painel gerencial, documentos oficiais com verificação pública e financeiro básico.
-- **Estudos:** API pública e integrações foram estudadas ([SGA-13](SGA-13-ESTUDO-API-INTEGRACOES.md)) e não implementadas, por recomendação. App mobile e IA ficaram fora desta evolução.
+- **Estudos:** API pública e integrações foram estudadas ([SGA-13](SGA-13-ESTUDO-API-INTEGRACOES.md)) e não implementadas, por recomendação. App mobile e IA foram estudados ([SGA-14](SGA-14-ESTUDO-MOBILE-IA.md)) e não implementados, por recomendação.
 
-Os documentos individuais (SGA-01 a SGA-13) são a referência detalhada.
+Os documentos individuais (SGA-01 a SGA-14) são a referência detalhada.
 
 ## Escopo e arquitetura
 
@@ -142,7 +142,7 @@ Para a demonstração, use `docker compose exec web python manage.py seed_demo`;
 | Fase 1/MVP | Concluída | Núcleo acadêmico (PRs até #31). |
 | Fase 2 | Concluída | Materiais e comunicados (#66), calendário/grade/conflitos (#67), relatórios (#68, #70), transferências (#69, #70), recuperação de senha e notificações (#73, #75). |
 | Fase 3 | Implementada | Pré-requisitos e aproveitamento (#76), painel gerencial (#77), documentos oficiais (#78), financeiro básico (#79); especificação em SGA-12. |
-| Estudos | Somente estudo | API pública e integrações (SGA-13); app mobile e IA não implementados. |
+| Estudos | Somente estudo | API pública e integrações (SGA-13); app mobile e IA (SGA-14). Nenhum implementado, por recomendação. |
 
 “Fora do MVP” nos documentos da Fase 1 identifica o escopo original, não ausência no código atual.
 
@@ -161,3 +161,4 @@ Para a demonstração, use `docker compose exec web python manage.py seed_demo`;
 - [SGA-11 — Recuperação de senha e notificações](SGA-11-RECUPERACAO-NOTIFICACOES.md)
 - [SGA-12 — Especificação da Fase 3](SGA-12-ESPECIFICACAO-FASE-3.md)
 - [SGA-13 — Estudo de API pública e integrações](SGA-13-ESTUDO-API-INTEGRACOES.md)
+- [SGA-14 — Estudo de app mobile e IA](SGA-14-ESTUDO-MOBILE-IA.md)

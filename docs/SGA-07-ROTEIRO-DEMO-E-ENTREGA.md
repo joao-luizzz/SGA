@@ -64,7 +64,7 @@ Além da execução local em Docker/PostgreSQL, a CI executa, nessa ordem, `pyth
 | Fase 1/MVP | Concluída | Núcleo acadêmico descrito neste documento. |
 | Fase 2 | Concluída | Materiais e comunicados (PR #66), calendário/grade/conflitos (PR #67), relatórios (PR #68, #70), transferências (PR #69, #70), recuperação de senha e notificações (PR #73, ajustes na #75). |
 | Fase 3 | Implementada | Pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais (PR #78) e financeiro básico (PR #79), conforme a [especificação da Fase 3](SGA-12-ESPECIFICACAO-FASE-3.md). |
-| Estudos | Somente estudo | API pública e integrações ([SGA-13](SGA-13-ESTUDO-API-INTEGRACOES.md)): recomendação de não expor API nesta evolução. App mobile e IA não foram implementados. |
+| Estudos | Somente estudo | API pública e integrações ([SGA-13](SGA-13-ESTUDO-API-INTEGRACOES.md)): recomendação de não expor API nesta evolução. App mobile e IA ([SGA-14](SGA-14-ESTUDO-MOBILE-IA.md)): recomendação de não implementar nesta evolução. |
 
 “Fora do MVP” nos trechos da Fase 1 significa fora do escopo **original**, não ausente do código atual. As seções de estado de 08/10/2026 foram substituídas por esta; o histórico permanece no Git.
 
@@ -100,3 +100,11 @@ Preparação: banco descartável, `migrate` e `seed_demo` como acima. Todas as c
 - [ ] Instalação limpa seguindo o README em máquina ou volume novo
 - [ ] Roteiro acima executado com os quatro papéis
 - [ ] Tag/release da versão entregue
+
+## Registro da validação final — 20/11/2026 (#63, #53)
+
+**Instalação limpa:** clone da `develop` (`02ba483`) do GitHub em diretório e volume novos, seguindo o README (`cp .env.example .env`, `docker compose up --build -d`, `migrate`, `seed_demo`). `check` sem problemas, `makemigrations --check` sem mudanças e páginas públicas (login, recuperação de senha, verificação de documento) respondendo.
+
+**Roteiro percorrido via HTTP** sobre os dados do `seed_demo`, com login real de cada conta demo: **14/14 passos aprovados**, incluindo pré-requisito e ciclo recusado, matrícula aceita e bloqueada, deferimento de aproveitamento, histórico emitido e verificado publicamente com nome mascarado, pagamento e cancelamento de cobrança, painel gerencial, relatórios/CSV, transferências, recuperação de senha com resposta neutra e acessos indevidos (403, 404 e redirecionamento ao login). O mesmo percurso é executado pela CI em `tests/test_integration/test_roteiro_final.py`.
+
+**Pendente de conferência humana:** aparência e responsividade das telas no navegador (desktop e celular) e ensaio da apresentação. Upload de materiais é coberto pelos testes de `tests/test_materials/`, não por este percurso.
