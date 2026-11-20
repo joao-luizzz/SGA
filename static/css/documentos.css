@@ -10,5 +10,6 @@
   table { width: 100%; border-collapse: collapse; font-size: 9pt; }
   th, td { padding: 3pt !important; color: black !important; }
   tr { break-inside: avoid; }
+  .table-responsive { overflow: visible !important; }
   .text-muted { color: #333 !important; }
 }

@@ -16,6 +16,7 @@
 
   {% if documento.tipo == 'DECLARACAO' %}
   <p>Declaramos, para os devidos fins, que <strong>{{ conteudo.aluno.nome }}</strong> ({{ conteudo.aluno.email }}) encontra-se regularmente matriculado(a) nesta instituição, nas disciplinas abaixo, na data de emissão deste documento.</p>
+  <div class="table-responsive">
   <table class="table table-sm table-bordered">
     <thead><tr><th>Código</th><th>Disciplina</th><th>Curso</th><th>Período</th><th class="text-end">Carga</th></tr></thead>
     <tbody>
@@ -24,8 +25,10 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
   {% else %}
   <p class="mb-3"><strong>Aluno(a):</strong> {{ conteudo.aluno.nome }} ({{ conteudo.aluno.email }})</p>
+  <div class="table-responsive">
   <table class="table table-sm table-bordered">
     <thead><tr><th>Período</th><th>Código</th><th>Disciplina</th><th class="text-end">Carga</th><th class="text-end">MP</th><th class="text-end">MF</th><th class="text-end">Freq.</th><th>Situação</th></tr></thead>
     <tbody>
@@ -33,9 +36,9 @@
       <tr>
         <td>{{ item.periodo }}</td><td>{{ item.codigo }}</td><td>{{ item.disciplina }}</td>
         <td class="text-end">{{ item.carga_horaria }}h</td>
-        <td class="text-end">{{ item.media_parcial|default:'—' }}</td>
-        <td class="text-end">{{ item.media_final|default:'—' }}</td>
-        <td class="text-end">{{ item.frequencia }}%</td>
+        <td class="text-end">{{ item.media_parcial|floatformat:2|default:'—' }}</td>
+        <td class="text-end">{{ item.media_final|floatformat:2|default:'—' }}</td>
+        <td class="text-end">{{ item.frequencia|floatformat:1 }}%</td>
         <td>{{ item.situacao }}</td>
       </tr>
       {% empty %}
@@ -43,8 +46,10 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
   {% if conteudo.aproveitamentos %}
   <h2 class="h6 mt-3">Disciplinas aproveitadas</h2>
+  <div class="table-responsive">
   <table class="table table-sm table-bordered">
     <thead><tr><th>Código</th><th>Disciplina</th><th class="text-end">Carga</th><th>Origem</th></tr></thead>
     <tbody>
@@ -53,6 +58,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
   {% endif %}
   <p><strong>Carga horária integralizada:</strong> {{ conteudo.carga_horaria_integralizada }}h</p>
   {% endif %}
