@@ -63,6 +63,7 @@ Consulte [configuração, segurança e demonstração](docs/SGA-11-RECUPERACAO-N
 
 ## Documentação
 
+- [Como contribuir](CONTRIBUTING.md) — fluxo de branches, padrões de código e checklist de PR
 - [Documento consolidado](docs/SGA-DOCUMENTO-CONSOLIDADO.md)
 - [Escopo](docs/SGA-01-ESCOPO.md), [regras](docs/SGA-02-REGRAS-DE-NEGOCIO.md), [requisitos](docs/SGA-03-REQUISITOS.md) e [modelo de dados](docs/SGA-04-MODELAGEM-DADOS.md)
 - [Rastreabilidade](docs/SGA-05-RASTREABILIDADE.md), [casos de uso](docs/SGA-06-CASOS-DE-USO.md) e [roteiro de demonstração](docs/SGA-07-ROTEIRO-DEMO-E-ENTREGA.md)

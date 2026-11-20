@@ -31,7 +31,7 @@
   <div class="card mb-4 shadow-sm border-0">
     <div class="card-body bg-light rounded">
       <form method="get" class="row g-3 align-items-end">
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
           <label for="id_curso" class="form-label fw-bold text-dark small">{% translate "Filtrar por Curso" %}</label>
           <select name="curso" id="id_curso" class="form-select">
             <option value="">{% translate "Todos os Cursos" %}</option>
@@ -41,7 +41,17 @@
           </select>
         </div>
 
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
+          <label for="id_turma" class="form-label fw-bold text-dark small">{% translate "Filtrar por Turma" %}</label>
+          <select name="turma" id="id_turma" class="form-select">
+            <option value="">{% translate "Todas as Turmas" %}</option>
+            {% for t in turmas %}
+              <option value="{{ t.pk }}" {% if selected_turma == t.pk %}selected{% endif %}>{{ t.disciplina.nome }} ({{ t.periodo_letivo }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-12 col-md-3">
           <label for="id_periodo" class="form-label fw-bold text-dark small">{% translate "Filtrar por Período Letivo" %}</label>
           <select name="periodo" id="id_periodo" class="form-select">
             <option value="">{% translate "Todos os Períodos" %}</option>
@@ -51,7 +61,7 @@
           </select>
         </div>
 
-        <div class="col-12 col-md-4 d-flex gap-2">
+        <div class="col-12 col-md-3 d-flex gap-2">
           <button type="submit" class="btn btn-primary w-100">
             <i class="bi bi-filter me-1"></i> {% translate "Aplicar Filtros" %}
           </button>

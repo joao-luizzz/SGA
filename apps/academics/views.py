@@ -399,11 +399,16 @@ def grade_horaria_view(request):
             turma__ativo=True
         ).select_related('turma__disciplina', 'turma__professor', 'turma__disciplina__curso')
         
-        # Filtros de curso e período para Coordenação/Secretaria
-        curso_id = request.GET.get('curso')
-        if curso_id:
+        # Filtros de curso, turma e período para Coordenação/Secretaria (#57).
+        # IDs não numéricos são ignorados em vez de gerar erro.
+        curso_id = request.GET.get('curso', '')
+        if curso_id.isdigit():
             horarios_list = horarios_list.filter(turma__disciplina__curso_id=curso_id)
-            
+
+        turma_id = request.GET.get('turma', '')
+        if turma_id.isdigit():
+            horarios_list = horarios_list.filter(turma_id=turma_id)
+
         periodo = request.GET.get('periodo')
         if periodo:
             horarios_list = horarios_list.filter(turma__periodo_letivo=periodo)
@@ -429,8 +434,16 @@ def grade_horaria_view(request):
 
     cursos = []
     periodos = []
+    turmas = []
     if role in [UserRole.SECRETARIA, UserRole.COORDENACAO]:
         cursos = Curso.objects.filter(ativo=True).order_by('nome')
+        # As opções de turma acompanham os filtros de curso e período já escolhidos.
+        turmas = Turma.objects.filter(ativo=True).select_related('disciplina').order_by(
+            '-periodo_letivo', 'disciplina__nome')
+        if request.GET.get('curso', '').isdigit():
+            turmas = turmas.filter(disciplina__curso_id=request.GET['curso'])
+        if request.GET.get('periodo'):
+            turmas = turmas.filter(periodo_letivo=request.GET['periodo'])
         periodos = Turma.objects.filter(ativo=True).values_list('periodo_letivo', flat=True).distinct().order_by('-periodo_letivo')
 
     # Convertemos para lista de tuplas para iteração ordenada amigável no template
@@ -445,7 +458,9 @@ def grade_horaria_view(request):
         'grade_ordenada': grade_ordenada,
         'cursos': cursos,
         'periodos': periodos,
-        'selected_curso': int(curso_id) if (request.GET.get('curso') and request.GET.get('curso').isdigit()) else None,
+        'turmas': turmas,
+        'selected_curso': int(request.GET['curso']) if request.GET.get('curso', '').isdigit() else None,
+        'selected_turma': int(request.GET['turma']) if request.GET.get('turma', '').isdigit() else None,
         'selected_periodo': request.GET.get('periodo'),
         'role': role,
     }
