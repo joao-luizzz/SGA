@@ -37,16 +37,16 @@ flowchart TB
     APP --> DB[(PostgreSQL 16)]
 ```
 
-Regras de negócio ficam em `services.py`, consultas reutilizáveis em `selectors.py` e permissões em decorators/mixins, revalidadas nos services. Operações críticas usam `select_for_update` e compare-and-set; alterações sensíveis geram `AuditoriaLog` imutável. Relatórios e o painel gerencial são consultas, sem entidade própria. A aplicação roda em Docker Compose e é testada com Pytest.
+Todos os painéis exibem os comunicados recentes do público do usuário. Regras de negócio ficam em `services.py`, consultas reutilizáveis em `selectors.py` e permissões em decorators/mixins, revalidadas nos services. Operações críticas usam `select_for_update` e compare-and-set; alterações sensíveis geram `AuditoriaLog` imutável. Relatórios e o painel gerencial são consultas, sem entidade própria. A aplicação roda em Docker Compose e é testada com Pytest.
 
 ## Perfis
 
 | Papel | Funcionalidades |
 | --- | --- |
-| `ALUNO` | Boletim, situação e frequência próprios; materiais e comunicados; notificações; aproveitamentos e transferências próprios; **Meus Documentos** (declaração e histórico); **Meu Financeiro** (extrato). |
+| `ALUNO` | Painel com comunicados recentes; boletim, situação e frequência próprios; materiais e comunicados; notificações; aproveitamentos e transferências próprios; **Meus Documentos** (declaração e histórico); **Meu Financeiro** (extrato). |
 | `PROFESSOR` | Turmas próprias, chamada completa, notas parciais e exame elegível; materiais das próprias turmas. |
 | `SECRETARIA` | Usuários Aluno/Professor; matrícula e status (com verificação de pré-requisitos); comunicados; transferências; registro de aproveitamentos; emissão de documentos; cobranças; painel gerencial. |
-| `COORDENACAO` | Cursos, disciplinas, turmas, grade e alocação docente; **pré-requisitos**; análise de transferências e aproveitamentos; relatórios acadêmicos; comunicados; painel gerencial. |
+| `COORDENACAO` | Cursos, disciplinas, turmas, grade (filtros por curso, turma e período) e alocação docente; **pré-requisitos**; análise de transferências e aproveitamentos; relatórios acadêmicos; comunicados; painel gerencial. |
 | Visitante | Login, recuperação de senha e verificação pública de documento. |
 
 ## Regras centrais
@@ -131,7 +131,7 @@ CU01–CU19 (Fase 1) em [SGA-06](SGA-06-CASOS-DE-USO.md); fluxos da Fase 2 em SG
 
 ## Testes, CI e demonstração
 
-A suíte automatizada cobre regras acadêmicas, permissões (403/404), modelos e constraints, services, views, seed e fluxos integrados de todas as fases. A CI executa `check`, `makemigrations --check --dry-run` e `pytest` em SQLite e PostgreSQL 16, com cobertura mínima de 85%. Na validação final da Fase 3 (20/11/2026) a suíte local registrou **532 testes aprovados e cobertura de 90,46%**.
+A suíte automatizada cobre regras acadêmicas, permissões (403/404), modelos e constraints, services, views, seed e fluxos integrados de todas as fases. A CI executa `check`, `makemigrations --check --dry-run` e `pytest` em SQLite e PostgreSQL 16, com cobertura mínima de 85%. Na validação final da Fase 3 (20/11/2026) a suíte local registrou **545 testes aprovados e cobertura de 90,53%**.
 
 Para a demonstração, use `docker compose exec web python manage.py seed_demo`; o roteiro final, com os cenários da Fase 3, está em [SGA-07](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
 
@@ -143,6 +143,7 @@ Para a demonstração, use `docker compose exec web python manage.py seed_demo`;
 | Fase 2 | Concluída | Materiais e comunicados (#66), calendário/grade/conflitos (#67), relatórios (#68, #70), transferências (#69, #70), recuperação de senha e notificações (#73, #75). |
 | Fase 3 | Implementada | Pré-requisitos e aproveitamento (#76), painel gerencial (#77), documentos oficiais (#78), financeiro básico (#79); especificação em SGA-12. |
 | Estudos | Somente estudo | API pública e integrações (SGA-13); app mobile e IA (SGA-14). Nenhum implementado, por recomendação. |
+| Fechamento | Em andamento | Documentação (#80), validação com instalação limpa (#81), lacunas da auditoria (#82) e pré-release `v3.0.0-rc1`. Pendentes: conferência visual (#63), ensaio (#53), merge em `main` e `v3.0.0`. |
 
 “Fora do MVP” nos documentos da Fase 1 identifica o escopo original, não ausência no código atual.
 
@@ -162,3 +163,4 @@ Para a demonstração, use `docker compose exec web python manage.py seed_demo`;
 - [SGA-12 — Especificação da Fase 3](SGA-12-ESPECIFICACAO-FASE-3.md)
 - [SGA-13 — Estudo de API pública e integrações](SGA-13-ESTUDO-API-INTEGRACOES.md)
 - [SGA-14 — Estudo de app mobile e IA](SGA-14-ESTUDO-MOBILE-IA.md)
+- [Como contribuir](../CONTRIBUTING.md)
