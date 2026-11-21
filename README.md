@@ -95,6 +95,10 @@ docker compose exec web python manage.py seed_demo
 
 O seed é idempotente e cria contas de demonstração para os quatro papéis, cenários de aprovação direta, exame e reprovação por falta, e os cenários da Fase 3 (pré-requisito, aproveitamento pendente e mensalidades, uma em atraso). O roteiro está em [SGA-07](docs/SGA-07-ROTEIRO-DEMO-E-ENTREGA.md). Use apenas essas contas em apresentações e configure uma senha de demonstração com `--password`; não use senha real.
 
+### E-mail na demonstração (Mailpit)
+
+O `docker compose up` também sobe o **Mailpit**, uma caixa de e-mail local em `http://localhost:8025`. Para que a recuperação de senha entregue os e-mails nela, configure no `.env` `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend`, `EMAIL_HOST=mailpit`, `EMAIL_PORT=1025` e `EMAIL_USE_TLS=False` (passo a passo em [SGA-07](docs/SGA-07-ROTEIRO-DEMO-E-ENTREGA.md)). Sem essa configuração, o padrão em memória não envia nada.
+
 ### Primeiro usuário de Secretaria
 
 ```bash
