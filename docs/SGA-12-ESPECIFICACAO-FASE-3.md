@@ -5,7 +5,7 @@
 | Versão | **1.0 — Fase 3 implementada** |
 | Data | **29 de outubro de 2026** |
 | Issue | #37 — Semana 6: casos de uso, DER e rastreabilidade (João Luiz) |
-| Estado | **Implementados na `develop`:** pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais (PR #78) e financeiro básico (PR #79). |
+| Estado | **Concluída e integrada ao `main` (PR #89, release `v3.0.0`):** pré-requisitos e aproveitamento (PR #76), painel gerencial (PR #77), documentos oficiais (PR #78) e financeiro básico (PR #79); ajustes da auditoria geral na PR #88. |
 
 ## Objetivo
 
