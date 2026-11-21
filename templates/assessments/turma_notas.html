@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} — SGA{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+    <a href="{% url 'assessments:index' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+    <div>
+      <h3 class="page-title mb-1">{{ turma.disciplina.nome }}</h3>
+      <p class="page-subtitle mb-0">{{ turma.periodo_letivo }} · {{ turma.horarios }} · {{ turma.sala }}</p>
+    </div>
+  </div>
+
+  <div class="alert alert-light border small">
+    {% trans "Notas aceitas: 0,00 a 10,00. O Exame Final só é permitido com média parcial entre 4,00 e 5,99 e frequência mínima de 75%." %}
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <div class="card border shadow-xs overflow-hidden">
+      <div class="table-responsive">
+        <table class="table table-sga align-middle mb-0">
+          <thead>
+            <tr>
+              <th class="ps-3">{% trans "Aluno" %}</th>
+              <th style="min-width: 105px;">P1</th>
+              <th style="min-width: 105px;">P2</th>
+              <th style="min-width: 105px;">{% trans "Trabalho" %}</th>
+              <th style="min-width: 105px;">{% trans "Exame" %}</th>
+              <th style="min-width: 190px;">{% trans "Situação atual" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for linha in linhas %}
+              <tr>
+                <td class="ps-3 fw-semibold">{{ linha.matricula.aluno.full_name }}</td>
+                <td>{{ linha.p1 }}{{ linha.p1.errors }}</td>
+                <td>{{ linha.p2 }}{{ linha.p2.errors }}</td>
+                <td>{{ linha.trabalho }}{{ linha.trabalho.errors }}</td>
+                <td>{{ linha.exame }}{{ linha.exame.errors }}</td>
+                <td>
+                  <span class="badge text-bg-secondary">{{ linha.resultado.situacao }}</span>
+                  {% if linha.resultado.media_parcial is not None %}
+                    <div class="small text-muted mt-1">MP {{ linha.resultado.media_parcial }}{% if linha.resultado.media_final is not None %} · MF {{ linha.resultado.media_final }}{% endif %}</div>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-4">{% trans "Não há matrículas ativas nesta turma." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if linhas %}
+        <div class="card-footer bg-light-subtle text-end p-3">
+          <button class="btn btn-success px-4" type="submit"><i class="bi bi-check-circle me-1"></i>{% trans "Salvar todas as notas" %}</button>
+        </div>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

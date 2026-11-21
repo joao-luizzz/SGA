@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} — SGA{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="mb-4 pb-3 border-bottom">
+    <h3 class="page-title mb-1"><i class="bi bi-mortarboard text-success me-2"></i>{% trans "Meu Boletim" %}</h3>
+    <p class="page-subtitle mb-0">{% trans "Notas, médias, frequência e situação calculadas por matrícula." %}</p>
+  </div>
+
+  <div class="card border shadow-xs overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-sga align-middle mb-0">
+        <thead>
+          <tr>
+            <th class="ps-3">{% trans "Disciplina" %}</th>
+            <th>P1</th><th>P2</th><th>{% trans "Trabalho" %}</th><th>{% trans "Exame" %}</th>
+            <th>MP</th><th>MF</th><th>{% trans "Frequência" %}</th><th>{% trans "Situação" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in boletim %}
+            <tr>
+              <td class="ps-3"><strong>{{ item.matricula.turma.disciplina.nome }}</strong><div class="small text-muted">{{ item.matricula.turma.periodo_letivo }}</div></td>
+              <td>{{ item.p1|default_if_none:"—" }}</td>
+              <td>{{ item.p2|default_if_none:"—" }}</td>
+              <td>{{ item.trabalho|default_if_none:"—" }}</td>
+              <td>{{ item.exame|default_if_none:"—" }}</td>
+              <td>{{ item.media_parcial|default_if_none:"—" }}</td>
+              <td>{{ item.media_final|default_if_none:"—" }}</td>
+              <td>{{ item.frequencia.percentual }}%</td>
+              <td><span class="badge text-bg-secondary">{{ item.situacao }}</span></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="9" class="text-center text-muted py-4">{% trans "Você não possui matrículas ativas." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

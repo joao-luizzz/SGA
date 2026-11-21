@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Transferência #{{ registro.pk }} — SGA{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Transferência #{{ registro.pk }} — {{ registro.get_status_display }}</h1>
+{% include 'transfers/_aviso.html' %}
+<div class="card card-body mb-4">
+  <dl class="row mb-0">
+    <dt class="col-sm-3">Aluno</dt><dd class="col-sm-9">{{ registro.aluno.full_name }}</dd>
+    <dt class="col-sm-3">Tipo</dt><dd class="col-sm-9">{{ registro.get_tipo_display }}</dd>
+    <dt class="col-sm-3">Origem</dt><dd class="col-sm-9">{{ registro.origem }}</dd>
+    <dt class="col-sm-3">Destino</dt><dd class="col-sm-9">{{ registro.destino }}</dd>
+    <dt class="col-sm-3">Data de referência</dt><dd class="col-sm-9">{{ registro.data_referencia|date:'d/m/Y' }}</dd>
+    <dt class="col-sm-3">Registro dos documentos</dt><dd class="col-sm-9 text-break">{{ registro.documentos|linebreaksbr }}</dd>
+    <dt class="col-sm-3">Registrada por</dt><dd class="col-sm-9">{{ registro.solicitada_por.full_name }} — {{ registro.solicitada_em|date:'d/m/Y H:i' }}</dd>
+    {% if registro.analisada_em %}
+    <dt class="col-sm-3">Analisada por</dt><dd class="col-sm-9">{{ registro.analisada_por.full_name }} — {{ registro.analisada_em|date:'d/m/Y H:i' }}</dd>
+    <dt class="col-sm-3">Justificativa</dt><dd class="col-sm-9 text-break">{{ registro.justificativa|linebreaksbr }}</dd>
+    {% endif %}
+  </dl>
+</div>
+{% if pode_analisar %}
+<form method="post" action="{% url 'transfers:analisar' registro.pk %}" class="card card-body mb-3">
+  <h2 class="h5">Analisar solicitação</h2>
+  <p>A decisão é definitiva neste fluxo. Confira a documentação antes de confirmar.</p>
+  {% csrf_token %}
+  {% include 'transfers/_campos.html' %}
+  <div><button class="btn btn-primary" type="submit">Confirmar decisão</button></div>
+</form>
+{% elif form.errors %}<div class="alert alert-danger" role="alert">{{ form.errors }}</div>{% endif %}
+<a class="btn btn-outline-secondary" href="{% url 'transfers:index' %}">Voltar às transferências</a>
+{% endblock %}

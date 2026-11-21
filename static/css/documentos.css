@@ -1,0 +1,15 @@
+.documento-oficial { max-width: 860px; }
+@media print {
+  @page { size: A4 portrait; margin: 18mm; }
+  body { display: block !important; min-height: auto !important; background: white !important; color: black !important; font-size: 10.5pt; }
+  body > .navbar, body > footer, .sidebar-custom, .documento-acoes, .alert,
+  body > .container-fluid > .row > .col-md-3 { display: none !important; }
+  body > .container-fluid, body > .container-fluid > .row { display: block !important; padding: 0 !important; margin: 0 !important; }
+  main { width: 100% !important; max-width: none !important; padding: 0 !important; }
+  .documento-oficial { max-width: none; border: 0 !important; box-shadow: none !important; padding: 0 !important; }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  th, td { padding: 3pt !important; color: black !important; }
+  tr { break-inside: avoid; }
+  .table-responsive { overflow: visible !important; }
+  .text-muted { color: #333 !important; }
+}

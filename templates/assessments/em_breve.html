@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} — SGA{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-3 border-bottom">
+    <div>
+      <h3 class="page-title mb-1">
+        <i class="bi bi-mortarboard text-success me-1.5"></i> {{ title }}
+      </h3>
+      <p class="page-subtitle mb-0">{% trans "Módulo de Avaliações e Lançamento de Notas (P1, P2 e Trabalhos)." %}</p>
+    </div>
+  </div>
+
+  <div class="card border shadow-xs rounded-3 p-4 p-md-5 text-center">
+    <div class="my-4">
+      <div class="d-inline-flex align-items-center justify-content-center bg-success-subtle text-success rounded-3 p-3 mb-3" style="width: 64px; height: 64px;">
+        <i class="bi bi-tools fs-2"></i>
+      </div>
+      <h4 class="fw-bold text-dark mb-2">{% trans "Módulo em Desenvolvimento" %}</h4>
+      <p class="text-muted col-md-6 mx-auto small mb-4">
+        {% trans "O módulo de Avaliações, Cálculo de Médias e Exames será disponibilizado na próxima etapa de entrega do SGA." %}
+      </p>
+      <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-primary btn-sm shadow-xs">
+        <i class="bi bi-arrow-left me-1"></i> {% trans "Voltar ao Início" %}
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

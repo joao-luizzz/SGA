@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Registrar transferência — SGA{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Registrar transferência</h1>
+{% include 'transfers/_aviso.html' %}
+<p class="text-muted">Entrada: instituição externa → instituição atual. Saída: instituição atual → instituição externa.</p>
+<form method="post" class="card card-body">
+  {% csrf_token %}
+  {% include 'transfers/_campos.html' %}
+  <div class="d-flex gap-2">
+    <button class="btn btn-primary" type="submit">Registrar solicitação pendente</button>
+    <a class="btn btn-outline-secondary" href="{% url 'transfers:index' %}">Voltar</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% if user.is_authenticated %}
+<aside class="sidebar-custom p-3 h-100">
+  <div class="sidebar-category">
+    Navegação
+  </div>
+
+  <nav class="d-flex flex-column gap-1">
+    <a href="{% url 'accounts:dashboard' %}" class="sidebar-link">
+      <i class="bi bi-grid-1x2 text-primary"></i>
+      <span>Visão Geral</span>
+    </a>
+
+    <a href="{% url 'communications:mural' %}" class="sidebar-link">
+      <i class="bi bi-megaphone text-primary"></i>
+      <span>Mural de Avisos</span>
+    </a>
+
+    <a href="{% url 'academics:grade_horaria' %}" class="sidebar-link">
+      <i class="bi bi-calendar3 text-primary"></i>
+      <span>Grade Horária</span>
+    </a>
+
+    {% if user.role == 'ALUNO' %}
+      <a href="{% url 'enrollment:index' %}" class="sidebar-link">
+        <i class="bi bi-card-checklist text-info"></i>
+        <span>Minhas Matrículas</span>
+      </a>
+      <a href="{% url 'assessments:index' %}" class="sidebar-link">
+        <i class="bi bi-mortarboard text-success"></i>
+        <span>Minhas Notas</span>
+      </a>
+      <a href="{% url 'attendance:boletim_frequencia' %}" class="sidebar-link">
+        <i class="bi bi-calendar-check text-warning"></i>
+        <span>Frequência</span>
+      </a>
+      <a href="{% url 'materials:index' %}" class="sidebar-link">
+        <i class="bi bi-folder2-open text-primary"></i>
+        <span>Materiais de Aula</span>
+      </a>
+      <a href="{% url 'documents:index' %}" class="sidebar-link">
+        <i class="bi bi-file-earmark-text text-primary"></i>
+        <span>Meus Documentos</span>
+      </a>
+      <a href="{% url 'finance:index' %}" class="sidebar-link">
+        <i class="bi bi-cash-coin text-success"></i>
+        <span>Meu Financeiro</span>
+      </a>
+    {% endif %}
+
+    {% if user.role == 'PROFESSOR' %}
+      <a href="{% url 'assessments:index' %}" class="sidebar-link">
+        <i class="bi bi-journal-text text-success"></i>
+        <span>Turmas & Avaliações</span>
+      </a>
+      <a href="{% url 'attendance:chamada_index' %}" class="sidebar-link">
+        <i class="bi bi-person-check text-warning"></i>
+        <span>Registro de Frequência</span>
+      </a>
+      <a href="{% url 'materials:index' %}" class="sidebar-link">
+        <i class="bi bi-folder2-open text-primary"></i>
+        <span>Materiais de Aula</span>
+      </a>
+    {% endif %}
+
+    {% if user.role == 'SECRETARIA' %}
+      <a href="{% url 'accounts:usuario_list' %}" class="sidebar-link">
+        <i class="bi bi-people-fill text-primary"></i>
+        <span>Gestão de Usuários</span>
+      </a>
+      <a href="{% url 'enrollment:index' %}" class="sidebar-link">
+        <i class="bi bi-person-lines-fill text-primary"></i>
+        <span>Gestão de Matrículas</span>
+      </a>
+      <a href="{% url 'communications:gestao' %}" class="sidebar-link">
+        <i class="bi bi-sliders text-info"></i>
+        <span>Gestão de Comunicados</span>
+      </a>
+      <a href="{% url 'documents:index' %}" class="sidebar-link">
+        <i class="bi bi-file-earmark-text text-primary"></i>
+        <span>Documentos Oficiais</span>
+      </a>
+      <a href="{% url 'finance:index' %}" class="sidebar-link">
+        <i class="bi bi-cash-coin text-success"></i>
+        <span>Financeiro</span>
+      </a>
+    {% endif %}
+
+    {% if user.role == 'COORDENACAO' %}
+      <a href="{% url 'academics:index' %}" class="sidebar-link">
+        <i class="bi bi-diagram-3 text-danger"></i>
+        <span>Cursos & Disciplinas</span>
+      </a>
+      <a href="{% url 'academics:index' %}" class="sidebar-link">
+        <i class="bi bi-person-badge text-info"></i>
+        <span>Alocação Docente</span>
+      </a>
+      <a href="{% url 'academics:relatorios' %}" class="sidebar-link">
+        <i class="bi bi-bar-chart-line text-success"></i>
+        <span>Relatórios Acadêmicos</span>
+      </a>
+      <a href="{% url 'materials:index' %}" class="sidebar-link">
+        <i class="bi bi-folder2-open text-primary"></i>
+        <span>Materiais Acadêmicos</span>
+      </a>
+      <a href="{% url 'communications:gestao' %}" class="sidebar-link">
+        <i class="bi bi-sliders text-info"></i>
+        <span>Gestão de Comunicados</span>
+      </a>
+    {% endif %}
+
+    {% if user.is_superuser or user.role == 'SECRETARIA' or user.role == 'COORDENACAO' %}
+      <a href="{% url 'academics:painel_gerencial' %}" class="sidebar-link">
+        <i class="bi bi-speedometer2 text-success"></i>
+        <span>Painel Gerencial</span>
+      </a>
+    {% endif %}
+
+    {% if user.is_superuser or user.role == 'ALUNO' or user.role == 'SECRETARIA' or user.role == 'COORDENACAO' %}
+      <a href="{% url 'transfers:index' %}" class="sidebar-link">
+        <i class="bi bi-arrow-left-right text-primary"></i>
+        <span>Transferências</span>
+      </a>
+      <a href="{% url 'academics:aproveitamento_index' %}" class="sidebar-link">
+        <i class="bi bi-arrow-repeat text-primary"></i>
+        <span>Aproveitamentos</span>
+      </a>
+    {% endif %}
+
+    <div class="sidebar-category mt-4">
+      Minha Conta
+    </div>
+
+    <a href="{% url 'accounts:change_password' %}" class="sidebar-link">
+      <i class="bi bi-key text-secondary"></i>
+      <span>Alterar Senha</span>
+    </a>
+  </nav>
+</aside>
+{% endif %}

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Painel Gerencial — SGA{% endblock %}
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+  <div>
+    <h1 class="h3 mb-1">Painel gerencial</h1>
+    <p class="text-muted mb-0 small">Indicadores agregados das turmas ativas. Situação e risco seguem as mesmas regras dos relatórios acadêmicos.</p>
+  </div>
+</div>
+
+<form method="get" class="row g-2 align-items-end mb-4">
+  <div class="col-12 col-sm-auto">
+    <label class="form-label small" for="filtro-curso">Curso</label>
+    <select id="filtro-curso" name="curso" class="form-select form-select-sm">
+      <option value="">Todos</option>
+      {% for curso in cursos %}<option value="{{ curso.pk }}"{% if filtro_curso == curso.pk|stringformat:'s' %} selected{% endif %}>{{ curso.nome }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-12 col-sm-auto">
+    <label class="form-label small" for="filtro-periodo">Período letivo</label>
+    <select id="filtro-periodo" name="periodo" class="form-select form-select-sm">
+      <option value="">Todos</option>
+      {% for periodo in periodos %}<option value="{{ periodo }}"{% if filtro_periodo == periodo %} selected{% endif %}>{{ periodo }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-auto"><button type="submit" class="btn btn-outline-secondary btn-sm">Aplicar</button></div>
+</form>
+{% if filtros_invalidos %}<div class="alert alert-warning" role="alert">Filtros inválidos foram ignorados. <a href="{% url 'academics:painel_gerencial' %}">Limpar filtros</a></div>{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="card card-body h-100">
+    <div class="text-muted small">Matrículas ativas</div>
+    <div class="fs-3 fw-bold">{{ totais.matriculas }}</div>
+    <div class="small text-muted">{{ totais.turmas }} turma{{ totais.turmas|pluralize }} ativa{{ totais.turmas|pluralize }}</div>
+  </div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body h-100">
+    <div class="text-muted small">Ocupação de vagas</div>
+    <div class="fs-3 fw-bold">{{ totais.ocupacao }}%</div>
+    <div class="small text-muted">{{ totais.matriculas }} de {{ totais.vagas }} vagas</div>
+  </div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body h-100">
+    <div class="text-muted small">Taxa de aprovação</div>
+    <div class="fs-3 fw-bold">{% if totais.taxa_aprovacao is None %}—{% else %}{{ totais.taxa_aprovacao }}%{% endif %}</div>
+    <div class="small text-muted">sobre {{ totais.concluidos }} resultado{{ totais.concluidos|pluralize }} final{{ totais.concluidos|pluralize:"is" }}</div>
+  </div></div>
+  <div class="col-6 col-lg-3"><div class="card card-body h-100">
+    <div class="text-muted small">Alunos em risco / atenção</div>
+    <div class="fs-3 fw-bold {% if totais.em_risco %}text-danger{% endif %}">{{ totais.em_risco }}</div>
+    {% if user.is_superuser or user.role == 'COORDENACAO' %}<div class="small"><a href="{% url 'academics:relatorios' %}?risco=sim">Ver no relatório</a></div>{% endif %}
+  </div></div>
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-lg-6">
+    <div class="card card-body h-100">
+      <h2 class="h6">Situação acadêmica das matrículas ativas</h2>
+      <table class="table table-sm align-middle mb-0">
+        <tbody>
+          {% for item in distribuicao %}
+          <tr>
+            <td class="w-50">{{ item.situacao }}</td>
+            <td class="text-end">{{ item.quantidade }}</td>
+            <td class="w-25">
+              <div class="progress" role="progressbar" aria-label="{{ item.situacao }}" aria-valuenow="{{ item.percentual }}" aria-valuemin="0" aria-valuemax="100" style="height: 8px;">
+                <div class="progress-bar" style="width: {{ item.percentual }}%"></div>
+              </div>
+            </td>
+            <td class="text-end small text-muted">{{ item.percentual }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card card-body mb-4">
+      <h2 class="h6">Pendências administrativas</h2>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+          <a href="{% url 'transfers:index' %}?status=PENDENTE">Transferências pendentes</a>
+          <span class="badge {% if pendencias.transferencias %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ pendencias.transferencias }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+          <a href="{% url 'academics:aproveitamento_index' %}?status=PENDENTE">Aproveitamentos pendentes</a>
+          <span class="badge {% if pendencias.aproveitamentos %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ pendencias.aproveitamentos }}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+          <span>{% if user.is_superuser or user.role == 'SECRETARIA' %}<a href="{% url 'finance:index' %}?status=ATRASO">Cobranças em atraso</a>{% else %}Cobranças em atraso{% endif %}
+            <small class="text-muted d-block">R$ {{ pendencias.valor_atraso|floatformat:2 }}</small></span>
+          <span class="badge {% if pendencias.cobrancas_atraso %}bg-danger{% else %}bg-secondary{% endif %}">{{ pendencias.cobrancas_atraso }}</span>
+        </li>
+      </ul>
+    </div>
+    <div class="card card-body">
+      <h2 class="h6">Matrículas ativas por curso</h2>
+      {% if matriculas_por_curso %}
+      <table class="table table-sm mb-0"><tbody>
+        {% for curso, quantidade in matriculas_por_curso %}<tr><td>{{ curso }}</td><td class="text-end">{{ quantidade }}</td></tr>{% endfor %}
+      </tbody></table>
+      {% else %}<p class="text-muted mb-0">Nenhuma turma ativa no filtro.</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card card-body">
+      <h2 class="h6">Ocupação por turma</h2>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead><tr><th>Turma</th><th>Curso</th><th>Período</th><th class="text-end">Matriculados</th><th class="w-25">Ocupação</th></tr></thead>
+          <tbody>
+            {% for item in ocupacao %}
+            <tr>
+              <td>{{ item.turma.disciplina.nome }}</td>
+              <td>{{ item.turma.disciplina.curso.nome }}</td>
+              <td>{{ item.turma.periodo_letivo }}</td>
+              <td class="text-end">{{ item.matriculados }} / {{ item.vagas }}</td>
+              <td>
+                <div class="progress" role="progressbar" aria-label="Ocupação de {{ item.turma.disciplina.nome }}" aria-valuenow="{{ item.percentual }}" aria-valuemin="0" aria-valuemax="100" style="height: 8px;">
+                  <div class="progress-bar {% if item.percentual >= 100 %}bg-danger{% elif item.percentual >= 80 %}bg-warning{% endif %}" style="width: {{ item.percentual }}%"></div>
+                </div>
+                <span class="small text-muted">{{ item.percentual }}%</span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-muted">Nenhuma turma ativa no filtro.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
