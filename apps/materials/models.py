@@ -1,4 +1,5 @@
 import os
+import uuid
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -10,6 +11,11 @@ ALLOWED_EXTENSIONS = {
     '.txt', '.zip', '.rar', '.tar', '.gz', '.png', '.jpg', '.jpeg',
     '.webp', '.mp4', '.csv'
 }
+
+
+def caminho_material(instance, filename):
+    """Pasta aleatória por arquivo: o link não é adivinhável e o nome original é mantido."""
+    return f"materiais/{uuid.uuid4().hex}/{os.path.basename(filename)}"
 
 
 class MaterialAcademico(models.Model):
@@ -29,7 +35,7 @@ class MaterialAcademico(models.Model):
     descricao = models.TextField(_('descrição'), blank=True)
     arquivo = models.FileField(
         _('arquivo'),
-        upload_to='materiais/%Y/%m/',
+        upload_to=caminho_material,
         blank=True,
         null=True
     )

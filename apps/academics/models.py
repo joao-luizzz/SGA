@@ -148,6 +148,16 @@ class Turma(models.Model):
         super().clean()
         from django.core.exceptions import ValidationError
 
+        # Turma com alunos matriculados não pode ser inativada: as notas e a
+        # frequência deles ficariam bloqueadas (o professor não lança em turma inativa).
+        if self.pk and not self.ativo:
+            ativas = self.matriculas.filter(status='ATIVA').count()
+            if ativas:
+                raise ValidationError({'ativo': _(
+                    "A turma possui %(n)d matrícula(s) ativa(s). Conclua, tranque ou cancele "
+                    "as matrículas antes de inativá-la."
+                ) % {'n': ativas}})
+
         parsed_self_list = []
         # 1. Validar estruturalmente o formato dos horários se estiver preenchido
         if self.horarios:

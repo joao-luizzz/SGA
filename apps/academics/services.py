@@ -182,11 +182,14 @@ def identificar_risco_academico(*, notas, resultado):
 
     parciais = [notas[tipo] for tipo in (TipoAvaliacao.P1, TipoAvaliacao.P2, TipoAvaliacao.TRABALHO)
                 if tipo in notas]
-    if resultado['media_final'] is not None:
-        if resultado['media_final'] < Decimal('6'):
+    # Usa as médias exatas, as mesmas que definem a situação oficial.
+    media_final = resultado.get('media_final_exata', resultado['media_final'])
+    media_parcial = resultado.get('media_parcial_exata', resultado['media_parcial'])
+    if media_final is not None:
+        if media_final < Decimal('6'):
             motivos.append('Média final abaixo de 6.')
-    elif resultado['media_parcial'] is not None:
-        if resultado['media_parcial'] < Decimal('6'):
+    elif media_parcial is not None:
+        if media_parcial < Decimal('6'):
             motivos.append('Média parcial abaixo de 6; confira a situação e o exame.')
     elif parciais and sum(parciais) / len(parciais) < Decimal('6'):
         motivos.append('Média das notas lançadas abaixo de 6 (avaliações incompletas).')
@@ -396,3 +399,21 @@ def analisar_aproveitamento(*, usuario, aproveitamento_id, decisao, justificativ
         valor_novo=_estado_aproveitamento(aproveitamento),
     )
     return aproveitamento
+
+
+@transaction.atomic
+def inativar_turma(turma):
+    """Inativa a turma somente se não houver matrícula ativa (evita notas e frequência bloqueadas)."""
+    from academics.models import Turma
+    from enrollment.models import StatusMatricula
+
+    turma = Turma.objects.select_for_update().get(pk=turma.pk)
+    ativas = turma.matriculas.filter(status=StatusMatricula.ATIVA).count()
+    if ativas:
+        raise ValidationError(
+            _("A turma possui %(n)d matrícula(s) ativa(s). Conclua, tranque ou cancele as "
+              "matrículas antes de inativá-la.") % {'n': ativas}
+        )
+    turma.ativo = False
+    turma.save(update_fields=['ativo'])
+    return turma

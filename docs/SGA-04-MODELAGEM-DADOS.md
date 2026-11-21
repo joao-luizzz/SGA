@@ -97,7 +97,7 @@ erDiagram
 - `Falta` permanece ligada a Aluno + Turma + data, com unicidade por aula; a chamada exige matrícula ativa.
 - `HorarioTurma` estrutura a grade, enquanto `Turma.horarios` permanece como campo textual legado/compatibilidade no modelo atual.
 - `EventoCalendario` representa eventos gerais ou segmentados por papel, curso ou turma.
-- `MaterialAcademico` exige exatamente um arquivo ou link e aplica limite de 20 MB para arquivo.
+- `MaterialAcademico` exige exatamente um arquivo ou link e aplica limite de 20 MB para arquivo. O arquivo é salvo em uma pasta aleatória (`materiais/<uuid>/<nome>`) e só é entregue pela view `materials:material_download`, que confere o acesso à turma; `MEDIA_URL` não é servido diretamente.
 - `Comunicado` possui escopo explícito e valida que somente o alvo correspondente seja preenchido.
 - `SolicitacaoTransferencia` é administrativa. Aprovação/recusa não altera automaticamente matrícula, notas ou frequência.
 - Relatórios e painel gerencial não têm tabela própria; usam selectors/consultas para evitar duplicação de dados.

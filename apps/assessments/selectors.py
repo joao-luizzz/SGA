@@ -42,36 +42,38 @@ def calcular_resultado_academico(matricula, notas=None):
         return {
             'media_parcial': None,
             'media_final': None,
+            'media_parcial_exata': None,
+            'media_final_exata': None,
             'situacao': SituacaoAcademica.EM_ANDAMENTO,
             'frequencia': frequencia,
         }
 
-    media_parcial = _arredondar(sum(notas[tipo] for tipo in tipos_parciais) / Decimal('3'))
+    # As comparações usam a média exata (regra do AGENTS.md: MP >= 6, 4 <= MP < 6,
+    # MF >= 6); o arredondamento para duas casas é apenas para exibição. Assim,
+    # MP 5,9967 aparece como "6,00", mas o aluno vai a exame.
+    mp_exata = sum(notas[tipo] for tipo in tipos_parciais) / Decimal('3')
+    mf_exata = None
     if frequencia['total_aulas'] and frequencia['percentual'] < FREQUENCIA_MINIMA:
         situacao = SituacaoAcademica.REPROVADO_FALTA
-        media_final = None
-    elif media_parcial >= Decimal('6.00'):
+    elif mp_exata >= Decimal('6'):
         situacao = SituacaoAcademica.APROVADO_DIRETO
-        media_final = None
-    elif media_parcial < Decimal('4.00'):
+    elif mp_exata < Decimal('4'):
         situacao = SituacaoAcademica.REPROVADO_NOTA
-        media_final = None
     elif TipoAvaliacao.EXAME not in notas:
         situacao = SituacaoAcademica.ELEGIVEL_EXAME
-        media_final = None
     else:
-        media_final = _arredondar(
-            (media_parcial + notas[TipoAvaliacao.EXAME]) / Decimal('2')
-        )
+        mf_exata = (mp_exata + notas[TipoAvaliacao.EXAME]) / Decimal('2')
         situacao = (
             SituacaoAcademica.APROVADO_EXAME
-            if media_final >= Decimal('6.00')
+            if mf_exata >= Decimal('6')
             else SituacaoAcademica.REPROVADO_NOTA
         )
 
     return {
-        'media_parcial': media_parcial,
-        'media_final': media_final,
+        'media_parcial': _arredondar(mp_exata),
+        'media_final': _arredondar(mf_exata) if mf_exata is not None else None,
+        'media_parcial_exata': mp_exata,
+        'media_final_exata': mf_exata,
         'situacao': situacao,
         'frequencia': frequencia,
     }

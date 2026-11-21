@@ -7,6 +7,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from accounts.models import CustomUser, UserRole
+from academics.services import sincronizar_horarios_turma
 from academics.models import (
     Aproveitamento, Curso, Disciplina, PreRequisito, StatusAproveitamento, Turma,
 )
@@ -84,6 +85,10 @@ class Command(BaseCommand):
             },
         )
 
+        # Mesma sincronização das telas de turma: cria os HorarioTurma usados
+        # pela grade horária a partir do texto de horários.
+        sincronizar_horarios_turma(turma)
+
         matriculas = {
             chave: self._matricula_ativa(aluno, turma)
             for chave, aluno in (
@@ -139,7 +144,7 @@ class Command(BaseCommand):
             defaults={'nome': 'Banco de Dados — Demo', 'carga_horaria': 60, 'curso': curso, 'ativo': True},
         )
         PreRequisito.objects.get_or_create(disciplina=banco, requisito=engenharia)
-        Turma.objects.update_or_create(
+        turma_banco, _ = Turma.objects.update_or_create(
             disciplina=banco,
             periodo_letivo='2027/1',
             defaults={
@@ -150,6 +155,7 @@ class Command(BaseCommand):
                 'ativo': True,
             },
         )
+        sincronizar_horarios_turma(turma_banco)
 
         logica, _ = Disciplina.objects.update_or_create(
             codigo='LOG-DEMO',

@@ -9,7 +9,10 @@ from academics.models import Turma
 from accounts.decorators import role_required
 from .forms import MaterialForm
 from .models import MaterialAcademico
-from .selectors import get_turmas_para_materiais, listar_materiais_turma, usuario_pode_acessar_turma
+from .selectors import (
+    get_turmas_para_materiais, listar_materiais_turma, obter_material_para_download,
+    usuario_pode_acessar_turma,
+)
 from .services import criar_material, atualizar_material, excluir_material
 
 
@@ -147,3 +150,17 @@ def material_delete(request, pk):
     return render(request, 'materials/material_confirm_delete.html', {
         'material': material,
     })
+
+
+@login_required
+def material_download(request, pk):
+    """Entrega o arquivo apenas a quem pode ver a turma (não há acesso direto a /media/)."""
+    import os
+    from django.http import FileResponse
+
+    material = obter_material_para_download(pk, request.user)
+    return FileResponse(
+        material.arquivo.open('rb'),
+        as_attachment=True,
+        filename=os.path.basename(material.arquivo.name),
+    )

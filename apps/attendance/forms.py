@@ -25,6 +25,15 @@ class SelecionarTurmaDataForm(forms.Form):
             self.fields['turma'].queryset = Turma.objects.filter(
                 professor=professor, ativo=True
             ).select_related('disciplina').order_by('-periodo_letivo', 'disciplina__nome')
+        from django.utils import timezone
+        self.fields['data_aula'].widget.attrs['max'] = timezone.localdate().isoformat()
+
+    def clean_data_aula(self):
+        from django.utils import timezone
+        data = self.cleaned_data['data_aula']
+        if data > timezone.localdate():
+            raise forms.ValidationError(_("Não é possível registrar chamada para uma data futura."))
+        return data
 
 
 class ChamadaForm(forms.Form):

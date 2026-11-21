@@ -59,3 +59,13 @@ def listar_materiais_turma(turma: Turma, usuario) -> QuerySet[MaterialAcademico]
         raise PermissionDenied("Você não tem acesso aos materiais desta turma.")
 
     return MaterialAcademico.objects.filter(turma=turma).select_related('turma', 'autor')
+
+
+def obter_material_para_download(pk, usuario) -> MaterialAcademico:
+    """Material com arquivo, somente para quem pode acessar a turma."""
+    from django.http import Http404
+
+    material = MaterialAcademico.objects.select_related('turma').filter(pk=pk).first()
+    if material is None or not material.arquivo or not usuario_pode_acessar_turma(material.turma, usuario):
+        raise Http404("Material não encontrado.")
+    return material

@@ -9,4 +9,5 @@ urlpatterns = [
     path('turma/<int:turma_id>/novo/', views.material_create, name='material_create'),
     path('<int:pk>/editar/', views.material_update, name='material_update'),
     path('<int:pk>/excluir/', views.material_delete, name='material_delete'),
+    path('<int:pk>/download/', views.material_download, name='material_download'),
 ]

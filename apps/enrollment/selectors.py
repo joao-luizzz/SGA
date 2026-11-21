@@ -52,12 +52,17 @@ def get_pre_requisitos_pendentes(aluno, disciplina):
 
     Cumpre o pré-requisito um aproveitamento deferido ou uma matrícula não
     cancelada com resultado calculado de aprovação (direta ou após exame).
+    Pré-requisitos de disciplinas inativas não são exigidos.
     """
     from academics.models import Aproveitamento, Disciplina, StatusAproveitamento
     from assessments.selectors import SituacaoAcademica, calcular_resultado_academico
 
     aprovadas = {SituacaoAcademica.APROVADO_DIRETO, SituacaoAcademica.APROVADO_EXAME}
-    requisitos = Disciplina.objects.filter(requisito_de__disciplina=disciplina).order_by('nome')
+    # Pré-requisito de disciplina inativa é ignorado: ela não abre turmas nem
+    # aceita aproveitamento, então bloquearia a matrícula para sempre.
+    requisitos = Disciplina.objects.filter(
+        requisito_de__disciplina=disciplina, ativo=True,
+    ).order_by('nome')
     aproveitadas = set(
         Aproveitamento.objects.filter(
             aluno=aluno, disciplina__in=requisitos, status=StatusAproveitamento.DEFERIDO,

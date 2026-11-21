@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.translation import gettext_lazy as _
@@ -81,21 +82,28 @@ def chamada_lancar(request):
             from django.utils.dateparse import parse_date
             turma_id = request.POST.get('turma_id')
             data_aula_raw = request.POST.get('data_aula')
-            data_aula = parse_date(data_aula_raw) if data_aula_raw else None
+            try:
+                data_aula = parse_date(data_aula_raw) if data_aula_raw else None
+            except ValueError:  # data bem formada, mas inexistente
+                data_aula = None
             turma_selecionada = get_object_or_404(Turma, pk=turma_id, professor=request.user)
 
             matriculas = get_matriculas_ativas_da_turma(turma_selecionada)
             alunos_matriculados = [m.aluno for m in matriculas]
 
             chamada_form = ChamadaForm(request.POST, alunos=alunos_matriculados)
+            erro_servico = None
             if chamada_form.is_valid() and data_aula:
-                presencas = chamada_form.get_presencas()
-                registrar_chamada(
-                    professor=request.user,
-                    turma=turma_selecionada,
-                    data_aula=data_aula,
-                    presencas=presencas,
-                )
+                try:
+                    registrar_chamada(
+                        professor=request.user,
+                        turma=turma_selecionada,
+                        data_aula=data_aula,
+                        presencas=chamada_form.get_presencas(),
+                    )
+                except ValidationError as exc:
+                    erro_servico = ' '.join(exc.messages)
+            if chamada_form.is_valid() and data_aula and erro_servico is None:
                 messages.success(
                     request,
                     _("Chamada registrada com sucesso para %(turma)s em %(data)s.") % {
@@ -106,7 +114,7 @@ def chamada_lancar(request):
                 return redirect('attendance:chamada_index')
             else:
                 data_selecionada = data_aula
-                messages.error(request, _("Erro ao salvar a chamada. Verifique os dados e tente novamente."))
+                messages.error(request, erro_servico or _("Erro ao salvar a chamada. Verifique os dados e tente novamente."))
 
     context = {
         'title': 'Registrar Chamada',
