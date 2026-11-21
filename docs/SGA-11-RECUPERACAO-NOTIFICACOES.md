@@ -44,7 +44,7 @@ anteriores e não são reescritos como se esta implementação já existisse.
 
 ### Configuração de e-mail por ambiente
 
-As variáveis estão em `.env.example` e são lidas em `config.settings.local`.
+As variáveis estão em `.env.example` e são lidas em `config.settings.base` (desde a PR #75), depois de carregar o `.env`.
 
 | Variável | Finalidade / padrão |
 | --- | --- |
@@ -61,10 +61,14 @@ As variáveis estão em `.env.example` e são lidas em `config.settings.local`.
 
 Para envio real, selecionar `django.core.mail.backends.smtp.EmailBackend` e
 configurar domínio, HTTPS, remetente e credenciais no ambiente. O padrão em memória
-é intencional: não envia e-mails reais nem imprime links. Console e arquivo são
+é intencional: não envia e-mails reais nem imprime links. Para demonstração, o
+`docker-compose.yml` inclui o **Mailpit** (caixa local, sem envio real): veja o passo a passo em
+[SGA-07](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md). Console e arquivo são
 bloqueados para recuperação. Testes inspecionam `django.core.mail.outbox`.
 O domínio não é derivado do cabeçalho Host recebido. Os cooldowns usam chaves HMAC
 no cache, sem e-mail/IP em claro; com cache local, sua abrangência é por processo.
+O limite por IP é verificado antes do limite por e-mail (PR #86), para que uma tentativa
+barrada pelo IP não deixe o e-mail em espera sem envio.
 O envio SMTP é síncrono; equivalência testada é de status, redirecionamento e conteúdo,
 não uma garantia de tempo de resposta idêntico. Logs de proxy/infraestrutura externos
 à aplicação também devem evitar URLs de recuperação e corpos de formulários.
@@ -114,8 +118,8 @@ contador, CSRF, visibilidade e os três eventos por services e HTTP, com rollbac
 operações sem alteração efetiva.
 
 Para demonstrar, seguir o roteiro em [SGA-07](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
-A caixa em memória serve à validação automatizada; uma demonstração com recebimento
-real exige SMTP configurado. CI existente mantém SQLite com cobertura mínima 85%
+A caixa em memória serve à validação automatizada; para mostrar o e-mail chegando na
+demonstração, use o Mailpit (SGA-07). CI existente mantém SQLite com cobertura mínima 85%
 e PostgreSQL 16 sem cobertura; não houve redução do threshold.
 
 ## Evidências da validação desta entrega — 08/10/2026
@@ -138,7 +142,11 @@ registro desta validação, não promessa de contagem/cobertura permanente.
 Há um aviso de depreciação do Django sobre o esquema padrão de URL no Django 6.0;
 esta entrega mantém o comportamento existente no Django 5.1.
 
-O workflow CI continua inalterado. **CI remoto desta branch ainda não executado ou
-verificado**, pois não houve push/PR nesta tarefa. Envio SMTP real e revisão visual
-manual também ficam para o ambiente de revisão; os fluxos HTTP, incluindo CSRF,
-foram testados automaticamente. Não houve fechamento de issues ou merge na develop.
+O workflow CI continua inalterado e passou na PR #73 (SQLite e PostgreSQL). O fluxo
+completo com e-mail foi validado em 21/11/2026 pelo Mailpit: solicitação, recebimento do
+link e abertura da tela de nova senha. A conferência visual foi feita na PR #84.
+
+**Desempenho (PR #86):** o contador da navbar é somente leitura (não lidas + comunicados
+vigentes ainda não materializados) e a publicação de comunicado calcula o público em lote,
+com número constante de consultas; a equivalência com o mural é coberta por
+`tests/test_notifications/test_publico_em_lote.py`.

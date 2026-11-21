@@ -89,7 +89,15 @@ Preparação: banco descartável, `migrate` e `seed_demo` como acima. Todas as c
 | 12 | Coordenação | Relatórios acadêmicos com risco, CSV e impressão; transferência registrada e analisada. | Fase 2 |
 | 13 | Todos | Acessos indevidos retornam 403/404; encerrar com arquitetura, testes e CI. | RN01 |
 
-**Recuperação de senha na demo:** por segurança, os backends de console e arquivo são bloqueados e o padrão em memória não exibe o link. Para demonstrar o e-mail real, configure SMTP no `.env` (`EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend` e credenciais de uma conta de teste). Sem SMTP, mostre a mensagem neutra no formulário e cite os testes de token válido, expirado e reutilizado em `tests/test_accounts/test_recovery.py`. Detalhes em [SGA-11](SGA-11-RECUPERACAO-NOTIFICACOES.md).
+**Recuperação de senha na demo (Mailpit):** por segurança, o padrão em memória não exibe o link e os backends de console e arquivo são bloqueados. Para mostrar o e-mail chegando, use o Mailpit, a caixa de e-mail local que já vem no `docker-compose.yml`:
+
+1. No `.env`, troque as linhas de e-mail por `EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend`, `EMAIL_HOST=mailpit`, `EMAIL_PORT=1025` e `EMAIL_USE_TLS=False`.
+2. `docker compose up -d` e, se o `web` já estava rodando, `docker compose restart web`.
+3. No login, **Esqueci minha senha** com uma conta demo; repita com um e-mail inexistente e mostre que a mensagem é a mesma.
+4. Abra `http://localhost:8025`: só a conta existente recebeu o e-mail. Clique no link e defina a nova senha.
+5. Rode `seed_demo` de novo para restaurar a senha das contas demo.
+
+Sem o Mailpit, mostre a mensagem neutra e cite os testes de token válido, expirado e reutilizado em `tests/test_accounts/test_recovery.py`. Detalhes em [SGA-11](SGA-11-RECUPERACAO-NOTIFICACOES.md).
 
 ## Checklist final de entrega
 
