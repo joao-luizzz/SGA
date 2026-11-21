@@ -76,3 +76,46 @@ def listar_comunicados_gerenciamento(usuario) -> QuerySet[Comunicado]:
         return Comunicado.objects.all().select_related('autor', 'curso', 'turma', 'turma__disciplina').order_by('-criado_em')
 
     return Comunicado.objects.none()
+
+
+def listar_destinatarios_comunicado(comunicado):
+    """Usuários ativos que veem o comunicado no mural, calculados em lote.
+
+    Espelha as regras de `listar_comunicados_para_usuario`; a equivalência é
+    verificada por teste para todos os papéis e escopos.
+    """
+    from accounts.models import CustomUser
+
+    agora = timezone.now()
+    vigente = (
+        comunicado.ativo and comunicado.publicar_em <= agora
+        and (comunicado.expirar_em is None or comunicado.expirar_em >= agora)
+    )
+    if not vigente:
+        return CustomUser.objects.none()
+
+    gestao = Q(is_superuser=True) | Q(role__in=('COORDENACAO', 'SECRETARIA'))
+    if comunicado.escopo == EscopoComunicado.GERAL:
+        alvo = Q(pk__isnull=False)
+    elif comunicado.escopo == EscopoComunicado.PAPEL:
+        alvo = Q(role=comunicado.papel_destino, role__in=('ALUNO', 'PROFESSOR'))
+    elif comunicado.escopo == EscopoComunicado.TURMA:
+        alvo = (
+            Q(role='ALUNO', matriculas__status=StatusMatricula.ATIVA,
+              matriculas__turma_id=comunicado.turma_id)
+            | Q(role='PROFESSOR', turmas_ministradas__ativo=True,
+                turmas_ministradas__id=comunicado.turma_id)
+        )
+    elif comunicado.escopo == EscopoComunicado.CURSO:
+        alvo = (
+            Q(role='ALUNO', matriculas__status=StatusMatricula.ATIVA,
+              matriculas__turma__disciplina__curso_id=comunicado.curso_id)
+            | Q(role='PROFESSOR', turmas_ministradas__ativo=True,
+                turmas_ministradas__disciplina__curso_id=comunicado.curso_id)
+        )
+    else:
+        return CustomUser.objects.none()
+    return CustomUser.objects.filter(
+        is_active=True,
+        pk__in=CustomUser.objects.filter(gestao | alvo).values('pk'),
+    )

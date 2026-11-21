@@ -1,17 +1,21 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from accounts.models import CustomUser
-from communications.selectors import listar_comunicados_para_usuario
+from communications.selectors import listar_comunicados_para_usuario, listar_destinatarios_comunicado
 from .models import Notificacao, TipoNotificacao
 from .selectors import listar_notificacoes
 
 
+DADOS_NOTIFICACAO_COMUNICADO = {
+    'titulo': 'Comunicado disponível',
+    'mensagem': 'Há um comunicado disponível no mural.',
+    'tipo': TipoNotificacao.COMUNICADO,
+}
+
+
 def _notificar_comunicado(usuario, comunicado):
     return Notificacao.objects.get_or_create(
-        destinatario=usuario, comunicado=comunicado,
-        defaults={'titulo': 'Comunicado disponível', 'mensagem': 'Há um comunicado disponível no mural.',
-                  'tipo': TipoNotificacao.COMUNICADO},
+        destinatario=usuario, comunicado=comunicado, defaults=DADOS_NOTIFICACAO_COMUNICADO,
     )[0]
 
 
@@ -32,10 +36,17 @@ def sincronizar_comunicados(usuario):
 
 
 def notificar_comunicado(comunicado):
-    """Chamado dentro da transação do evento; rollback desfaz ambos os registros."""
-    for usuario in CustomUser.objects.filter(is_active=True).iterator():
-        if listar_comunicados_para_usuario(usuario).filter(pk=comunicado.pk).exists():
-            _notificar_comunicado(usuario, comunicado)
+    """Chamado dentro da transação do evento; rollback desfaz ambos os registros.
+
+    O público é calculado em lote e as notificações são criadas com um único
+    INSERT; a constraint destinatário+comunicado ignora quem já foi notificado.
+    """
+    destinatarios = listar_destinatarios_comunicado(comunicado).values_list('pk', flat=True)
+    Notificacao.objects.bulk_create(
+        [Notificacao(destinatario_id=pk, comunicado=comunicado, **DADOS_NOTIFICACAO_COMUNICADO)
+         for pk in destinatarios],
+        ignore_conflicts=True,
+    )
 
 
 def notificar_evento_academico(*, destinatario, tipo):

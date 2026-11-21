@@ -89,11 +89,15 @@ def toggle_user_active_status(user: CustomUser) -> CustomUser:
 
 
 def solicitar_recuperacao(form, request):
-    """Mesmo resultado público para contas ausentes, inelegíveis e throttling."""
+    """Mesmo resultado público para contas ausentes, inelegíveis e throttling.
+
+    O limite por IP é verificado primeiro: uma tentativa barrada pelo IP não
+    consome a espera do e-mail, que só começa quando a solicitação prossegue.
+    """
     email = form.cleaned_data['email'].strip().lower()
     for namespace, value, timeout in (
-        ('email', email, settings.PASSWORD_RESET_EMAIL_COOLDOWN),
         ('ip', request.META.get('REMOTE_ADDR', ''), settings.PASSWORD_RESET_IP_COOLDOWN),
+        ('email', email, settings.PASSWORD_RESET_EMAIL_COOLDOWN),
     ):
         key = salted_hmac('sga-recovery-' + namespace, value).hexdigest()
         if timeout and not cache.add('recovery:' + key, True, timeout):
