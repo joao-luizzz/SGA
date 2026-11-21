@@ -4,8 +4,12 @@
 
 | Metadado | Valor |
 | --- | --- |
+| Disciplina | Laboratório de Engenharia de Software |
+| Professor responsável | Rodrigo Salgado |
+| Integrantes | Alexandre Hesse, Andrey Kerges Nascimento, João Luiz, Max Iago Villafan e Vitor Augusto |
 | Versão | **3.0 — entrega final (Fases 1, 2 e 3)** |
-| Data | **20 de novembro de 2026** |
+| Data | **21 de novembro de 2026** |
+| Histórico | A versão 0.4 (agosto/2026), usada na validação inicial do grupo, está preservada no histórico do Git (`b7a0085`). |
 
 ## Resumo
 
