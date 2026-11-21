@@ -131,7 +131,7 @@ CU01–CU19 (Fase 1) em [SGA-06](SGA-06-CASOS-DE-USO.md); fluxos da Fase 2 em SG
 
 ## Testes, CI e demonstração
 
-A suíte automatizada cobre regras acadêmicas, permissões (403/404), modelos e constraints, services, views, seed e fluxos integrados de todas as fases. A CI executa `check`, `makemigrations --check --dry-run` e `pytest` em SQLite e PostgreSQL 16, com cobertura mínima de 85%. Na validação final da Fase 3 (20/11/2026) a suíte local registrou **549 testes aprovados e cobertura de 90,56%**.
+A suíte automatizada cobre regras acadêmicas, permissões (403/404), modelos e constraints, services, views, seed e fluxos integrados de todas as fases. A CI executa `check`, `makemigrations --check --dry-run` e `pytest` em SQLite e PostgreSQL 16, com cobertura mínima de 85%. Na validação final da Fase 3 (20/11/2026) a suíte local registrou **574 testes aprovados e cobertura de 90,79%**.
 
 Para a demonstração, use `docker compose exec web python manage.py seed_demo`; o roteiro final, com os cenários da Fase 3, está em [SGA-07](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
 

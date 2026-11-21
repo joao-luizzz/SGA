@@ -118,4 +118,6 @@ Sem o Mailpit, mostre a mensagem neutra e cite os testes de token válido, expir
 
 **Conferência visual (20/11/2026):** feita no Chrome com os quatro papéis e o visitante, em 1366px e 390px. A PR #84 corrigiu a sidebar no celular (agora recolhível pelo botão **Menu**), a tabela do histórico no celular, a vírgula decimal nas notas, o selo do painel gerencial, o rótulo de sala na grade e o layout da verificação pública. Testes em `tests/test_integration/test_conferencia_visual.py`; suíte com 549 testes.
 
+**Auditoria geral (21/11/2026):** revisão de regras acadêmicas, permissões (4 papéis × todas as rotas, e acesso sem login), bugs silenciosos e configuração antes do merge em `main`. Corrigidos: grade vazia em instalação limpa (seed sem horários estruturados), comparação de MP/MF pelo valor exato, download de materiais protegido, chamada com data futura ou inexistente, inativação de turma com alunos, pré-requisito de disciplina inativa e injeção de fórmula no CSV. Testes em `tests/test_integration/test_auditoria_geral.py`; suíte com 574 testes.
+
 **Pendente:** ensaio da apresentação. Upload de materiais é coberto pelos testes de `tests/test_materials/`, não por este percurso.

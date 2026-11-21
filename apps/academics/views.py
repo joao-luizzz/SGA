@@ -82,7 +82,7 @@ def relatorios_csv_view(request):
         turma = linha['turma']
         resultado = linha['resultado']
         frequencia = resultado['frequencia']
-        writer.writerow([
+        writer.writerow([_celula_csv(valor) for valor in [
             turma.disciplina.nome,
             turma.disciplina.curso.nome,
             turma.periodo_letivo,
@@ -102,8 +102,15 @@ def relatorios_csv_view(request):
             frequencia['faltas'],
             linha['risco']['rotulo'],
             ' '.join(linha['risco']['motivos']),
-        ])
+        ]])
     return response
+
+
+def _celula_csv(valor):
+    """Neutraliza texto que o Excel/LibreOffice interpretaria como fórmula."""
+    if isinstance(valor, str) and valor[:1] in ('=', '+', '-', '@', '\t', '\r'):
+        return "'" + valor
+    return valor
 
 
 @role_required(UserRole.COORDENACAO)
@@ -293,11 +300,15 @@ def turma_update_view(request, pk):
 @role_required(UserRole.COORDENACAO)
 @require_POST
 def turma_inactivate_view(request, pk):
+    from .services import inativar_turma
+
     turma = get_object_or_404(Turma, pk=pk)
-    turma.ativo = False
-    turma.save()
-    
-    messages.warning(request, _(f"Turma '{turma.disciplina.nome}' ({turma.periodo_letivo}) foi inativada com sucesso."))
+    try:
+        inativar_turma(turma)
+    except ValidationError as exc:
+        messages.error(request, ' '.join(exc.messages))
+    else:
+        messages.warning(request, _(f"Turma '{turma.disciplina.nome}' ({turma.periodo_letivo}) foi inativada com sucesso."))
     
     if request.headers.get('HX-Request'):
         response = render(request, 'includes/messages.html')

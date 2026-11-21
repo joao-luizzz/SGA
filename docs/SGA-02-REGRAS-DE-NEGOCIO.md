@@ -15,16 +15,16 @@ As regras abaixo descrevem somente comportamentos implementados na Fase 1. Os ID
 | **RN02** | Contas criadas administrativamente recebem senha inicial e `must_change_password=True`; o primeiro acesso exige sua alteração antes do painel. Conta inativa não autentica. |
 | **RN03** | A Secretaria cria, edita, lista, ativa e inativa somente contas de Aluno e Professor. A edição administrativa preserva senha, papel, flag de primeira senha e estado de ativação; não pode atingir a própria conta, Secretaria ou Coordenação. |
 | **RN04** | A Coordenação administra `Curso`, `Disciplina` e `Turma`. `Disciplina` pertence diretamente a um `Curso`; horários são texto validado em `Turma.horarios`. |
-| **RN05** | Uma turma só recebe matrícula se estiver ativa, com professor, horários, sala e vagas máximas positivas configurados. Professor não pode ter sobreposição de horários em turmas ativas do mesmo período. |
+| **RN05** | Uma turma só recebe matrícula se estiver ativa, com professor, horários, sala e vagas máximas positivas configurados. Professor não pode ter sobreposição de horários em turmas ativas do mesmo período. Turma com matrícula ativa não pode ser inativada; as matrículas devem ser concluídas, trancadas ou canceladas antes. |
 | **RN06** | Vagas ocupadas são a contagem de matrículas `ATIVA`; a Secretaria bloqueia matrícula quando a capacidade for atingida. |
 | **RN07** | Somente a Secretaria efetiva matrícula de Aluno ativo. A matrícula aceita `ATIVA`, `TRANCADA`, `CANCELADA` e `CONCLUIDA`; somente uma matrícula ativa pode ser alterada para os três últimos status. |
 | **RN08** | Não se cria nova matrícula para aluno e mesma turma quando houver qualquer matrícula anterior naquela turma. Retentativa ocorre em **outra `Turma`/período**, preservando faltas e notas da tentativa anterior. |
-| **RN09** | O Professor registra ou edita chamada apenas para turma ativa sob sua responsabilidade. A chamada deve informar exatamente todos os alunos com matrícula ativa naquela turma. |
+| **RN09** | O Professor registra ou edita chamada apenas para turma ativa sob sua responsabilidade. A chamada deve informar exatamente todos os alunos com matrícula ativa naquela turma. A data da aula não pode ser futura. |
 | **RN10** | `Falta` representa presença/ausência de um Aluno em uma Turma e data de aula; há no máximo um registro por `Turma + Aluno + data_aula`. |
 | **RN11** | Frequência é calculada pelos registros de chamada. Abaixo de 75% resulta em reprovação por falta e bloqueia o exame; sem aulas registradas, a frequência exibida é 100% e a situação de frequência é “Sem aulas registradas”. |
 | **RN12** | O Professor responsável por turma ativa lança P1, P2 e Trabalho para matrículas ativas. Cada nota vale de 0 a 10 e pertence à matrícula, não à turma ou ao aluno diretamente. `MP = (P1 + P2 + Trabalho) / 3`. |
-| **RN13** | Com MP completa: MP >= 6 aprova diretamente; 4 <= MP < 6, com frequência mínima, torna o aluno elegível ao exame; MP < 4 reprova por nota. |
-| **RN14** | O Exame só pode ser lançado para matrícula elegível. `MF = (MP + Exame) / 2`; MF >= 6 aprova após exame e MF < 6 reprova por nota. |
+| **RN13** | Com MP completa: MP >= 6 aprova diretamente; 4 <= MP < 6, com frequência mínima, torna o aluno elegível ao exame; MP < 4 reprova por nota. As comparações usam a média **exata**; o arredondamento para duas casas é só de exibição (ex.: MP 5,9967 aparece como 6,00, mas vai a exame). |
+| **RN14** | O Exame só pode ser lançado para matrícula elegível. `MF = (MP + Exame) / 2`; MF >= 6 aprova após exame e MF < 6 reprova por nota. MF também é comparada pelo valor exato (MF 5,995 reprova). |
 | **RN15** | Criação e edição de `Nota` e `Falta` registram `AuditoriaLog` com autor, ação, valor anterior/novo e momento. O log não pode ser atualizado ou excluído. |
 | **RN16** | Integridade de dados: e-mail é único; há no máximo uma matrícula ativa por Aluno+Turma; uma nota por Matrícula+tipo; e chamada única por Turma+Aluno+data. |
 | **RN17** | Formulários, serviços e restrições de banco validam os dados críticos; a CI executa `check`, verificação de migrations e a suíte automatizada em SQLite e PostgreSQL 16. |
@@ -59,7 +59,7 @@ Detalhamento, decisões D1–D5 e evidências em [SGA-12](SGA-12-ESPECIFICACAO-F
 | ID | Regra |
 | --- | --- |
 | **RN18** | Uma `Disciplina` pode exigir outras disciplinas ativas **do mesmo curso** como pré-requisito. Autorreferência e ciclos (diretos ou indiretos) são recusados. Somente a Coordenação mantém pré-requisitos. |
-| **RN19** | A matrícula exige, para cada pré-requisito, uma matrícula anterior não cancelada com resultado `Aprovado Direto` ou `Aprovado após Exame`, ou um aproveitamento `DEFERIDO`. Em andamento, reprovação por nota e por falta não cumprem o pré-requisito. |
+| **RN19** | A matrícula exige, para cada pré-requisito, uma matrícula anterior não cancelada com resultado `Aprovado Direto` ou `Aprovado após Exame`, ou um aproveitamento `DEFERIDO`. Em andamento, reprovação por nota e por falta não cumprem o pré-requisito. Pré-requisitos de disciplinas inativas não são exigidos. |
 | **RN20** | Aproveitamento é registrado pela Secretaria e analisado pela Coordenação com justificativa obrigatória. O deferimento exige carga horária de origem ≥ 75% da disciplina (D1). Há no máximo um aproveitamento pendente ou deferido por Aluno + Disciplina. |
 | **RN21** | Declaração de matrícula e histórico escolar são registrados em `DocumentoEmitido` com código de verificação único; o conteúdo é congelado na emissão e o registro é imutável. |
 | **RN22** | O Aluno emite somente os próprios documentos; a Secretaria emite para qualquer aluno. O histórico lista apenas resultados finais e aproveitamentos deferidos; a declaração exige matrícula ativa. |

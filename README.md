@@ -107,6 +107,10 @@ docker compose exec web python manage.py create_secretaria_user
 
 O comando também aceita `--email`, `--full-name` e `--password`. A conta criada exige troca de senha no primeiro acesso.
 
+## Implantação fora do ambiente local
+
+O projeto roda com `config.settings.local`, pensado para desenvolvimento e demonstração. Para expor o sistema em um servidor, defina no ambiente pelo menos `DEBUG=False`, uma `SECRET_KEY` própria e secreta, `ALLOWED_HOSTS` com o domínio real, `PASSWORD_RESET_DOMAIN` e `PASSWORD_RESET_USE_HTTPS=True`, e um SMTP real. Os valores padrão (`DEBUG=True` e uma `SECRET_KEY` de exemplo) não são seguros para produção. Arquivos de materiais nunca são servidos diretamente: o download passa por uma view que confere o acesso à turma.
+
 ## Validação e testes
 
 ```bash

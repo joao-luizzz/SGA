@@ -1,5 +1,6 @@
 from typing import Optional
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 from accounts.models import AcaoAuditoria, UserRole
@@ -36,6 +37,18 @@ def registrar_chamada(professor, turma, data_aula: str, presencas: dict) -> list
 
     if getattr(professor, 'role', None) != UserRole.PROFESSOR:
         raise ValidationError(_("A chamada deve ser registrada por um Professor."))
+
+    if isinstance(data_aula, str):
+        from django.utils.dateparse import parse_date
+        try:
+            data_convertida = parse_date(data_aula)
+        except ValueError:  # bem formada, mas inexistente (ex.: 2026-02-31)
+            data_convertida = None
+        if data_convertida is None:
+            raise ValidationError(_("Informe uma data de aula válida."))
+        data_aula = data_convertida
+    if data_aula > timezone.localdate():
+        raise ValidationError(_("Não é possível registrar chamada para uma data futura."))
 
     turma_bloqueada = Turma.objects.select_for_update().get(pk=turma.pk)
     if not turma_bloqueada.ativo:
