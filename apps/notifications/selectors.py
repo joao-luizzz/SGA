@@ -14,4 +14,15 @@ def listar_notificacoes(usuario):
 
 
 def contar_nao_lidas(usuario):
-    return listar_notificacoes(usuario).filter(lida_em__isnull=True).count()
+    """Não lidas + comunicados vigentes ainda não materializados, sem escrever no banco.
+
+    A materialização acontece ao abrir a central ou marcar todas como lidas.
+    """
+    if not usuario or not usuario.is_authenticated or not usuario.is_active:
+        return 0
+    nao_lidas = listar_notificacoes(usuario).filter(lida_em__isnull=True).count()
+    ja_notificados = Notificacao.objects.filter(
+        destinatario=usuario, comunicado__isnull=False,
+    ).values('comunicado_id')
+    pendentes = listar_comunicados_para_usuario(usuario).exclude(pk__in=ja_notificados).count()
+    return nao_lidas + pendentes

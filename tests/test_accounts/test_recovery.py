@@ -256,3 +256,20 @@ def test_service_rechecks_validators_and_deleted_user(user_aluno):
     with pytest.raises(ValidationError):
         redefinir_senha(user_id=user_aluno.pk + 100, token='invalid', password=NEW_PASSWORD)
     assert not AuditoriaLog.objects.exists()
+
+
+def test_bloqueio_por_ip_nao_consome_espera_do_email(client, user_aluno, user_professor, settings):
+    """Tentativa barrada pelo IP não deve deixar o e-mail em espera sem envio."""
+    from django.test import Client as ClienteHTTP
+
+    settings.PASSWORD_RESET_IP_COOLDOWN = 60
+    settings.PASSWORD_RESET_EMAIL_COOLDOWN = 60
+    url = reverse('accounts:password_reset')
+    client.post(url, {'email': user_aluno.email}, REMOTE_ADDR='10.0.0.1')
+    client.post(url, {'email': user_professor.email}, REMOTE_ADDR='10.0.0.1')  # barrado pelo IP
+    assert len(mail.outbox) == 1
+
+    ClienteHTTP().post(url, {'email': user_professor.email}, REMOTE_ADDR='10.0.0.2')
+
+    assert len(mail.outbox) == 2
+    assert mail.outbox[1].to == [user_professor.email]
