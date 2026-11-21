@@ -139,15 +139,15 @@ A suíte automatizada cobre regras acadêmicas, permissões (403/404), modelos e
 
 Para a demonstração, use `docker compose exec web python manage.py seed_demo`; o roteiro final, com os cenários da Fase 3, está em [SGA-07](SGA-07-ROTEIRO-DEMO-E-ENTREGA.md).
 
-## Fases e estado atual — 20/11/2026
+## Fases e estado final — 21/11/2026
 
 | Fase | Estado | Entregas |
 | --- | --- | --- |
 | Fase 1/MVP | Concluída | Núcleo acadêmico (PRs até #31). |
 | Fase 2 | Concluída | Materiais e comunicados (#66), calendário/grade/conflitos (#67), relatórios (#68, #70), transferências (#69, #70), recuperação de senha e notificações (#73, #75). |
-| Fase 3 | Implementada | Pré-requisitos e aproveitamento (#76), painel gerencial (#77), documentos oficiais (#78), financeiro básico (#79); especificação em SGA-12. |
+| Fase 3 | Concluída | Pré-requisitos e aproveitamento (#76), painel gerencial (#77), documentos oficiais (#78), financeiro básico (#79); especificação em SGA-12. |
 | Estudos | Somente estudo | API pública e integrações (SGA-13); app mobile e IA (SGA-14). Nenhum implementado, por recomendação. |
-| Fechamento | Em andamento | Documentação (#80), validação com instalação limpa (#81), lacunas da auditoria (#82), conferência visual (#84) e pré-release `v3.0.0-rc1`. Pendentes: ensaio (#53), merge em `main` e `v3.0.0`. |
+| Fechamento | Concluído | Documentação (#80), validação com instalação limpa (#81), auditoria das issues (#82), conferência visual (#84), desempenho e Mailpit (#86, #87), auditoria geral (#88), merge em `main` (#89, #90), ensaio e release `v3.0.0`. |
 
 “Fora do MVP” nos documentos da Fase 1 identifica o escopo original, não ausência no código atual.
 
