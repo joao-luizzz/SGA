@@ -10,7 +10,7 @@
       <p class="page-subtitle mb-0">Gestão pedagógica, matrizes curriculares e alocação, <strong>{{ user.full_name }}</strong></p>
     </div>
     <div>
-      <span class="badge badge-sga-danger px-3 py-1.5 fs-7">
+      <span class="badge badge-sga-danger px-3 py-2">
         <i class="bi bi-diagram-3-fill me-1"></i> Perfil: Coordenação
       </span>
     </div>
@@ -18,67 +18,67 @@
 
   <div class="row g-3 g-lg-4">
     <div class="col-12 col-md-4">
-      <div class="card card-interactive h-100">
-        <div class="card-body p-4 d-flex flex-column">
-          <div class="d-flex align-items-center mb-3">
-            <div class="d-flex align-items-center justify-content-center bg-danger-subtle text-danger rounded-3 p-3 me-3" style="width: 48px; height: 48px;">
-              <i class="bi bi-diagram-3-fill fs-4"></i>
+      <div class="sga-turma-card h-100 d-flex flex-column">
+        <div class="card-body p-4 d-flex flex-column flex-grow-1">
+          <div class="d-flex align-items-center mb-3 gap-3">
+            <div class="sga-icon-tile sga-icon-tile-danger">
+              <i class="bi bi-diagram-3-fill"></i>
             </div>
             <div>
-              <h6 class="fw-bold mb-0 text-dark">Cursos & Disciplinas</h6>
+              <h6 class="fw-bold mb-0 text-dark">Cursos &amp; Disciplinas</h6>
               <small class="text-muted">Matriz Curricular</small>
             </div>
           </div>
-          <p class="text-muted small flex-grow-1">Estruture cursos, matrizes curriculares e disciplinas da graduação.</p>
-          <div class="pt-2">
-            <a href="{% url 'academics:index' %}" class="btn btn-outline-danger btn-sm w-100">
-              <i class="bi bi-arrow-right me-1"></i> Gerenciar Matriz
-            </a>
-          </div>
+          <p class="text-muted small mb-0 flex-grow-1">Estruture cursos, matrizes curriculares e disciplinas da graduação.</p>
+        </div>
+        <div class="sga-card-footer">
+          <a href="{% url 'academics:index' %}" class="btn btn-outline-danger btn-sm w-100">
+            <i class="bi bi-arrow-right"></i> Gerenciar Matriz
+          </a>
         </div>
       </div>
     </div>
 
     <div class="col-12 col-md-4">
-      <div class="card card-interactive h-100">
-        <div class="card-body p-4 d-flex flex-column">
-          <div class="d-flex align-items-center mb-3">
-            <div class="d-flex align-items-center justify-content-center bg-info-subtle text-info rounded-3 p-3 me-3" style="width: 48px; height: 48px;">
-              <i class="bi bi-person-badge-fill fs-4"></i>
+      <div class="sga-turma-card h-100 d-flex flex-column">
+        <div class="card-body p-4 d-flex flex-column flex-grow-1">
+          <div class="d-flex align-items-center mb-3 gap-3">
+            <div class="sga-icon-tile sga-icon-tile-info">
+              <i class="bi bi-person-badge-fill"></i>
             </div>
             <div>
               <h6 class="fw-bold mb-0 text-dark">Alocação Docente</h6>
               <small class="text-muted">Professores em Turmas</small>
             </div>
           </div>
-          <p class="text-muted small flex-grow-1">Atribua professores responsáveis às ofertas de turmas dos períodos letivos.</p>
-          <div class="pt-2">
-            <a href="{% url 'academics:index' %}" class="btn btn-outline-info btn-sm w-100">
-              <i class="bi bi-arrow-right me-1"></i> Alocar Docentes
-            </a>
-          </div>
+          <p class="text-muted small mb-0 flex-grow-1">Atribua professores responsáveis às ofertas de turmas dos períodos letivos.</p>
+        </div>
+        <div class="sga-card-footer">
+          <a href="{% url 'academics:index' %}" class="btn btn-outline-info btn-sm w-100">
+            <i class="bi bi-arrow-right"></i> Alocar Docentes
+          </a>
         </div>
       </div>
     </div>
 
     <div class="col-12 col-md-4">
-      <div class="card card-interactive h-100">
-        <div class="card-body p-4 d-flex flex-column">
-          <div class="d-flex align-items-center mb-3">
-            <div class="d-flex align-items-center justify-content-center bg-warning-subtle text-warning rounded-3 p-3 me-3" style="width: 48px; height: 48px;">
-              <i class="bi bi-calendar3 fs-4"></i>
+      <div class="sga-turma-card h-100 d-flex flex-column">
+        <div class="card-body p-4 d-flex flex-column flex-grow-1">
+          <div class="d-flex align-items-center mb-3 gap-3">
+            <div class="sga-icon-tile sga-icon-tile-warning">
+              <i class="bi bi-calendar3"></i>
             </div>
             <div>
               <h6 class="fw-bold mb-0 text-dark">Oferta de Turmas</h6>
               <small class="text-muted">Planejamento Acadêmico</small>
             </div>
           </div>
-          <p class="text-muted small flex-grow-1">Defina turmas abertas por semestre e capacidade máxima de vagas.</p>
-          <div class="pt-2">
-            <a href="{% url 'academics:index' %}" class="btn btn-outline-warning btn-sm w-100">
-              <i class="bi bi-arrow-right me-1"></i> Planejar Turmas
-            </a>
-          </div>
+          <p class="text-muted small mb-0 flex-grow-1">Defina turmas abertas por semestre e capacidade máxima de vagas.</p>
+        </div>
+        <div class="sga-card-footer">
+          <a href="{% url 'academics:index' %}" class="btn btn-outline-warning btn-sm w-100">
+            <i class="bi bi-arrow-right"></i> Planejar Turmas
+          </a>
         </div>
       </div>
     </div>

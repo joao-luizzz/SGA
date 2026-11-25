@@ -10,7 +10,7 @@
       <p class="page-subtitle mb-0">Bem-vindo(a) ao seu portal acadêmico, <strong>{{ user.full_name }}</strong></p>
     </div>
     <div>
-      <span class="badge badge-sga-primary px-3 py-1.5 fs-7">
+      <span class="badge badge-sga-primary px-3 py-2">
         <i class="bi bi-person-fill me-1"></i> Perfil: Aluno
       </span>
     </div>
@@ -18,67 +18,67 @@
 
   <div class="row g-3 g-lg-4">
     <div class="col-12 col-md-4">
-      <div class="card card-interactive h-100">
-        <div class="card-body p-4 d-flex flex-column">
-          <div class="d-flex align-items-center mb-3">
-            <div class="d-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-3 p-3 me-3" style="width: 48px; height: 48px;">
-              <i class="bi bi-card-checklist fs-4"></i>
+      <div class="sga-turma-card h-100 d-flex flex-column">
+        <div class="card-body p-4 d-flex flex-column flex-grow-1">
+          <div class="d-flex align-items-center mb-3 gap-3">
+            <div class="sga-icon-tile sga-icon-tile-primary">
+              <i class="bi bi-card-checklist"></i>
             </div>
             <div>
               <h6 class="fw-bold mb-0 text-dark">Matrículas</h6>
               <small class="text-muted">Período Letivo 2026/2</small>
             </div>
           </div>
-          <p class="text-muted small flex-grow-1">Consulte suas disciplinas matriculadas e os horários do semestre.</p>
-          <div class="pt-2">
-            <a href="{% url 'enrollment:index' %}" class="btn btn-outline-primary btn-sm w-100">
-              <i class="bi bi-arrow-right me-1"></i> Ver Disciplinas
-            </a>
-          </div>
+          <p class="text-muted small mb-0 flex-grow-1">Consulte suas disciplinas matriculadas e os horários do semestre.</p>
+        </div>
+        <div class="sga-card-footer">
+          <a href="{% url 'enrollment:index' %}" class="btn btn-outline-primary btn-sm w-100">
+            <i class="bi bi-arrow-right"></i> Ver Disciplinas
+          </a>
         </div>
       </div>
     </div>
 
     <div class="col-12 col-md-4">
-      <div class="card card-interactive h-100">
-        <div class="card-body p-4 d-flex flex-column">
-          <div class="d-flex align-items-center mb-3">
-            <div class="d-flex align-items-center justify-content-center bg-success-subtle text-success rounded-3 p-3 me-3" style="width: 48px; height: 48px;">
-              <i class="bi bi-mortarboard-fill fs-4"></i>
+      <div class="sga-turma-card h-100 d-flex flex-column">
+        <div class="card-body p-4 d-flex flex-column flex-grow-1">
+          <div class="d-flex align-items-center mb-3 gap-3">
+            <div class="sga-icon-tile sga-icon-tile-success">
+              <i class="bi bi-mortarboard-fill"></i>
             </div>
             <div>
-              <h6 class="fw-bold mb-0 text-dark">Boletim & Notas</h6>
+              <h6 class="fw-bold mb-0 text-dark">Boletim &amp; Notas</h6>
               <small class="text-muted">Avaliações e Médias</small>
             </div>
           </div>
-          <p class="text-muted small flex-grow-1">Acompanhe suas notas de P1, P2 e Trabalhos lançados pelos professores.</p>
-          <div class="pt-2">
-            <a href="{% url 'assessments:index' %}" class="btn btn-outline-success btn-sm w-100">
-              <i class="bi bi-arrow-right me-1"></i> Acessar Notas
-            </a>
-          </div>
+          <p class="text-muted small mb-0 flex-grow-1">Acompanhe suas notas de P1, P2 e Trabalhos lançados pelos professores.</p>
+        </div>
+        <div class="sga-card-footer">
+          <a href="{% url 'assessments:index' %}" class="btn btn-outline-success btn-sm w-100">
+            <i class="bi bi-arrow-right"></i> Acessar Notas
+          </a>
         </div>
       </div>
     </div>
 
     <div class="col-12 col-md-4">
-      <div class="card card-interactive h-100">
-        <div class="card-body p-4 d-flex flex-column">
-          <div class="d-flex align-items-center mb-3">
-            <div class="d-flex align-items-center justify-content-center bg-warning-subtle text-warning rounded-3 p-3 me-3" style="width: 48px; height: 48px;">
-              <i class="bi bi-calendar-check fs-4"></i>
+      <div class="sga-turma-card h-100 d-flex flex-column">
+        <div class="card-body p-4 d-flex flex-column flex-grow-1">
+          <div class="d-flex align-items-center mb-3 gap-3">
+            <div class="sga-icon-tile sga-icon-tile-warning">
+              <i class="bi bi-calendar-check"></i>
             </div>
             <div>
               <h6 class="fw-bold mb-0 text-dark">Frequência</h6>
               <small class="text-muted">Percentual de Presença</small>
             </div>
           </div>
-          <p class="text-muted small flex-grow-1">Verifique a contagem de faltas e mantenha sua frequência acima de 75%.</p>
-          <div class="pt-2">
-            <a href="{% url 'attendance:index' %}" class="btn btn-outline-warning btn-sm w-100">
-              <i class="bi bi-arrow-right me-1"></i> Ver Frequência
-            </a>
-          </div>
+          <p class="text-muted small mb-0 flex-grow-1">Verifique a contagem de faltas e mantenha sua frequência acima de 75%.</p>
+        </div>
+        <div class="sga-card-footer">
+          <a href="{% url 'attendance:index' %}" class="btn btn-outline-warning btn-sm w-100">
+            <i class="bi bi-arrow-right"></i> Ver Frequência
+          </a>
         </div>
       </div>
     </div>
