@@ -59,6 +59,52 @@ Monólito **Django** com renderização no servidor, sem SPA.
 
 Regras de negócio ficam em `services.py`, consultas reutilizáveis em `selectors.py` e permissões em decorators/mixins, revalidadas nos services. Operações concorrentes usam `transaction.atomic`, `select_for_update` e compare-and-set.
 
+### Diagrama de arquitetura
+
+```mermaid
+flowchart LR
+    B["Navegador<br/>HTML + Bootstrap 5 + HTMX"]
+    subgraph compose["Docker Compose"]
+        subgraph web["web · Django 5.1"]
+            MW["Middlewares<br/>sessão, CSRF e troca obrigatória de senha"]
+            V["views.py<br/>@role_required e RoleRequiredMixin"]
+            S["services.py<br/>regras e escritas em transaction.atomic"]
+            Q["selectors.py<br/>consultas, médias e frequência"]
+            M["models.py<br/>ORM, constraints e AuditoriaLog"]
+            T["templates/<br/>Django Templates"]
+        end
+        DB[("db · PostgreSQL 16")]
+        MP["mailpit · SMTP de teste"]
+    end
+    B -- "HTTP com cookie de sessão" --> MW --> V
+    V --> S
+    V --> Q
+    S --> M
+    Q --> M
+    M -- "SQL via psycopg 3" --> DB
+    V -- "renderiza" --> T
+    T -- "HTML pronto" --> B
+    S -- "e-mail de recuperação de senha" --> MP
+```
+
+A requisição chega à view, que confere o papel do usuário e chama um service (escrita) ou um selector (leitura). O service confere a permissão de novo, aplica a regra dentro de uma transação e grava pelo ORM. O PostgreSQL é a última barreira, com as constraints de cada tabela. A resposta volta como HTML renderizado no servidor.
+
+### Por que essa stack
+
+| Decisão | Motivo | Alternativa descartada |
+| --- | --- | --- |
+| Monólito Django 5.1 | O domínio é um só e as entidades se cruzam o tempo todo: uma matrícula liga aluno, turma, notas e frequência e roda numa única transação. O Django já traz autenticação, ORM, migrations, formulários com CSRF e admin. | Microsserviços: rede, consistência eventual e vários deploys sem ganho para o porte do sistema. |
+| Django Templates + Bootstrap 5 | As telas são formulários e tabelas. O HTML sai pronto do servidor e a permissão é conferida num lugar só. O Bootstrap entrega layout responsivo sem CSS próprio. | SPA em React: exigiria uma API, autenticação por token e permissões duplicadas no cliente. |
+| HTMX pontual | Atualiza parte da tela onde isso melhora o uso (catálogo acadêmico e horários da turma), sem escrever JavaScript. | JavaScript manual ou um framework de front-end. |
+| PostgreSQL 16 | As regras críticas também ficam no banco: CHECK (nota entre 0 e 10), índices únicos condicionais (uma matrícula ativa por turma) e `SELECT ... FOR UPDATE` para disputas de vaga. | SQLite em produção, que trava o arquivo inteiro a cada escrita. Ele fica só como opção para rodar os testes. |
+| Camadas `services` e `selectors` | A regra de negócio sai das views e dos templates, é testada sem HTTP e é reaproveitada por telas, relatórios e comandos. | Lógica nas views, difícil de testar e de reutilizar. |
+| Docker Compose | Ambiente idêntico em qualquer máquina com um comando: aplicação, banco e Mailpit. A instalação limpa foi validada assim. | Instalar Python e PostgreSQL manualmente em cada máquina. |
+| pytest + GitHub Actions | 574 testes, cobertura mínima de 85% e CI em SQLite e PostgreSQL a cada pull request. | Testar manualmente antes de cada entrega. |
+
+API pública, aplicativo mobile e IA foram estudados e ficaram fora desta entrega por decisão documentada: veja [SGA-13](docs/SGA-13-ESTUDO-API-INTEGRACOES.md) e [SGA-14](docs/SGA-14-ESTUDO-MOBILE-IA.md).
+
+### Apps
+
 | App | Responsabilidade |
 | --- | --- |
 | `accounts` | Usuário customizado (e-mail), papéis, login, troca e recuperação de senha, auditoria |
