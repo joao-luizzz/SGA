@@ -15,75 +15,75 @@
     {% if pode_gerenciar %}
       <div class="d-flex gap-2">
         <a href="{% url 'communications:gestao' %}" class="btn btn-outline-secondary">
-          <i class="bi bi-sliders me-1"></i>{% trans "Painel de Gestão" %}
+          <i class="bi bi-sliders"></i>{% trans "Painel de Gestão" %}
         </a>
         <a href="{% url 'communications:create' %}" class="btn btn-primary">
-          <i class="bi bi-plus-lg me-1"></i>{% trans "Publicar Comunicado" %}
+          <i class="bi bi-plus-lg"></i>{% trans "Publicar Comunicado" %}
         </a>
       </div>
     {% endif %}
   </div>
 
-  <div class="row g-4">
+  <div class="row g-3 g-lg-4">
     {% for com in comunicados %}
       <div class="col-lg-6">
-        <div class="card h-100 shadow-sm border-0 border-start border-4 {% if com.escopo == 'GERAL' %}border-primary{% elif com.escopo == 'CURSO' %}border-danger{% elif com.escopo == 'TURMA' %}border-success{% else %}border-info{% endif %} bg-white">
-          <div class="card-body d-flex flex-column p-4">
+        <div class="sga-post-card h-100 d-flex flex-column">
+          <div class="card-body d-flex flex-column flex-grow-1 p-4">
             <div class="d-flex align-items-center mb-2 flex-wrap gap-2">
-              <span class="badge {% if com.escopo == 'GERAL' %}bg-primary{% elif com.escopo == 'CURSO' %}bg-danger{% elif com.escopo == 'TURMA' %}bg-success{% else %}bg-info text-dark{% endif %}">
+              <span class="badge {% if com.escopo == 'GERAL' %}badge-sga-primary{% elif com.escopo == 'CURSO' %}badge-sga-danger{% elif com.escopo == 'TURMA' %}badge-sga-success{% else %}badge-sga-info{% endif %}">
                 {{ com.get_escopo_display }}
               </span>
 
               {% if com.papel_destino %}
-                <span class="badge bg-light text-dark border">
+                <span class="badge badge-sga-secondary">
                   <i class="bi bi-person-badge me-1"></i>{{ com.get_papel_destino_display }}
                 </span>
               {% endif %}
 
               {% if com.curso %}
-                <span class="badge bg-light text-dark border">
+                <span class="badge badge-sga-secondary">
                   <i class="bi bi-diagram-3 me-1"></i>{{ com.curso.nome }}
                 </span>
               {% endif %}
 
               {% if com.turma %}
-                <span class="badge bg-light text-dark border">
+                <span class="badge badge-sga-secondary">
                   <i class="bi bi-people me-1"></i>{{ com.turma.disciplina.nome }} ({{ com.turma.periodo_letivo }})
                 </span>
               {% endif %}
 
-              <small class="text-muted ms-auto">
-                <i class="bi bi-clock me-1"></i>{{ com.publicar_em|date:"d/m/Y H:i" }}
+              <small class="text-muted ms-auto d-inline-flex align-items-center gap-1">
+                <i class="bi bi-clock"></i>{{ com.publicar_em|date:"d/m/Y H:i" }}
               </small>
             </div>
 
-            <h5 class="card-title fw-bold text-dark mt-2 mb-2">
-              <a href="{% url 'communications:detail' com.pk %}" class="text-decoration-none text-dark hover-primary">
+            <h5 class="fw-bold mt-2 mb-2">
+              <a href="{% url 'communications:detail' com.pk %}" class="sga-post-title-link">
                 {{ com.titulo }}
               </a>
             </h5>
 
-            <p class="card-text text-muted flex-grow-1">
+            <p class="card-text text-muted small mb-0 flex-grow-1">
               {{ com.conteudo|truncatewords:35|linebreaksbr }}
             </p>
+          </div>
 
-            <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center">
-              <small class="text-muted">
-                <i class="bi bi-person-fill me-1"></i>{% trans "Por" %} <strong>{{ com.autor.full_name }}</strong> ({{ com.autor.get_role_display }})
-              </small>
-              <a href="{% url 'communications:detail' com.pk %}" class="btn btn-outline-primary btn-sm">
-                {% trans "Ler na íntegra" %} <i class="bi bi-arrow-right ms-1"></i>
-              </a>
-            </div>
+          <div class="sga-card-footer d-flex justify-content-between align-items-center gap-2 flex-wrap">
+            <small class="text-muted">
+              <i class="bi bi-person-fill me-1"></i>{% trans "Por" %} <strong class="text-dark">{{ com.autor.full_name }}</strong> ({{ com.autor.get_role_display }})
+            </small>
+            <a href="{% url 'communications:detail' com.pk %}" class="btn btn-outline-primary btn-sm">
+              {% trans "Ler na íntegra" %} <i class="bi bi-arrow-right"></i>
+            </a>
           </div>
         </div>
       </div>
     {% empty %}
       <div class="col-12">
-        <div class="card shadow-sm border-0 p-5 text-center bg-white">
-          <i class="bi bi-bell-slash text-muted display-4 mb-3"></i>
-          <h5 class="text-muted">{% trans "Nenhum comunicado ativo no momento." %}</h5>
-          <p class="text-muted small">{% trans "Novos avisos institucionais e acadêmicos serão exibidos aqui." %}</p>
+        <div class="card sga-empty-state">
+          <i class="bi bi-bell-slash display-5 mb-3 d-block"></i>
+          <h5 class="fw-semibold text-dark">{% trans "Nenhum comunicado ativo no momento." %}</h5>
+          <p class="text-muted small mb-0">{% trans "Novos avisos institucionais e acadêmicos serão exibidos aqui." %}</p>
         </div>
       </div>
     {% endfor %}

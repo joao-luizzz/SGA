@@ -1,14 +1,59 @@
 {% extends "base.html" %}
 {% block title %}Notificações — SGA{% endblock %}
-{% block content %}<div class="d-flex justify-content-between align-items-center mb-3">
-<h1 class="h4">Notificações</h1><form method="post" action="{% url 'notifications:ler_todas' %}">{% csrf_token %}<button class="btn btn-outline-primary">Marcar todas como lidas</button></form></div>
-<div class="list-group">{% for notificacao in page_obj %}
-<a class="list-group-item list-group-item-action" href="{% url 'notifications:detalhe' notificacao.pk %}">
-<strong>{{ notificacao.titulo }}</strong> {% if not notificacao.lida %}<span class="badge bg-primary">Não lida</span>{% endif %}
-<small class="d-block text-muted">{{ notificacao.get_tipo_display }} · {{ notificacao.criada_em }}</small>
-<p class="mb-0">{{ notificacao.mensagem }}</p></a>
-{% empty %}<p class="text-muted">Nenhuma notificação disponível.</p>{% endfor %}</div>
-<nav class="mt-3" aria-label="Paginação de notificações">
-{% if page_obj.has_previous %}<a class="btn btn-outline-secondary" href="?page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
-<span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-{% if page_obj.has_next %}<a class="btn btn-outline-secondary" href="?page={{ page_obj.next_page_number }}">Próxima</a>{% endif %}</nav>{% endblock %}
+{% block content %}
+<div class="container-fluid p-0">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-3 border-bottom">
+    <div>
+      <h1 class="page-title mb-1"><i class="bi bi-bell text-primary me-2"></i>Notificações</h1>
+      <p class="page-subtitle mb-0">Acompanhe alertas de notas, frequência e avisos direcionados ao seu perfil.</p>
+    </div>
+    <form method="post" action="{% url 'notifications:ler_todas' %}">
+      {% csrf_token %}
+      <button class="btn btn-outline-primary btn-sm" type="submit">
+        <i class="bi bi-check2-all"></i> Marcar todas como lidas
+      </button>
+    </form>
+  </div>
+
+  <div class="card overflow-hidden">
+    {% if page_obj %}
+    <div>
+      {% for notificacao in page_obj %}
+      <a class="sga-list-row" href="{% url 'notifications:detalhe' notificacao.pk %}">
+        <div class="min-w-0">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+            <strong class="text-dark">{{ notificacao.titulo }}</strong>
+            {% if not notificacao.lida %}<span class="badge badge-sga-primary">Não lida</span>{% endif %}
+          </div>
+          <small class="d-block text-muted mb-1">{{ notificacao.get_tipo_display }} · {{ notificacao.criada_em }}</small>
+          <p class="mb-0 small text-muted">{{ notificacao.mensagem }}</p>
+        </div>
+        <i class="bi bi-chevron-right text-muted flex-shrink-0"></i>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="sga-empty-state">
+      <i class="bi bi-bell-slash fs-2 d-block mb-2"></i>
+      <p class="mb-0">Nenhuma notificação disponível.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <nav class="d-flex justify-content-between align-items-center mt-3" aria-label="Paginação de notificações">
+    <div class="d-flex gap-2">
+      {% if page_obj.has_previous %}
+        <a class="btn btn-outline-secondary btn-sm" href="?page={{ page_obj.previous_page_number }}">
+          <i class="bi bi-chevron-left"></i> Anterior
+        </a>
+      {% endif %}
+      {% if page_obj.has_next %}
+        <a class="btn btn-outline-secondary btn-sm" href="?page={{ page_obj.next_page_number }}">
+          Próxima <i class="bi bi-chevron-right"></i>
+        </a>
+      {% endif %}
+    </div>
+    <span class="small text-muted">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+  </nav>
+</div>
+{% endblock %}

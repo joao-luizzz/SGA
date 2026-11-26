@@ -1,20 +1,37 @@
-<div class="card mt-4">
-  <div class="card-body p-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h6 class="fw-bold mb-0"><i class="bi bi-megaphone me-1 text-primary"></i> Comunicados recentes</h6>
-      <a href="{% url 'communications:mural' %}" class="small">Ver mural</a>
-    </div>
-    {% if comunicados_recentes %}
-    <ul class="list-group list-group-flush">
-      {% for comunicado in comunicados_recentes %}
-      <li class="list-group-item px-0">
-        <a href="{% url 'communications:detail' comunicado.pk %}" class="fw-semibold">{{ comunicado.titulo }}</a>
-        <small class="text-muted d-block">{{ comunicado.get_escopo_display }} · {{ comunicado.publicar_em|date:'d/m/Y H:i' }}</small>
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p class="text-muted small mb-0">Nenhum comunicado vigente para você.</p>
-    {% endif %}
+<div class="card mt-4 overflow-hidden">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
+      <i class="bi bi-megaphone text-primary"></i>
+      <span>Comunicados recentes</span>
+    </h6>
+    <a href="{% url 'communications:mural' %}" class="btn btn-outline-secondary btn-sm">
+      <span>Ver mural</span>
+      <i class="bi bi-arrow-right"></i>
+    </a>
   </div>
+  {% if comunicados_recentes %}
+  <div>
+    {% for comunicado in comunicados_recentes %}
+    <a href="{% url 'communications:detail' comunicado.pk %}" class="sga-list-row">
+      <div class="min-w-0">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+          <span class="badge {% if comunicado.escopo == 'GERAL' %}badge-sga-primary{% elif comunicado.escopo == 'CURSO' %}badge-sga-danger{% elif comunicado.escopo == 'TURMA' %}badge-sga-success{% else %}badge-sga-info{% endif %}">
+            {{ comunicado.get_escopo_display }}
+          </span>
+          <span class="fw-semibold text-dark">{{ comunicado.titulo }}</span>
+        </div>
+        <small class="text-muted d-inline-flex align-items-center gap-1">
+          <i class="bi bi-clock"></i>
+          <span>{{ comunicado.publicar_em|date:'d/m/Y H:i' }}</span>
+        </small>
+      </div>
+      <i class="bi bi-chevron-right text-muted flex-shrink-0"></i>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card-body">
+    <p class="text-muted small mb-0">Nenhum comunicado vigente para você.</p>
+  </div>
+  {% endif %}
 </div>

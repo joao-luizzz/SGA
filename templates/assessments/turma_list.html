@@ -10,23 +10,52 @@
     <p class="page-subtitle mb-0">{% trans "Selecione uma de suas turmas para lançar ou editar notas." %}</p>
   </div>
 
-  <div class="row g-3">
+  <div class="row g-3 g-lg-4">
     {% for turma in turmas %}
       <div class="col-md-6 col-xl-4">
-        <div class="card card-interactive h-100 border-top border-success border-3">
-          <div class="card-body p-4 d-flex flex-column">
-            <h5 class="card-title fw-bold">{{ turma.disciplina.nome }}</h5>
-            <p class="text-muted small mb-1">{{ turma.disciplina.codigo }} · {{ turma.periodo_letivo }}</p>
-            <p class="text-muted small flex-grow-1"><i class="bi bi-clock me-1"></i>{{ turma.horarios }}</p>
-            <a class="btn btn-success btn-sm" href="{% url 'assessments:turma_notas' turma.pk %}">
-              <i class="bi bi-pencil-square me-1"></i>{% trans "Lançar notas" %}
+        <div class="sga-turma-card h-100 d-flex flex-column">
+          <div class="card-body p-4 d-flex flex-column flex-grow-1">
+            <div class="d-flex align-items-start gap-3 mb-3">
+              <div class="sga-icon-tile sga-icon-tile-success">
+                <i class="bi bi-journal-check"></i>
+              </div>
+              <div class="min-w-0 flex-grow-1">
+                <h6 class="fw-bold text-dark mb-1">{{ turma.disciplina.nome }}</h6>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                  <span class="sga-code-pill">{{ turma.disciplina.codigo }}</span>
+                  <span class="badge badge-sga-secondary">{{ turma.periodo_letivo }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="sga-meta-list mt-auto pt-2">
+              <div class="sga-meta-item">
+                <i class="bi bi-clock"></i>
+                <span>{{ turma.horarios }}</span>
+              </div>
+              <div class="sga-meta-item">
+                <i class="bi bi-geo-alt"></i>
+                <span>{% trans "Sala:" %} {{ turma.sala|default:"—" }}</span>
+              </div>
+              <div class="sga-meta-item">
+                <i class="bi bi-people"></i>
+                <span>{{ turma.vagas_maximas }} {% trans "vagas" %}</span>
+              </div>
+            </div>
+          </div>
+          <div class="sga-card-footer">
+            <a class="btn btn-primary btn-sm w-100" href="{% url 'assessments:turma_notas' turma.pk %}">
+              <i class="bi bi-pencil-square"></i>{% trans "Lançar notas" %}
             </a>
           </div>
         </div>
       </div>
     {% empty %}
       <div class="col-12">
-        <div class="alert alert-info">{% trans "Você não possui turmas ativas alocadas." %}</div>
+        <div class="card sga-empty-state">
+          <i class="bi bi-journal-x fs-1 mb-2 d-block"></i>
+          <p class="mb-0">{% trans "Você não possui turmas ativas alocadas." %}</p>
+        </div>
       </div>
     {% endfor %}
   </div>

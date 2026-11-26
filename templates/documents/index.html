@@ -1,49 +1,89 @@
 {% extends 'base.html' %}
 {% block title %}Documentos acadêmicos — SGA{% endblock %}
 {% block content %}
-<h1 class="h3 mb-1">Documentos acadêmicos</h1>
-<p class="text-muted">Cada emissão gera um código de verificação e congela o conteúdo do documento. Terceiros podem conferir a autenticidade em <a href="{% url 'documents:verificar' %}">Verificar documento</a>.</p>
-
-<form method="post" action="{% url 'documents:emitir' %}" class="card card-body mb-4">
-  {% csrf_token %}
-  <h2 class="h5">Emitir documento</h2>
-  <div class="row g-2 align-items-end">
-    {% if e_secretaria %}
-    <div class="col-12 col-md-5">
-      <label class="form-label" for="{{ form.aluno.id_for_label }}">{{ form.aluno.label }}</label>
-      {{ form.aluno }}
+<div class="container-fluid p-0">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-3 border-bottom">
+    <div>
+      <h1 class="page-title mb-1"><i class="bi bi-file-earmark-text text-primary me-2"></i>Documentos acadêmicos</h1>
+      <p class="page-subtitle mb-0">
+        Cada emissão gera um código de verificação e congela o conteúdo do documento. Terceiros podem conferir a autenticidade em
+        <a href="{% url 'documents:verificar' %}" class="fw-medium">Verificar documento</a>.
+      </p>
     </div>
-    {% endif %}
-    <div class="col-12 col-md-4">
-      <label class="form-label" for="{{ form.tipo.id_for_label }}">{{ form.tipo.label }}</label>
-      {{ form.tipo }}
-    </div>
-    <div class="col-auto"><button class="btn btn-primary" type="submit">Emitir</button></div>
   </div>
-</form>
 
-<h2 class="h5">{% if e_secretaria %}Documentos emitidos{% else %}Meus documentos{% endif %}</h2>
-<div class="table-responsive">
-  <table class="table table-hover align-middle">
-    <thead><tr><th>Documento</th>{% if e_secretaria %}<th>Aluno</th>{% endif %}<th>Emitido em</th><th>Código</th><th></th></tr></thead>
-    <tbody>
-      {% for documento in page_obj %}
-      <tr>
-        <td>{{ documento.get_tipo_display }}</td>
-        {% if e_secretaria %}<td>{{ documento.aluno.full_name }}</td>{% endif %}
-        <td>{{ documento.emitido_em|date:'d/m/Y H:i' }}</td>
-        <td><code>{{ documento.codigo_formatado }}</code></td>
-        <td><a class="btn btn-sm btn-outline-primary" href="{% url 'documents:detalhe' documento.pk %}">Abrir</a></td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5" class="text-muted">Nenhum documento emitido.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <form method="post" action="{% url 'documents:emitir' %}" class="sga-filter-card mb-4">
+    {% csrf_token %}
+    <div class="card-header">
+      <h2 class="h6 fw-bold mb-0"><i class="bi bi-file-earmark-plus text-primary me-2"></i>Emitir documento</h2>
+    </div>
+    <div class="card-body p-3 p-md-4">
+      <div class="row g-3 align-items-end">
+        {% if e_secretaria %}
+        <div class="col-12 col-md-5">
+          <label class="form-label sga-filter-label d-block" for="{{ form.aluno.id_for_label }}">{{ form.aluno.label }}</label>
+          {{ form.aluno }}
+        </div>
+        {% endif %}
+        <div class="col-12 col-md-4">
+          <label class="form-label sga-filter-label d-block" for="{{ form.tipo.id_for_label }}">{{ form.tipo.label }}</label>
+          {{ form.tipo }}
+        </div>
+        <div class="col-12 col-md-auto">
+          <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-check-lg"></i> Emitir</button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="card overflow-hidden">
+    <div class="card-header">
+      <h2 class="h6 fw-bold mb-0">{% if e_secretaria %}Documentos emitidos{% else %}Meus documentos{% endif %}</h2>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sga align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Documento</th>
+            {% if e_secretaria %}<th>Aluno</th>{% endif %}
+            <th>Emitido em</th>
+            <th>Código</th>
+            <th class="text-end">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for documento in page_obj %}
+          <tr>
+            <td class="fw-semibold text-dark">{{ documento.get_tipo_display }}</td>
+            {% if e_secretaria %}<td>{{ documento.aluno.full_name }}</td>{% endif %}
+            <td class="text-muted">{{ documento.emitido_em|date:'d/m/Y H:i' }}</td>
+            <td><span class="sga-code-pill">{{ documento.codigo_formatado }}</span></td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'documents:detalhe' documento.pk %}">Abrir</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4">Nenhum documento emitido.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <nav class="d-flex justify-content-between align-items-center mt-3" aria-label="Paginação de documentos">
+    <div class="d-flex gap-2">
+      {% if page_obj.has_previous %}
+        <a class="btn btn-outline-secondary btn-sm" href="?page={{ page_obj.previous_page_number }}">
+          <i class="bi bi-chevron-left"></i> Anterior
+        </a>
+      {% endif %}
+      {% if page_obj.has_next %}
+        <a class="btn btn-outline-secondary btn-sm" href="?page={{ page_obj.next_page_number }}">
+          Próxima <i class="bi bi-chevron-right"></i>
+        </a>
+      {% endif %}
+    </div>
+    <span class="small text-muted">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+  </nav>
 </div>
-<nav class="d-flex gap-2 align-items-center" aria-label="Paginação de documentos">
-  {% if page_obj.has_previous %}<a class="btn btn-outline-secondary btn-sm" href="?page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
-  <span class="small">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-  {% if page_obj.has_next %}<a class="btn btn-outline-secondary btn-sm" href="?page={{ page_obj.next_page_number }}">Próxima</a>{% endif %}
-</nav>
 {% endblock %}
