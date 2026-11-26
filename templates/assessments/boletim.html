@@ -10,7 +10,7 @@
     <p class="page-subtitle mb-0">{% trans "Notas, médias, frequência e situação calculadas por matrícula." %}</p>
   </div>
 
-  <div class="card border shadow-xs overflow-hidden">
+  <div class="card overflow-hidden">
     <div class="table-responsive">
       <table class="table table-sga align-middle mb-0">
         <thead>
@@ -23,15 +23,22 @@
         <tbody>
           {% for item in boletim %}
             <tr>
-              <td class="ps-3"><strong>{{ item.matricula.turma.disciplina.nome }}</strong><div class="small text-muted">{{ item.matricula.turma.periodo_letivo }}</div></td>
+              <td class="ps-3">
+                <strong class="text-dark">{{ item.matricula.turma.disciplina.nome }}</strong>
+                <div class="small text-muted">{{ item.matricula.turma.periodo_letivo }}</div>
+              </td>
               <td>{{ item.p1|default_if_none:"—" }}</td>
               <td>{{ item.p2|default_if_none:"—" }}</td>
               <td>{{ item.trabalho|default_if_none:"—" }}</td>
               <td>{{ item.exame|default_if_none:"—" }}</td>
-              <td>{{ item.media_parcial|default_if_none:"—" }}</td>
-              <td>{{ item.media_final|default_if_none:"—" }}</td>
+              <td class="fw-semibold">{{ item.media_parcial|default_if_none:"—" }}</td>
+              <td class="fw-semibold">{{ item.media_final|default_if_none:"—" }}</td>
               <td>{{ item.frequencia.percentual }}%</td>
-              <td><span class="badge text-bg-secondary">{{ item.situacao }}</span></td>
+              <td>
+                <span class="badge {% if 'Aprovado' in item.situacao %}badge-sga-success{% elif 'Exame' in item.situacao %}badge-sga-warning{% elif 'Reprovado' in item.situacao %}badge-sga-danger{% else %}badge-sga-secondary{% endif %}">
+                  {{ item.situacao }}
+                </span>
+              </td>
             </tr>
           {% empty %}
             <tr><td colspan="9" class="text-center text-muted py-4">{% trans "Você não possui matrículas ativas." %}</td></tr>

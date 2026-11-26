@@ -9,51 +9,54 @@
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
     <div>
       <h3 class="page-title mb-1">
-        <i class="bi bi-journal-album text-primary me-1.5"></i> {% trans "Catálogo Acadêmico" %}
+        <i class="bi bi-journal-album text-primary me-2"></i>{% trans "Catálogo Acadêmico" %}
       </h3>
       <p class="page-subtitle mb-0">{% trans "Gerencie a matriz curricular, cursos, disciplinas e abertura de turmas da instituição." %}</p>
     </div>
     <div class="d-flex flex-wrap gap-2">
       <a href="{% url 'academics:curso_create' %}" class="btn btn-outline-primary btn-sm">
-        <i class="bi bi-plus-lg me-1"></i> {% trans "Novo Curso" %}
+        <i class="bi bi-plus-lg"></i> {% trans "Novo Curso" %}
       </a>
       <a href="{% url 'academics:disciplina_create' %}" class="btn btn-outline-primary btn-sm">
-        <i class="bi bi-plus-lg me-1"></i> {% trans "Nova Disciplina" %}
+        <i class="bi bi-plus-lg"></i> {% trans "Nova Disciplina" %}
       </a>
-      <a href="{% url 'academics:turma_create' %}" class="btn btn-primary btn-sm shadow-sm">
-        <i class="bi bi-plus-lg me-1"></i> {% trans "Abrir Turma" %}
+      <a href="{% url 'academics:turma_create' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> {% trans "Abrir Turma" %}
       </a>
     </div>
   </div>
 
   <!-- Abas do Catálogo -->
-  <ul class="nav nav-pills gap-2 mb-4 bg-light-subtle p-1.5 rounded-3 border" id="catalogTabs" role="tablist">
+  <ul class="nav nav-pills gap-2 mb-4 bg-white p-2 rounded-3 border shadow-xs" id="catalogTabs" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active btn-sm d-flex align-items-center" id="cursos-tab" data-bs-toggle="tab" data-bs-target="#cursos" type="button" role="tab" aria-controls="cursos" aria-selected="true">
-        <i class="bi bi-mortarboard-fill me-1.5 text-primary"></i> {% trans "Cursos de Graduação" %}
-        <span class="badge bg-secondary-subtle text-secondary-emphasis border ms-2">{{ cursos|length }}</span>
+      <button class="nav-link active btn-sm d-flex align-items-center gap-2" id="cursos-tab" data-bs-toggle="tab" data-bs-target="#cursos" type="button" role="tab" aria-controls="cursos" aria-selected="true">
+        <i class="bi bi-mortarboard-fill text-primary"></i>
+        <span>{% trans "Cursos de Graduação" %}</span>
+        <span class="badge bg-secondary-subtle text-secondary-emphasis border">{{ cursos|length }}</span>
       </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link btn-sm d-flex align-items-center" id="disciplinas-tab" data-bs-toggle="tab" data-bs-target="#disciplinas" type="button" role="tab" aria-controls="disciplinas" aria-selected="false">
-        <i class="bi bi-book-half me-1.5 text-success"></i> {% trans "Disciplinas Curriculares" %}
-        <span class="badge bg-secondary-subtle text-secondary-emphasis border ms-2">{{ disciplinas|length }}</span>
+      <button class="nav-link btn-sm d-flex align-items-center gap-2" id="disciplinas-tab" data-bs-toggle="tab" data-bs-target="#disciplinas" type="button" role="tab" aria-controls="disciplinas" aria-selected="false">
+        <i class="bi bi-book-half text-success"></i>
+        <span>{% trans "Disciplinas Curriculares" %}</span>
+        <span class="badge bg-secondary-subtle text-secondary-emphasis border">{{ disciplinas|length }}</span>
       </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link btn-sm d-flex align-items-center" id="turmas-tab" data-bs-toggle="tab" data-bs-target="#turmas" type="button" role="tab" aria-controls="turmas" aria-selected="false">
-        <i class="bi bi-calendar3 me-1.5 text-warning"></i> {% trans "Turmas Oferecidas" %}
-        <span class="badge bg-secondary-subtle text-secondary-emphasis border ms-2">{{ turmas|length }}</span>
+      <button class="nav-link btn-sm d-flex align-items-center gap-2" id="turmas-tab" data-bs-toggle="tab" data-bs-target="#turmas" type="button" role="tab" aria-controls="turmas" aria-selected="false">
+        <i class="bi bi-calendar3 text-warning"></i>
+        <span>{% trans "Turmas Oferecidas" %}</span>
+        <span class="badge bg-secondary-subtle text-secondary-emphasis border">{{ turmas|length }}</span>
       </button>
     </li>
   </ul>
 
   <!-- Conteúdo das Abas -->
   <div class="tab-content" id="catalogTabsContent">
-    
+
     <!-- Aba de Cursos -->
     <div class="tab-pane fade show active" id="cursos" role="tabpanel" aria-labelledby="cursos-tab">
-      <div class="card border shadow-xs overflow-hidden">
+      <div class="card overflow-hidden">
         <div class="card-body p-0">
           <div class="table-responsive">
             <table class="table table-sga align-middle mb-0">
@@ -70,7 +73,7 @@
                 {% for curso in cursos %}
                   <tr {% if not curso.ativo %}class="text-muted bg-light-subtle"{% endif %}>
                     <td class="ps-4">
-                      <code class="fw-bold px-2 py-0.5 bg-light border rounded text-primary" style="font-size: 0.8rem;">{{ curso.codigo }}</code>
+                      <span class="sga-code-pill">{{ curso.codigo }}</span>
                     </td>
                     <td>
                       <div class="fw-semibold text-dark">{{ curso.nome }}</div>
@@ -122,7 +125,7 @@
                       <div class="text-muted">
                         <i class="bi bi-mortarboard display-5 d-block mb-3 text-secondary"></i>
                         <h6 class="fw-bold">{% trans "Nenhum curso cadastrado" %}</h6>
-                        <p class="small">{% trans "Clique em 'Novo Curso' para iniciar o catálogo." %}</p>
+                        <p class="small mb-0">{% trans "Clique em 'Novo Curso' para iniciar o catálogo." %}</p>
                       </div>
                     </td>
                   </tr>
@@ -136,7 +139,7 @@
 
     <!-- Aba de Disciplinas -->
     <div class="tab-pane fade" id="disciplinas" role="tabpanel" aria-labelledby="disciplinas-tab">
-      <div class="card border shadow-xs overflow-hidden">
+      <div class="card overflow-hidden">
         <div class="card-body p-0">
           <div class="table-responsive">
             <table class="table table-sga align-middle mb-0">
@@ -154,7 +157,7 @@
                 {% for disciplina in disciplinas %}
                   <tr {% if not disciplina.ativo %}class="text-muted bg-light-subtle"{% endif %}>
                     <td class="ps-4">
-                      <code class="fw-bold px-2 py-0.5 bg-light border rounded text-danger" style="font-size: 0.8rem;">{{ disciplina.codigo }}</code>
+                      <span class="sga-code-pill">{{ disciplina.codigo }}</span>
                     </td>
                     <td>
                       <div class="fw-semibold text-dark">{{ disciplina.nome }}</div>
@@ -162,7 +165,7 @@
                     <td>
                       <div class="text-muted fw-medium small">{{ disciplina.curso.nome }}</div>
                       {% if not disciplina.curso.ativo %}
-                        <span class="badge badge-sga-warning p-1" style="font-size: 0.68rem;">
+                        <span class="badge badge-sga-warning py-1 mt-1" style="font-size: 0.68rem;">
                           {% trans "Curso Inativo" %}
                         </span>
                       {% endif %}
@@ -212,7 +215,7 @@
                       <div class="text-muted">
                         <i class="bi bi-book display-5 d-block mb-3 text-secondary"></i>
                         <h6 class="fw-bold">{% trans "Nenhuma disciplina cadastrada" %}</h6>
-                        <p class="small">{% trans "Clique em 'Nova Disciplina' para iniciar o catálogo." %}</p>
+                        <p class="small mb-0">{% trans "Clique em 'Nova Disciplina' para iniciar o catálogo." %}</p>
                       </div>
                     </td>
                   </tr>
@@ -226,7 +229,7 @@
 
     <!-- Aba de Turmas -->
     <div class="tab-pane fade" id="turmas" role="tabpanel" aria-labelledby="turmas-tab">
-      <div class="card border shadow-xs overflow-hidden">
+      <div class="card overflow-hidden">
         <div class="card-body p-0">
           <div class="table-responsive">
             <table class="table table-sga align-middle mb-0">
@@ -320,7 +323,7 @@
                       <div class="text-muted">
                         <i class="bi bi-calendar3 display-5 d-block mb-3 text-secondary"></i>
                         <h6 class="fw-bold">{% trans "Nenhuma turma cadastrada" %}</h6>
-                        <p class="small">{% trans "Clique em 'Abrir Turma' para iniciar a oferta de disciplinas." %}</p>
+                        <p class="small mb-0">{% trans "Clique em 'Abrir Turma' para iniciar a oferta de disciplinas." %}</p>
                       </div>
                     </td>
                   </tr>

@@ -1,33 +1,97 @@
 {% extends 'base.html' %}
 {% block title %}Transferências — SGA{% endblock %}
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-  <h1 class="h3 mb-0">Transferências</h1>
-  {% if pode_criar %}<a class="btn btn-primary" href="{% url 'transfers:criar' %}">Registrar transferência</a>{% endif %}
-</div>
-{% include 'transfers/_aviso.html' %}
-<form method="get" class="card card-body mb-4">
-  <div class="row">
-    {% for field in filtros %}<div class="col-md-4 mb-2"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endfor %}
+<div class="container-fluid p-0">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-3 border-bottom">
+    <div>
+      <h1 class="page-title mb-1"><i class="bi bi-arrow-left-right text-primary me-2"></i>Transferências</h1>
+      <p class="page-subtitle mb-0">Acompanhe solicitações de transferência de entrada e saída.</p>
+    </div>
+    {% if pode_criar %}
+      <a class="btn btn-primary btn-sm" href="{% url 'transfers:criar' %}">
+        <i class="bi bi-plus-lg"></i> Registrar transferência
+      </a>
+    {% endif %}
   </div>
-  <div><button class="btn btn-outline-primary" type="submit">Filtrar</button> <a href="{% url 'transfers:index' %}" class="btn btn-outline-secondary">Limpar</a></div>
-</form>
-<div class="card table-responsive">
-<table class="table table-hover align-middle mb-0">
-  <caption class="px-3">Solicitações visíveis para seu perfil</caption>
-  <thead><tr><th scope="col">Protocolo</th><th scope="col">Aluno</th><th scope="col">Tipo</th><th scope="col">Curso interno</th><th scope="col">Situação</th><th scope="col">Registrada em</th></tr></thead>
-  <tbody>
-  {% for registro in page_obj %}
-    <tr><td><a href="{% url 'transfers:detalhe' registro.pk %}">#{{ registro.pk }}</a></td><td>{{ registro.aluno.full_name }}</td><td>{{ registro.get_tipo_display }}</td><td>{{ registro.curso.nome }}</td><td>{{ registro.get_status_display }}</td><td>{{ registro.solicitada_em|date:'d/m/Y H:i' }}</td></tr>
-  {% empty %}<tr><td colspan="6" class="text-center py-4">Nenhuma solicitação encontrada.</td></tr>{% endfor %}
-  </tbody>
-</table>
+
+  {% include 'transfers/_aviso.html' %}
+
+  <form method="get" class="sga-filter-card mb-4">
+    <div class="card-body p-3 p-md-4">
+      <div class="row g-3 align-items-end">
+        {% for field in filtros %}
+          <div class="col-12 col-md-4">
+            <label class="form-label sga-filter-label d-block" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {{ field.errors }}
+          </div>
+        {% endfor %}
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-funnel"></i> Filtrar</button>
+        <a href="{% url 'transfers:index' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-lg"></i> Limpar</a>
+      </div>
+    </div>
+  </form>
+
+  <div class="card overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-sga align-middle mb-0">
+        <caption class="px-3 pt-3 pb-1 text-muted small">Solicitações visíveis para seu perfil</caption>
+        <thead>
+          <tr>
+            <th scope="col">Protocolo</th>
+            <th scope="col">Aluno</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Curso interno</th>
+            <th scope="col">Situação</th>
+            <th scope="col">Registrada em</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for registro in page_obj %}
+          <tr>
+            <td>
+              <a href="{% url 'transfers:detalhe' registro.pk %}" class="sga-code-pill text-decoration-none">#{{ registro.pk }}</a>
+            </td>
+            <td class="fw-semibold text-dark">{{ registro.aluno.full_name }}</td>
+            <td>
+              <span class="badge {% if registro.tipo == 'ENTRADA' %}badge-sga-info{% else %}badge-sga-secondary{% endif %}">
+                {{ registro.get_tipo_display }}
+              </span>
+            </td>
+            <td class="text-muted">{{ registro.curso.nome }}</td>
+            <td>
+              <span class="badge {% if registro.status == 'APROVADA' %}badge-sga-success{% elif registro.status == 'RECUSADA' %}badge-sga-danger{% else %}badge-sga-warning{% endif %}">
+                {{ registro.get_status_display }}
+              </span>
+            </td>
+            <td class="text-muted small">{{ registro.solicitada_em|date:'d/m/Y H:i' }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">Nenhuma solicitação encontrada.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <nav aria-label="Paginação de transferências" class="d-flex justify-content-between align-items-center mt-3">
+    <div class="d-flex gap-2">
+      {% if page_obj.has_previous %}
+        <a class="btn btn-outline-secondary btn-sm" href="?{{ parametros }}&amp;page={{ page_obj.previous_page_number }}">
+          <i class="bi bi-chevron-left"></i> Anterior
+        </a>
+      {% endif %}
+      {% if page_obj.has_next %}
+        <a class="btn btn-outline-secondary btn-sm" href="?{{ parametros }}&amp;page={{ page_obj.next_page_number }}">
+          Próxima <i class="bi bi-chevron-right"></i>
+        </a>
+      {% endif %}
+    </div>
+    <span class="small text-muted">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+  </nav>
+  {% endif %}
 </div>
-{% if page_obj.has_other_pages %}
-<nav aria-label="Paginação de transferências" class="d-flex gap-3 align-items-center mt-3">
-  {% if page_obj.has_previous %}<a href="?{{ parametros }}&amp;page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
-  <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-  {% if page_obj.has_next %}<a href="?{{ parametros }}&amp;page={{ page_obj.next_page_number }}">Próxima</a>{% endif %}
-</nav>
-{% endif %}
 {% endblock %}

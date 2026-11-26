@@ -6,18 +6,18 @@
 <div class="container-fluid p-0">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
     <div>
-      <h3 class="page-title mb-1">Gestão de Matrículas</h3>
+      <h3 class="page-title mb-1"><i class="bi bi-person-lines-fill text-primary me-2"></i>Gestão de Matrículas</h3>
       <p class="page-subtitle mb-0">Consulte o histórico e atualize vínculos acadêmicos ativos.</p>
     </div>
-    <a href="{% url 'enrollment:matricula_create' %}" class="btn btn-primary">
-      <i class="bi bi-plus-circle me-1"></i> Nova matrícula
+    <a href="{% url 'enrollment:matricula_create' %}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-lg"></i> Nova matrícula
     </a>
   </div>
 
-  <div class="card shadow-sm">
+  <div class="card overflow-hidden">
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
+      <table class="table table-sga align-middle mb-0">
+        <thead>
           <tr>
             <th class="ps-3">Aluno</th>
             <th>Turma</th>
@@ -29,10 +29,14 @@
         <tbody>
           {% for matricula in matriculas %}
           <tr>
-            <td class="ps-3">{{ matricula.aluno.full_name }}</td>
+            <td class="ps-3 fw-semibold text-dark">{{ matricula.aluno.full_name }}</td>
             <td>{{ matricula.turma.disciplina.nome }}</td>
-            <td>{{ matricula.turma.periodo_letivo }}</td>
-            <td><span class="badge text-bg-secondary">{{ matricula.get_status_display }}</span></td>
+            <td><span class="badge badge-sga-secondary">{{ matricula.turma.periodo_letivo }}</span></td>
+            <td>
+              <span class="badge {% if matricula.esta_ativa %}badge-sga-success{% else %}badge-sga-secondary{% endif %}">
+                {{ matricula.get_status_display }}
+              </span>
+            </td>
             <td class="text-end pe-3">
               {% if matricula.esta_ativa %}
               <div class="btn-group btn-group-sm" role="group" aria-label="Alterar status da matrícula">

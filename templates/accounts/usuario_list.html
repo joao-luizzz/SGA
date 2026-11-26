@@ -2,70 +2,75 @@
 {% load static %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>{{ title }}</h2>
-        <div>
-            <a href="{% url 'accounts:usuario_create' %}?tipo=aluno" class="btn btn-primary me-2">
-                <i class="bi bi-plus-circle"></i> Novo Aluno
-            </a>
-            <a href="{% url 'accounts:usuario_create' %}?tipo=professor" class="btn btn-secondary">
-                <i class="bi bi-plus-circle"></i> Novo Professor
-            </a>
-        </div>
+<div class="container-fluid p-0">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+    <div>
+      <h2 class="page-title mb-1"><i class="bi bi-people-fill text-primary me-2"></i>{{ title }}</h2>
+      <p class="page-subtitle mb-0">Cadastre, edite e controle o status dos usuários cadastrados no SGA.</p>
     </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="{% url 'accounts:usuario_create' %}?tipo=aluno" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Novo Aluno
+      </a>
+      <a href="{% url 'accounts:usuario_create' %}?tipo=professor" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Novo Professor
+      </a>
+    </div>
+  </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <table class="table table-hover align-middle table-sga">
-                <thead class="table-light">
-                    <tr>
-                        <th>Nome</th>
-                        <th>E-mail</th>
-                        <th>Perfil</th>
-                        <th>Status</th>
-                        <th class="text-end">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for usuario in usuarios %}
-                    <tr>
-                        <td>{{ usuario.full_name }}</td>
-                        <td>{{ usuario.email }}</td>
-                        <td><span class="badge bg-info text-dark">{{ usuario.get_role_display }}</span></td>
-                        <td>
-                            {% if usuario.is_active %}
-                            <span class="badge bg-success">Ativo</span>
-                            {% else %}
-                            <span class="badge bg-danger">Inativo</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-end">
-                            <a href="{% url 'accounts:usuario_edit' usuario.id %}" class="btn btn-sm btn-outline-primary" title="Editar">
-                                Editar
-                            </a>
-                            <form method="POST" action="{% url 'accounts:usuario_toggle_active' usuario.id %}" class="d-inline">
-                                {% csrf_token %}
-                                {% if usuario.is_active %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Inativar">
-                                    Inativar
-                                </button>
-                                {% else %}
-                                <button type="submit" class="btn btn-sm btn-outline-success" title="Ativar">
-                                    Ativar
-                                </button>
-                                {% endif %}
-                            </form>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center text-muted">Nenhum usuário cadastrado.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+  <div class="card overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-sga align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>Perfil</th>
+            <th>Status</th>
+            <th class="text-end">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for usuario in usuarios %}
+          <tr>
+            <td class="fw-semibold text-dark">{{ usuario.full_name }}</td>
+            <td class="text-muted">{{ usuario.email }}</td>
+            <td><span class="badge badge-sga-info">{{ usuario.get_role_display }}</span></td>
+            <td>
+              {% if usuario.is_active %}
+              <span class="badge badge-sga-success">Ativo</span>
+              {% else %}
+              <span class="badge badge-sga-danger">Inativo</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <div class="btn-group btn-group-sm" role="group">
+                <a href="{% url 'accounts:usuario_edit' usuario.id %}" class="btn btn-outline-secondary" title="Editar">
+                  Editar
+                </a>
+                <form method="POST" action="{% url 'accounts:usuario_toggle_active' usuario.id %}" class="d-inline">
+                  {% csrf_token %}
+                  {% if usuario.is_active %}
+                  <button type="submit" class="btn btn-outline-danger" title="Inativar">
+                    Inativar
+                  </button>
+                  {% else %}
+                  <button type="submit" class="btn btn-outline-success" title="Ativar">
+                    Ativar
+                  </button>
+                  {% endif %}
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">Nenhum usuário cadastrado.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+  </div>
 </div>
 {% endblock %}

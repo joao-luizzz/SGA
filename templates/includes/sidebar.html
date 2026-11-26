@@ -1,92 +1,93 @@
 {% if user.is_authenticated %}
 <aside class="sidebar-custom p-3 h-100">
+  {% with url_name=request.resolver_match.url_name app_name=request.resolver_match.app_name %}
   <div class="sidebar-category">
     Navegação
   </div>
 
-  <nav class="d-flex flex-column gap-1">
-    <a href="{% url 'accounts:dashboard' %}" class="sidebar-link">
+  <nav class="d-flex flex-column gap-1" aria-label="Menu principal">
+    <a href="{% url 'accounts:dashboard' %}" class="sidebar-link{% if app_name == 'accounts' and url_name == 'dashboard' or app_name == 'accounts' and url_name == 'dashboard_aluno' or app_name == 'accounts' and url_name == 'dashboard_professor' or app_name == 'accounts' and url_name == 'dashboard_secretaria' or app_name == 'accounts' and url_name == 'dashboard_coordenacao' %} active{% endif %}"{% if app_name == 'accounts' and url_name == 'dashboard' or app_name == 'accounts' and url_name == 'dashboard_aluno' or app_name == 'accounts' and url_name == 'dashboard_professor' or app_name == 'accounts' and url_name == 'dashboard_secretaria' or app_name == 'accounts' and url_name == 'dashboard_coordenacao' %} aria-current="page"{% endif %}>
       <i class="bi bi-grid-1x2 text-primary"></i>
       <span>Visão Geral</span>
     </a>
 
-    <a href="{% url 'communications:mural' %}" class="sidebar-link">
+    <a href="{% url 'communications:mural' %}" class="sidebar-link{% if app_name == 'communications' and url_name == 'mural' or app_name == 'communications' and url_name == 'detail' %} active{% endif %}"{% if app_name == 'communications' and url_name == 'mural' or app_name == 'communications' and url_name == 'detail' %} aria-current="page"{% endif %}>
       <i class="bi bi-megaphone text-primary"></i>
       <span>Mural de Avisos</span>
     </a>
 
-    <a href="{% url 'academics:grade_horaria' %}" class="sidebar-link">
+    <a href="{% url 'academics:grade_horaria' %}" class="sidebar-link{% if app_name == 'academics' and url_name == 'grade_horaria' %} active{% endif %}"{% if app_name == 'academics' and url_name == 'grade_horaria' %} aria-current="page"{% endif %}>
       <i class="bi bi-calendar3 text-primary"></i>
       <span>Grade Horária</span>
     </a>
 
     {% if user.role == 'ALUNO' %}
-      <a href="{% url 'enrollment:index' %}" class="sidebar-link">
+      <a href="{% url 'enrollment:index' %}" class="sidebar-link{% if app_name == 'enrollment' %} active{% endif %}"{% if app_name == 'enrollment' %} aria-current="page"{% endif %}>
         <i class="bi bi-card-checklist text-info"></i>
         <span>Minhas Matrículas</span>
       </a>
-      <a href="{% url 'assessments:index' %}" class="sidebar-link">
+      <a href="{% url 'assessments:index' %}" class="sidebar-link{% if app_name == 'assessments' %} active{% endif %}"{% if app_name == 'assessments' %} aria-current="page"{% endif %}>
         <i class="bi bi-mortarboard text-success"></i>
         <span>Minhas Notas</span>
       </a>
-      <a href="{% url 'attendance:boletim_frequencia' %}" class="sidebar-link">
+      <a href="{% url 'attendance:boletim_frequencia' %}" class="sidebar-link{% if app_name == 'attendance' %} active{% endif %}"{% if app_name == 'attendance' %} aria-current="page"{% endif %}>
         <i class="bi bi-calendar-check text-warning"></i>
         <span>Frequência</span>
       </a>
-      <a href="{% url 'materials:index' %}" class="sidebar-link">
+      <a href="{% url 'materials:index' %}" class="sidebar-link{% if app_name == 'materials' %} active{% endif %}"{% if app_name == 'materials' %} aria-current="page"{% endif %}>
         <i class="bi bi-folder2-open text-primary"></i>
         <span>Materiais de Aula</span>
       </a>
-      <a href="{% url 'documents:index' %}" class="sidebar-link">
+      <a href="{% url 'documents:index' %}" class="sidebar-link{% if app_name == 'documents' %} active{% endif %}"{% if app_name == 'documents' %} aria-current="page"{% endif %}>
         <i class="bi bi-file-earmark-text text-primary"></i>
         <span>Meus Documentos</span>
       </a>
-      <a href="{% url 'finance:index' %}" class="sidebar-link">
+      <a href="{% url 'finance:index' %}" class="sidebar-link{% if app_name == 'finance' %} active{% endif %}"{% if app_name == 'finance' %} aria-current="page"{% endif %}>
         <i class="bi bi-cash-coin text-success"></i>
         <span>Meu Financeiro</span>
       </a>
     {% endif %}
 
     {% if user.role == 'PROFESSOR' %}
-      <a href="{% url 'assessments:index' %}" class="sidebar-link">
+      <a href="{% url 'assessments:index' %}" class="sidebar-link{% if app_name == 'assessments' %} active{% endif %}"{% if app_name == 'assessments' %} aria-current="page"{% endif %}>
         <i class="bi bi-journal-text text-success"></i>
         <span>Turmas & Avaliações</span>
       </a>
-      <a href="{% url 'attendance:chamada_index' %}" class="sidebar-link">
+      <a href="{% url 'attendance:chamada_index' %}" class="sidebar-link{% if app_name == 'attendance' %} active{% endif %}"{% if app_name == 'attendance' %} aria-current="page"{% endif %}>
         <i class="bi bi-person-check text-warning"></i>
         <span>Registro de Frequência</span>
       </a>
-      <a href="{% url 'materials:index' %}" class="sidebar-link">
+      <a href="{% url 'materials:index' %}" class="sidebar-link{% if app_name == 'materials' %} active{% endif %}"{% if app_name == 'materials' %} aria-current="page"{% endif %}>
         <i class="bi bi-folder2-open text-primary"></i>
         <span>Materiais de Aula</span>
       </a>
     {% endif %}
 
     {% if user.role == 'SECRETARIA' %}
-      <a href="{% url 'accounts:usuario_list' %}" class="sidebar-link">
+      <a href="{% url 'accounts:usuario_list' %}" class="sidebar-link{% if app_name == 'accounts' and url_name == 'usuario_list' or app_name == 'accounts' and url_name == 'usuario_create' or app_name == 'accounts' and url_name == 'usuario_edit' %} active{% endif %}"{% if app_name == 'accounts' and url_name == 'usuario_list' or app_name == 'accounts' and url_name == 'usuario_create' or app_name == 'accounts' and url_name == 'usuario_edit' %} aria-current="page"{% endif %}>
         <i class="bi bi-people-fill text-primary"></i>
         <span>Gestão de Usuários</span>
       </a>
-      <a href="{% url 'enrollment:index' %}" class="sidebar-link">
+      <a href="{% url 'enrollment:index' %}" class="sidebar-link{% if app_name == 'enrollment' %} active{% endif %}"{% if app_name == 'enrollment' %} aria-current="page"{% endif %}>
         <i class="bi bi-person-lines-fill text-primary"></i>
         <span>Gestão de Matrículas</span>
       </a>
-      <a href="{% url 'communications:gestao' %}" class="sidebar-link">
+      <a href="{% url 'communications:gestao' %}" class="sidebar-link{% if app_name == 'communications' and url_name == 'gestao' or app_name == 'communications' and url_name == 'create' or app_name == 'communications' and url_name == 'update' %} active{% endif %}"{% if app_name == 'communications' and url_name == 'gestao' or app_name == 'communications' and url_name == 'create' or app_name == 'communications' and url_name == 'update' %} aria-current="page"{% endif %}>
         <i class="bi bi-sliders text-info"></i>
         <span>Gestão de Comunicados</span>
       </a>
-      <a href="{% url 'documents:index' %}" class="sidebar-link">
+      <a href="{% url 'documents:index' %}" class="sidebar-link{% if app_name == 'documents' %} active{% endif %}"{% if app_name == 'documents' %} aria-current="page"{% endif %}>
         <i class="bi bi-file-earmark-text text-primary"></i>
         <span>Documentos Oficiais</span>
       </a>
-      <a href="{% url 'finance:index' %}" class="sidebar-link">
+      <a href="{% url 'finance:index' %}" class="sidebar-link{% if app_name == 'finance' %} active{% endif %}"{% if app_name == 'finance' %} aria-current="page"{% endif %}>
         <i class="bi bi-cash-coin text-success"></i>
         <span>Financeiro</span>
       </a>
     {% endif %}
 
     {% if user.role == 'COORDENACAO' %}
-      <a href="{% url 'academics:index' %}" class="sidebar-link">
+      <a href="{% url 'academics:index' %}" class="sidebar-link{% if app_name == 'academics' and url_name == 'index' or app_name == 'academics' and url_name == 'curso_create' or app_name == 'academics' and url_name == 'curso_update' or app_name == 'academics' and url_name == 'disciplina_create' or app_name == 'academics' and url_name == 'disciplina_update' or app_name == 'academics' and url_name == 'turma_create' or app_name == 'academics' and url_name == 'turma_update' or app_name == 'academics' and url_name == 'turma_horarios' or app_name == 'academics' and url_name == 'pre_requisitos' %} active{% endif %}"{% if app_name == 'academics' and url_name == 'index' or app_name == 'academics' and url_name == 'curso_create' or app_name == 'academics' and url_name == 'curso_update' or app_name == 'academics' and url_name == 'disciplina_create' or app_name == 'academics' and url_name == 'disciplina_update' or app_name == 'academics' and url_name == 'turma_create' or app_name == 'academics' and url_name == 'turma_update' or app_name == 'academics' and url_name == 'turma_horarios' or app_name == 'academics' and url_name == 'pre_requisitos' %} aria-current="page"{% endif %}>
         <i class="bi bi-diagram-3 text-danger"></i>
         <span>Cursos & Disciplinas</span>
       </a>
@@ -94,33 +95,33 @@
         <i class="bi bi-person-badge text-info"></i>
         <span>Alocação Docente</span>
       </a>
-      <a href="{% url 'academics:relatorios' %}" class="sidebar-link">
+      <a href="{% url 'academics:relatorios' %}" class="sidebar-link{% if app_name == 'academics' and url_name == 'relatorios' %} active{% endif %}"{% if app_name == 'academics' and url_name == 'relatorios' %} aria-current="page"{% endif %}>
         <i class="bi bi-bar-chart-line text-success"></i>
         <span>Relatórios Acadêmicos</span>
       </a>
-      <a href="{% url 'materials:index' %}" class="sidebar-link">
+      <a href="{% url 'materials:index' %}" class="sidebar-link{% if app_name == 'materials' %} active{% endif %}"{% if app_name == 'materials' %} aria-current="page"{% endif %}>
         <i class="bi bi-folder2-open text-primary"></i>
         <span>Materiais Acadêmicos</span>
       </a>
-      <a href="{% url 'communications:gestao' %}" class="sidebar-link">
+      <a href="{% url 'communications:gestao' %}" class="sidebar-link{% if app_name == 'communications' and url_name == 'gestao' or app_name == 'communications' and url_name == 'create' or app_name == 'communications' and url_name == 'update' %} active{% endif %}"{% if app_name == 'communications' and url_name == 'gestao' or app_name == 'communications' and url_name == 'create' or app_name == 'communications' and url_name == 'update' %} aria-current="page"{% endif %}>
         <i class="bi bi-sliders text-info"></i>
         <span>Gestão de Comunicados</span>
       </a>
     {% endif %}
 
     {% if user.is_superuser or user.role == 'SECRETARIA' or user.role == 'COORDENACAO' %}
-      <a href="{% url 'academics:painel_gerencial' %}" class="sidebar-link">
+      <a href="{% url 'academics:painel_gerencial' %}" class="sidebar-link{% if app_name == 'academics' and url_name == 'painel_gerencial' %} active{% endif %}"{% if app_name == 'academics' and url_name == 'painel_gerencial' %} aria-current="page"{% endif %}>
         <i class="bi bi-speedometer2 text-success"></i>
         <span>Painel Gerencial</span>
       </a>
     {% endif %}
 
     {% if user.is_superuser or user.role == 'ALUNO' or user.role == 'SECRETARIA' or user.role == 'COORDENACAO' %}
-      <a href="{% url 'transfers:index' %}" class="sidebar-link">
+      <a href="{% url 'transfers:index' %}" class="sidebar-link{% if app_name == 'transfers' %} active{% endif %}"{% if app_name == 'transfers' %} aria-current="page"{% endif %}>
         <i class="bi bi-arrow-left-right text-primary"></i>
         <span>Transferências</span>
       </a>
-      <a href="{% url 'academics:aproveitamento_index' %}" class="sidebar-link">
+      <a href="{% url 'academics:aproveitamento_index' %}" class="sidebar-link{% if app_name == 'academics' and url_name == 'aproveitamento_index' or app_name == 'academics' and url_name == 'aproveitamento_criar' or app_name == 'academics' and url_name == 'aproveitamento_detalhe' %} active{% endif %}"{% if app_name == 'academics' and url_name == 'aproveitamento_index' or app_name == 'academics' and url_name == 'aproveitamento_criar' or app_name == 'academics' and url_name == 'aproveitamento_detalhe' %} aria-current="page"{% endif %}>
         <i class="bi bi-arrow-repeat text-primary"></i>
         <span>Aproveitamentos</span>
       </a>
@@ -130,10 +131,11 @@
       Minha Conta
     </div>
 
-    <a href="{% url 'accounts:change_password' %}" class="sidebar-link">
+    <a href="{% url 'accounts:change_password' %}" class="sidebar-link{% if app_name == 'accounts' and url_name == 'change_password' %} active{% endif %}"{% if app_name == 'accounts' and url_name == 'change_password' %} aria-current="page"{% endif %}>
       <i class="bi bi-key text-secondary"></i>
       <span>Alterar Senha</span>
     </a>
   </nav>
+  {% endwith %}
 </aside>
 {% endif %}
